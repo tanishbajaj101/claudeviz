@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ProblemContext, VisualizationData } from "@/types";
+import { generateVisualization, VisualizationRequest } from "./visualization-agent";
 
 const SYSTEM_PROMPT = `## Identity
 
@@ -43,14 +44,18 @@ You have their code. Use it. Say "On line 12, your inner loop..." not "In a nest
 - Pasted external solution → "Can you explain why this approach works?"
 
 ### 7. Visualization
-When a visual walkthrough would help (failing test case, pointer movement, state transitions), generate a visualization by including a JSON block in your response:
-\`\`\`visualization
+When a visual walkthrough would help (failing test case, pointer movement, state transitions), request a visualization by including a special marker in your response:
+
+\`\`\`vizrequest
 {
-  "type": "visualization",
-  "code": "<self-contained JavaScript using algorithm-visualizer tracers>",
-  "description": "<one-line summary>"
+  "algorithm": "<description of the user's approach or their code>",
+  "correctAlgorithm": "<optional: correct approach for comparison>",
+  "testCase": { "input": "...", "expectedOutput": "..." },
+  "highlight": "<what to emphasize — e.g. 'show where two pointers fails on unsorted array'>"
 }
 \`\`\`
+
+The Visualization Agent will generate tracer code and it will be automatically rendered.
 
 ## Style
 - Short, focused messages. No walls of text.
@@ -88,8 +93,8 @@ function buildContextMessage(ctx: ProblemContext): string {
   return parts.join("\n\n");
 }
 
-function extractVisualization(text: string): { cleanText: string; visualization: VisualizationData | undefined } {
-  const vizRegex = /```visualization\s*\n([\s\S]*?)\n```/;
+async function extractVisualization(text: string): Promise<{ cleanText: string; visualization: VisualizationData | undefined }> {
+  const vizRegex = /```vizrequest\s*\n([\s\S]*?)\n```/;
   const match = text.match(vizRegex);
 
   if (!match) {
@@ -97,16 +102,21 @@ function extractVisualization(text: string): { cleanText: string; visualization:
   }
 
   try {
-    const parsed = JSON.parse(match[1]) as VisualizationData;
-    if (parsed.type === "visualization" && parsed.code && parsed.description) {
-      const cleanText = text.replace(vizRegex, "").trim();
-      return { cleanText, visualization: parsed };
-    }
-  } catch {
-    // JSON parse failed — treat as normal text
-  }
+    const request = JSON.parse(match[1]) as VisualizationRequest;
 
-  return { cleanText: text, visualization: undefined };
+    // Call visualization agent to generate code
+    const visualization = await generateVisualization(request);
+
+    // Remove the vizrequest block from the text
+    const cleanText = text.replace(vizRegex, "").trim();
+
+    return { cleanText, visualization };
+  } catch (error) {
+    console.error("Failed to generate visualization:", error);
+    // On error, just remove the block and continue
+    const cleanText = text.replace(vizRegex, "").trim();
+    return { cleanText, visualization: undefined };
+  }
 }
 
 export async function getChatResponse(
@@ -128,7 +138,7 @@ export async function getChatResponse(
   ]);
 
   const content = typeof response.content === "string" ? response.content : "";
-  const { cleanText, visualization } = extractVisualization(content);
+  const { cleanText, visualization } = await extractVisualization(content);
 
   return { reply: cleanText, visualization };
 }
