@@ -3,42 +3,84 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { UserProfile, UserSubmission } from "@/types";
-import { getUserProfile, saveSubmission } from "@/lib/submissions";
 
 interface UseSubmissionsReturn {
   profile: UserProfile;
   solvedProblems: string[];
-  recordSubmission: (problemId: string, submission: UserSubmission) => void;
+  recordSubmission: (problemId: string, submission: UserSubmission) => Promise<void>;
+  loading: boolean;
 }
 
 export function useSubmissions(): UseSubmissionsReturn {
   const { data: session } = useSession();
-  const email = session?.user?.email ?? "";
 
   const [profile, setProfile] = useState<UserProfile>({
     solvedProblems: [],
     submissions: [],
   });
+  const [loading, setLoading] = useState(true);
 
-  // Load from localStorage on mount / when email changes
+  // Load from API on mount / when session changes
   useEffect(() => {
-    if (email) {
-      setProfile(getUserProfile(email));
+    async function fetchSubmissions() {
+      if (!session?.user?.dbUserId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/submissions");
+        if (response.ok) {
+          const data = await response.json();
+          setProfile({
+            solvedProblems: data.solvedProblems,
+            submissions: data.submissions,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch submissions:", error);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [email]);
+
+    fetchSubmissions();
+  }, [session?.user?.dbUserId]);
 
   const recordSubmission = useCallback(
-    (problemId: string, submission: UserSubmission) => {
-      if (!email) return;
-      const updated = saveSubmission(email, problemId, submission);
-      setProfile(updated);
+    async (problemId: string, submission: UserSubmission) => {
+      if (!session?.user?.dbUserId) return;
+
+      try {
+        const response = await fetch("/api/submissions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            problemId,
+            status: submission.status,
+            time: submission.time,
+            memory: submission.memory,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setProfile((prev) => ({
+            solvedProblems: data.solvedProblems,
+            submissions: [submission, ...prev.submissions],
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to record submission:", error);
+      }
     },
-    [email]
+    [session?.user?.dbUserId]
   );
 
   return {
     profile,
     solvedProblems: profile.solvedProblems,
     recordSubmission,
+    loading,
   };
 }

@@ -133,3 +133,23 @@ export interface UserSubmission {
   time: string | null;
   memory: number | null;
 }
+
+export interface DbUser {
+  id: number;
+  google_id: string;
+  email: string;
+  name: string;
+  username: string;
+  avatar_svg: string;
+  created_at: string;
+}
+
+export interface DbSubmission {
+  id: number;
+  user_id: number;
+  problem_id: string;
+  status: string;
+  time: string | null;
+  memory: number | null;
+  created_at: string;
+}

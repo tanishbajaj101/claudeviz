@@ -3,7 +3,9 @@
     "allow": [
       "Bash(cd:*)",
       "Bash(head:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

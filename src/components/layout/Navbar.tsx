@@ -2,7 +2,6 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
-import Image from "next/image";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -26,16 +25,13 @@ export function Navbar() {
                 href="/profile"
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
               >
-                {session.user.image && (
-                  <Image
-                    src={session.user.image}
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="rounded-full"
+                {session.user.avatarSvg && (
+                  <div
+                    className="w-6 h-6 rounded-full overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: session.user.avatarSvg }}
                   />
                 )}
-                <span className="font-mono">{session.user.name}</span>
+                <span className="font-mono">{session.user.username}</span>
               </Link>
               <button
                 onClick={() => signOut()}

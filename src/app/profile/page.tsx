@@ -47,19 +47,19 @@ export default function ProfilePage() {
     <main className="mx-auto max-w-4xl px-4 py-8">
       {/* Profile header */}
       <div className="mb-8 flex items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
-        {session.user.image && (
-          <Image
-            src={session.user.image}
-            alt=""
-            width={64}
-            height={64}
-            className="rounded-full"
+        {session.user.avatarSvg && (
+          <div
+            className="w-16 h-16 rounded-full overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: session.user.avatarSvg }}
           />
         )}
         <div>
           <h1 className="font-mono text-xl font-bold text-zinc-100">
             {session.user.name}
           </h1>
+          <p className="font-mono text-sm text-emerald-400">
+            @{session.user.username}
+          </p>
           <p className="font-mono text-sm text-zinc-500">
             {session.user.email}
           </p>
