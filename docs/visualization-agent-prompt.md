@@ -30,11 +30,12 @@ Return your response in this exact format:
 
 ```javascript
 // Your complete visualization code here
+// Use INPUTS object for all input data
 const tracer = new Array1DTracer('Title');
 const logger = new LogTracer('Steps');
 Layout.setRoot(new VerticalLayout([tracer, logger]));
 
-const arr = [1, 2, 3];
+const arr = INPUTS.arr;
 tracer.set(arr);
 Tracer.delay();
 
@@ -43,9 +44,17 @@ tracer.select(0);
 Tracer.delay();
 ```
 
+**Inputs:**
+```json
+[
+  { "name": "arr", "label": "Array", "type": "array", "defaultValue": [1, 2, 3] }
+]
+```
+
 **IMPORTANT:**
 - Start with exactly "**Description:**" on its own line
 - Put code in a ```javascript code block
+- After the code block, add "**Inputs:**" followed by a ```json block with input definitions
 - Code must be complete and self-contained
 - Do NOT wrap in JSON yourself
 
@@ -245,6 +254,31 @@ When showing a user's wrong approach, the logger should explicitly call out:
 ### 7. Self-Contained Code
 The output must run in isolation. No external dependencies. No DOM access. No `console.log`. No `setTimeout`.
 
+### 8. Use the INPUTS Object for All Input Data
+Never hardcode test case values directly in the code. Instead, reference the `INPUTS` object:
+
+**BAD — Hardcoded:**
+```javascript
+const nums = [2, 7, 11, 15];
+const target = 9;
+```
+
+**GOOD — Using INPUTS:**
+```javascript
+const nums = INPUTS.nums;
+const target = INPUTS.target;
+```
+
+Then define the inputs in the **Inputs:** JSON block:
+```json
+[
+  { "name": "nums", "label": "Array", "type": "array", "defaultValue": [2, 7, 11, 15] },
+  { "name": "target", "label": "Target Sum", "type": "number", "defaultValue": 9 }
+]
+```
+
+This allows users to change input values and re-run the visualization with different data.
+
 ## Examples
 
 ### Example 1: Binary Search (Correct Algorithm)
@@ -255,11 +289,10 @@ const tracer = new Array1DTracer('Binary Search');
 const logger = new LogTracer('Steps');
 Layout.setRoot(new VerticalLayout([tracer, logger]));
 
-const D = [2, 5, 8, 12, 16, 23, 38, 42, 56, 72, 91];
+const D = INPUTS.array;
+const element = INPUTS.target;
 tracer.set(D);
 Tracer.delay();
-
-const element = 23;
 
 // Introduction
 logger.println('BINARY SEARCH ALGORITHM');
@@ -324,6 +357,14 @@ while (lo <= hi) {
 }
 ```
 
+**Inputs:**
+```json
+[
+  { "name": "array", "label": "Sorted Array", "type": "array", "defaultValue": [2, 5, 8, 12, 16, 23, 38, 42, 56, 72, 91] },
+  { "name": "target", "label": "Target Element", "type": "number", "defaultValue": 23 }
+]
+```
+
 ### Example 2: Two Sum — Showing Hash Map (Correct)
 
 ```javascript
@@ -332,8 +373,8 @@ const tracer = new Array1DTracer('Array');
 const logger = new LogTracer('Steps');
 Layout.setRoot(new VerticalLayout([tracer, logger]));
 
-const nums = [2, 7, 11, 15];
-const target = 9;
+const nums = INPUTS.nums;
+const target = INPUTS.target;
 tracer.set(nums);
 Tracer.delay();
 
@@ -396,6 +437,14 @@ for (let i = 0; i < nums.length; i++) {
 }
 ```
 
+**Inputs:**
+```json
+[
+  { "name": "nums", "label": "Array", "type": "array", "defaultValue": [2, 7, 11, 15] },
+  { "name": "target", "label": "Target Sum", "type": "number", "defaultValue": 9 }
+]
+```
+
 ### Example 3: Two Sum — Showing User's WRONG Two-Pointer Approach
 
 This is the most important pattern — highlighting exactly where the user's logic breaks:
@@ -406,8 +455,8 @@ const tracer = new Array1DTracer('Array (unsorted!)');
 const logger = new LogTracer('Why Two Pointers Fails');
 Layout.setRoot(new VerticalLayout([tracer, logger]));
 
-const nums = [3, 2, 4];
-const target = 6;
+const nums = INPUTS.nums;
+const target = INPUTS.target;
 tracer.set(nums);
 Tracer.delay();
 
@@ -468,6 +517,14 @@ logger.println('WHY IT FAILED: Two pointers needs SORTED array');
 logger.println('This array [3,2,4] is UNSORTED');
 logger.println('Solution: Use hash map for O(n) lookup');
 Tracer.delay();
+```
+
+**Inputs:**
+```json
+[
+  { "name": "nums", "label": "Array", "type": "array", "defaultValue": [3, 2, 4] },
+  { "name": "target", "label": "Target Sum", "type": "number", "defaultValue": 6 }
+]
 ```
 
 ## Common Mistakes to Avoid

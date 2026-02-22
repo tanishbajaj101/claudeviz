@@ -15,6 +15,7 @@ import { Tracer } from '@/lib/tracers/tracer';
 export interface WorkerMessage {
   type: 'execute';
   code: string;
+  inputs?: Record<string, unknown>;
 }
 
 export interface WorkerResponse {
@@ -25,7 +26,7 @@ export interface WorkerResponse {
 
 // Handle messages from main thread
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
-  const { type, code } = event.data;
+  const { type, code, inputs } = event.data;
 
   if (type === 'execute') {
     try {
@@ -34,6 +35,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 
       // Create execution context with tracer library
       const context = {
+        INPUTS: inputs ?? {},
         Array1DTracer,
         Array2DTracer,
         GraphTracer,

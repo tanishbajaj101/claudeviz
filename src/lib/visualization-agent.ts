@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { VisualizationData } from "@/types";
+import { VisualizationData, VisualizationInput } from "@/types";
 import fs from "fs";
 import path from "path";
 
@@ -63,9 +63,23 @@ export async function generateVisualization(
       throw new Error("JavaScript code block is empty");
     }
 
+    // Extract inputs (optional)
+    let inputs: VisualizationInput[] | undefined;
+    const inputsMatch = content.match(/\*\*Inputs:\*\*\s*```json\s*([\s\S]*?)\s*```/);
+    if (inputsMatch) {
+      try {
+        inputs = JSON.parse(inputsMatch[1].trim());
+        console.log("✓ Inputs parsed:", inputs);
+      } catch (parseError) {
+        console.warn("Failed to parse inputs JSON, continuing without inputs:", parseError);
+        inputs = undefined;
+      }
+    }
+
     // Validate JavaScript syntax by attempting to create a function
+    // Code now references INPUTS, so pass it as a parameter
     try {
-      new Function(code);
+      new Function("INPUTS", code);
       console.log("✓ Visualization code validated successfully");
       console.log(`✓ Description: ${description}`);
     } catch (jsError) {
@@ -81,6 +95,7 @@ export async function generateVisualization(
       type: "visualization",
       code,
       description,
+      inputs,
     };
   } catch (error) {
     console.error("Failed to parse visualization response:", content.substring(0, 500));

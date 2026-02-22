@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Problem, ProblemContext, SubmissionResult } from "@/types";
 import { CodeEditor } from "@/components/editor/CodeEditor";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { useJudge } from "@/hooks/useJudge";
+import { useSubmissions } from "@/hooks/useSubmissions";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   3: { label: "Accepted", color: "text-emerald-400" },
@@ -22,7 +23,9 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const [code, setCode] = useState(problem.starterCode);
   const [activeTab, setActiveTab] = useState<"description" | "chat">("description");
   const [selectedTestCase, setSelectedTestCase] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const judge = useJudge();
+  const { solvedProblems, recordSubmission } = useSubmissions();
 
   const isAuthenticated = !!session?.user;
 
@@ -38,20 +41,38 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
       testCases: problem.testCases,
       codeContext: code,
       lastSubmissionResult: lastFailedResult,
-      previouslySolved: [],
+      previouslySolved: solvedProblems,
     }),
-    [problem, code, lastFailedResult]
+    [problem, code, lastFailedResult, solvedProblems]
   );
 
   const handleRun = useCallback(() => {
+    setIsSubmitting(false);
     const exampleCases = problem.testCases.slice(0, problem.examples.length);
     judge.submit(code, exampleCases, problem.judge0Limits);
   }, [code, problem, judge]);
 
   const handleSubmit = useCallback(() => {
     if (!isAuthenticated) return;
+    setIsSubmitting(true);
     judge.submit(code, problem.testCases, problem.judge0Limits);
   }, [code, problem, judge, isAuthenticated]);
+
+  // Record submission when judge finishes (only for Submit, not Run)
+  useEffect(() => {
+    if (!isSubmitting || judge.loading || judge.results.length === 0) return;
+
+    const bestResult = judge.results[0]; // use first result for time/memory
+    recordSubmission(problem.id, {
+      problemId: problem.id,
+      timestamp: new Date().toISOString(),
+      status: judge.allPassed ? "Accepted" : bestResult.status.description,
+      time: bestResult.time,
+      memory: bestResult.memory,
+    });
+
+    setIsSubmitting(false);
+  }, [judge.loading, judge.results, judge.allPassed, isSubmitting, problem.id, recordSubmission]);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">

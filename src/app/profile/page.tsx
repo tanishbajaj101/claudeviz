@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { getProblems } from "@/data/problems";
+import { useSubmissions } from "@/hooks/useSubmissions";
 import Image from "next/image";
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -16,6 +17,8 @@ export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const problems = getProblems();
+  const { profile } = useSubmissions();
+  const solvedSet = new Set(profile.solvedProblems);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -74,7 +77,7 @@ export default function ProfilePage() {
             <p
               className={`font-mono text-2xl font-bold ${DIFFICULTY_COLORS[diff].split(" ")[0]}`}
             >
-              0
+              {byDifficulty[diff].filter((p) => solvedSet.has(p.id)).length}
               <span className="text-sm text-zinc-600">
                 /{byDifficulty[diff].length}
               </span>
@@ -98,7 +101,7 @@ export default function ProfilePage() {
               >
                 <span className="font-mono text-sm text-zinc-300">{cat}</span>
                 <span className="font-mono text-xs text-zinc-500">
-                  0/{catProblems.length}
+                  {catProblems.filter((p) => solvedSet.has(p.id)).length}/{catProblems.length}
                 </span>
               </div>
             );
@@ -116,9 +119,16 @@ export default function ProfilePage() {
             <a
               key={p.id}
               href={`/problems/${p.id}`}
-              className={`flex flex-col items-center justify-center rounded-md border p-3 transition-colors hover:opacity-80 ${DIFFICULTY_COLORS[p.difficulty]}`}
+              className={`flex flex-col items-center justify-center rounded-md border p-3 transition-colors hover:opacity-80 ${
+                solvedSet.has(p.id)
+                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                  : DIFFICULTY_COLORS[p.difficulty]
+              }`}
             >
               <span className="font-mono text-xs">{p.title}</span>
+              {solvedSet.has(p.id) && (
+                <span className="font-mono text-xs text-emerald-500">✓</span>
+              )}
             </a>
           ))}
         </div>

@@ -1,6 +1,22 @@
 import { Judge0Limits, Judge0Result } from "@/types";
 
-const JUDGE0_API_URL = process.env.JUDGE0_API_URL ?? "";
+function normalizeApiUrl(url: string): string {
+  if (!url) return "";
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return `https://${url}`;
+  }
+  return url.replace(/\/+$/, ""); // trim trailing slashes
+}
+
+function getRapidApiHost(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return "";
+  }
+}
+
+const JUDGE0_API_URL = normalizeApiUrl(process.env.JUDGE0_API_URL ?? "");
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY ?? "";
 
 function toBase64(str: string): string {
@@ -40,7 +56,8 @@ export async function submitCode(params: SubmitParams): Promise<Judge0Result> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Auth-Token": JUDGE0_API_KEY,
+        "X-RapidAPI-Key": JUDGE0_API_KEY,
+        "X-RapidAPI-Host": getRapidApiHost(JUDGE0_API_URL),
       },
       body: JSON.stringify(body),
     }
@@ -67,7 +84,8 @@ async function pollResult(token: string): Promise<Judge0Result> {
       `${JUDGE0_API_URL}/submissions/${token}?base64_encoded=true&fields=status,stdout,stderr,compile_output,time,memory`,
       {
         headers: {
-          "X-Auth-Token": JUDGE0_API_KEY,
+          "X-RapidAPI-Key": JUDGE0_API_KEY,
+          "X-RapidAPI-Host": getRapidApiHost(JUDGE0_API_URL),
         },
       }
     );

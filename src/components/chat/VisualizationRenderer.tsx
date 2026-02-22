@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { VisualizationData } from "@/types";
-import { VisualizationPlayer } from "@/components/visualization";
+import { VisualizationPlayer, VisualizationInputEditor } from "@/components/visualization";
 import { executeVisualizationCode } from "@/components/visualization";
 import type { Command } from "@/lib/tracers";
 
@@ -11,24 +11,40 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function runVisualization() {
-      setLoading(true);
-      setError(null);
+  // Build default INPUTS from data.inputs
+  const [inputs, setInputs] = useState<Record<string, unknown>>(() => {
+    if (!data.inputs) return {};
 
-      const result = await executeVisualizationCode(data.code);
+    const defaultInputs: Record<string, unknown> = {};
+    data.inputs.forEach((input) => {
+      defaultInputs[input.name] = input.defaultValue;
+    });
+    return defaultInputs;
+  });
 
-      if (result.success && result.commands) {
-        setCommands(result.commands);
-      } else {
-        setError(result.error || 'Visualization failed');
-      }
+  const runVisualization = useCallback(async (inputValues: Record<string, unknown>) => {
+    setLoading(true);
+    setError(null);
 
-      setLoading(false);
+    const result = await executeVisualizationCode(data.code, inputValues);
+
+    if (result.success && result.commands) {
+      setCommands(result.commands);
+    } else {
+      setError(result.error || 'Visualization failed');
     }
 
-    runVisualization();
+    setLoading(false);
   }, [data.code]);
+
+  useEffect(() => {
+    runVisualization(inputs);
+  }, [data.code]); // Only run on mount or when code changes
+
+  const handleRerun = (newInputs: Record<string, unknown>) => {
+    setInputs(newInputs);
+    runVisualization(newInputs);
+  };
 
   if (loading) {
     return (
@@ -48,9 +64,14 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
   }
 
   return (
-    <div className="rounded-md border border-zinc-700 bg-zinc-900 p-3">
-      <p className="mb-3 font-mono text-xs text-zinc-400">{data.description}</p>
-      <VisualizationPlayer commands={commands} />
+    <div>
+      {data.inputs && data.inputs.length > 0 && (
+        <VisualizationInputEditor inputs={data.inputs} onRerun={handleRerun} />
+      )}
+      <div className="rounded-md border border-zinc-700 bg-zinc-900 p-3">
+        <p className="mb-3 font-mono text-xs text-zinc-400">{data.description}</p>
+        <VisualizationPlayer commands={commands} />
+      </div>
     </div>
   );
 }

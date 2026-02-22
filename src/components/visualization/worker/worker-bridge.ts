@@ -14,7 +14,10 @@ export interface ExecutionResult {
  * Execute visualization code in a web worker
  * Returns the captured tracer commands
  */
-export async function executeVisualizationCode(code: string): Promise<ExecutionResult> {
+export async function executeVisualizationCode(
+  code: string,
+  inputs?: Record<string, unknown>
+): Promise<ExecutionResult> {
   return new Promise((resolve) => {
     // Create worker from the compiled worker file
     const worker = new Worker(
@@ -46,6 +49,6 @@ export async function executeVisualizationCode(code: string): Promise<ExecutionR
     };
 
     // Send code to worker
-    worker.postMessage({ type: 'execute', code });
+    worker.postMessage({ type: 'execute', code, inputs });
   });
 }

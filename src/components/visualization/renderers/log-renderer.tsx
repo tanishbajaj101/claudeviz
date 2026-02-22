@@ -15,7 +15,9 @@ function processCommands(commands: Command[]): LogData {
   let log = '';
   let title: string | undefined;
 
-  const tracerKey = commands.find(c => c.key)?.key;
+  // Find the LogTracer's key specifically — prevents picking up Array1DTracer
+  // or other tracer keys, which would cause non-string args to reach log.split()
+  const tracerKey = commands.find(c => c.method === 'LogTracer')?.key;
 
   for (const command of commands) {
     if (command.key !== tracerKey && command.method !== 'LogTracer') continue;
@@ -28,7 +30,7 @@ function processCommands(commands: Command[]): LogData {
         break;
 
       case 'set':
-        log = args[0] || '';
+        log = String(args[0] ?? '');
         break;
 
       case 'print':
@@ -39,18 +41,16 @@ function processCommands(commands: Command[]): LogData {
         log += String(args[0]) + '\n';
         break;
 
-      case 'printf':
-        // Simple printf implementation
-        const format = args[0];
+      case 'printf': {
+        const format = String(args[0] ?? '');
         const printfArgs = args.slice(1);
         let result = format;
-
-        printfArgs.forEach((arg: any, i: number) => {
+        printfArgs.forEach((arg: unknown) => {
           result = result.replace(/%[sdif]/, String(arg));
         });
-
         log += result;
         break;
+      }
     }
   }
 
