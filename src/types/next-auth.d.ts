@@ -9,7 +9,6 @@ declare module "next-auth" {
       image: string;
       googleId: string;
       username?: string;
-      avatarSvg?: string;
       isNewUser?: boolean;
       dbUserId?: number;
     };
@@ -23,7 +22,6 @@ declare module "next-auth/jwt" {
     picture: string;
     sub: string;
     username?: string;
-    avatarSvg?: string;
     isNewUser?: boolean;
     dbUserId?: number;
   }

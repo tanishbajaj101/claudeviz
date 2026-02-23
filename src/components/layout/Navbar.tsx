@@ -25,10 +25,11 @@ export function Navbar() {
                 href="/profile"
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
               >
-                {session.user.avatarSvg && (
-                  <div
-                    className="w-6 h-6 rounded-full overflow-hidden"
-                    dangerouslySetInnerHTML={{ __html: session.user.avatarSvg }}
+                {session.user.username && (
+                  <img
+                    src={`/api/users/avatar?username=${session.user.username}`}
+                    alt="User Avatar"
+                    className="w-6 h-6 rounded-full"
                   />
                 )}
                 <span className="font-mono">{session.user.username}</span>

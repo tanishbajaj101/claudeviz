@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
       session.user.image = token.picture;
       session.user.googleId = token.sub;
       session.user.username = token.username;
-      session.user.avatarSvg = token.avatarSvg;
       session.user.isNewUser = token.isNewUser;
       session.user.dbUserId = token.dbUserId;
       return session;
@@ -31,7 +30,6 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.name = dbUser.name;
           token.username = dbUser.username;
-          token.avatarSvg = dbUser.avatar_svg;
           token.dbUserId = dbUser.id;
           token.isNewUser = false;
         } else {
@@ -46,7 +44,6 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.name = dbUser.name;
           token.username = dbUser.username;
-          token.avatarSvg = dbUser.avatar_svg;
           token.dbUserId = dbUser.id;
           token.isNewUser = false;
         }

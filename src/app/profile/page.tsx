@@ -47,10 +47,11 @@ export default function ProfilePage() {
     <main className="mx-auto max-w-4xl px-4 py-8">
       {/* Profile header */}
       <div className="mb-8 flex items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
-        {session.user.avatarSvg && (
-          <div
-            className="w-16 h-16 rounded-full overflow-hidden"
-            dangerouslySetInnerHTML={{ __html: session.user.avatarSvg }}
+        {session.user.username && (
+          <img
+            src={`/api/users/avatar?username=${session.user.username}`}
+            alt="User Avatar"
+            className="w-16 h-16 rounded-full"
           />
         )}
         <div>
@@ -119,11 +120,10 @@ export default function ProfilePage() {
             <a
               key={p.id}
               href={`/problems/${p.id}`}
-              className={`flex flex-col items-center justify-center rounded-md border p-3 transition-colors hover:opacity-80 ${
-                solvedSet.has(p.id)
+              className={`flex flex-col items-center justify-center rounded-md border p-3 transition-colors hover:opacity-80 ${solvedSet.has(p.id)
                   ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
                   : DIFFICULTY_COLORS[p.difficulty]
-              }`}
+                }`}
             >
               <span className="font-mono text-xs">{p.title}</span>
               {solvedSet.has(p.id) && (
