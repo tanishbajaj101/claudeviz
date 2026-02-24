@@ -52,6 +52,25 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
     fetchSolvedStatus();
   }, [problem.id, isAuthenticated]);
 
+  // Track problem view activity for friends list
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const trackActivity = async () => {
+      try {
+        await fetch("/api/users/activity/problem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ problem_id: problem.id }),
+        });
+      } catch (err) {
+        console.error("Failed to track problem activity:", err);
+      }
+    };
+
+    trackActivity();
+  }, [problem.id, isAuthenticated]);
+
   const lastFailedResult = useMemo<SubmissionResult | null>(() => {
     if (judge.results.length === 0) return null;
     return judge.results.find((r) => !r.passed) ?? judge.results[0];
@@ -105,21 +124,19 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
         <div className="flex border-b border-zinc-800">
           <button
             onClick={() => setActiveTab("description")}
-            className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${
-              activeTab === "description"
+            className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "description"
                 ? "border-b-2 border-emerald-500 text-emerald-400"
                 : "text-zinc-500 hover:text-zinc-300"
-            }`}
+              }`}
           >
             Description
           </button>
           <button
             onClick={() => setActiveTab("chat")}
-            className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${
-              activeTab === "chat"
+            className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "chat"
                 ? "border-b-2 border-emerald-500 text-emerald-400"
                 : "text-zinc-500 hover:text-zinc-300"
-            }`}
+              }`}
           >
             AI Coach
           </button>
@@ -207,16 +224,14 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
                     <button
                       key={i}
                       onClick={() => setSelectedTestCase(i)}
-                      className={`rounded px-2 py-1 font-mono text-xs transition-colors ${
-                        selectedTestCase === i
+                      className={`rounded px-2 py-1 font-mono text-xs transition-colors ${selectedTestCase === i
                           ? "bg-zinc-700 text-zinc-200"
                           : "text-zinc-500 hover:text-zinc-300"
-                      }`}
+                        }`}
                     >
                       <span
-                        className={`mr-1 inline-block h-2 w-2 rounded-full ${
-                          r.passed ? "bg-emerald-400" : "bg-red-400"
-                        }`}
+                        className={`mr-1 inline-block h-2 w-2 rounded-full ${r.passed ? "bg-emerald-400" : "bg-red-400"
+                          }`}
                       />
                       Case {i + 1}
                     </button>

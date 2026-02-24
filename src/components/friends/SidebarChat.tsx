@@ -121,7 +121,9 @@ export function SidebarChat() {
 
     // Real-time: new messages
     useSocketEvent(socket, "message:new", (payload) => {
-        const p = (payload as MessageNewPayload).message;
+        // The server emits ApiMessage (snake_case), so we need to map it
+        const rawMsg = (payload as unknown as { message: ApiMessage }).message;
+        const p = apiToPayload(rawMsg);
         if (p.conversationId !== convId) return;
         setMessages((prev) => {
             if (prev.some((m) => m.id === p.id)) return prev;
@@ -219,9 +221,23 @@ export function SidebarChat() {
                     </div>
                 )}
 
-                <span className="flex-1 truncate text-sm font-semibold text-zinc-100">
-                    {activeFriend?.username}
-                </span>
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <span className="truncate text-sm font-semibold text-zinc-100">
+                        {activeFriend?.username}
+                    </span>
+                    {activeFriend?.last_problem_activity && (
+                        <p className="truncate text-xs text-zinc-500">
+                            {activeFriend.last_problem_activity.status === "solved" ? "solved" : "solving"}{" "}
+                            <a
+                                href={`/problems/${activeFriend.last_problem_activity.problem_id}`}
+                                className="text-emerald-400/80 hover:text-emerald-400"
+                            >
+                                {activeFriend.last_problem_activity.problem_name}
+                            </a>
+                            {activeFriend.last_problem_activity.status === "solving" && "..."}
+                        </p>
+                    )}
+                </div>
 
                 <button
                     onClick={handleExpand}

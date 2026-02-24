@@ -108,7 +108,9 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
 
     // Real-time new messages
     useSocketEvent(socket, "message:new", (payload) => {
-        const p = (payload as MessageNewPayload).message;
+        // The server emits ApiMessage (snake_case), so we need to map it
+        const rawMsg = (payload as unknown as { message: ApiMessage }).message;
+        const p = apiToPayload(rawMsg);
         if (p.conversationId !== conversationId) return;
         setMessages((prev) => {
             if (prev.some((m) => m.id === p.id)) return prev;

@@ -8,10 +8,12 @@ import { useFriends, type FriendEntry } from "./FriendsContext";
 function formatLastActive(lastActive: string | null): string {
     if (!lastActive) return "long ago";
     const diff = Date.now() - new Date(lastActive).getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(days / 7);
-    if (hours < 1) return "just now";
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}d`;
     return `${weeks}w`;
