@@ -21,13 +21,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { type NotificationType } from "@prisma/client";
 import { emitNotification } from "@/lib/socket/notification-helpers";
-
-// friend_request_accepted is stored as a string in SQLite — cast to NotificationType
-// so the Prisma client accepts it without error.
-const FRIEND_REQUEST_ACCEPTED =
-  "friend_request_accepted" as unknown as NotificationType;
 
 export async function POST(
   _req: NextRequest,
@@ -82,11 +76,21 @@ export async function POST(
       );
     }
 
-    // Accept + notify the original sender in one transaction
+    // Accept + notify the original sender + delete original request notification in one transaction
     const { notification } = await prisma.$transaction(async (tx) => {
       await tx.friendRequest.update({
         where: { id: friendRequestId },
         data: { status: "accepted" },
+      });
+
+      // Delete the original friend_request notification
+      await tx.notification.deleteMany({
+        where: {
+          type: "friend_request",
+          data: {
+            contains: friendRequestId,
+          },
+        },
       });
 
       const notifData = {
@@ -98,7 +102,7 @@ export async function POST(
       const notif = await tx.notification.create({
         data: {
           user_id: friendRequest.sender_id,
-          type: FRIEND_REQUEST_ACCEPTED,
+          type: "friend_request_accepted",
           data: JSON.stringify(notifData),
           is_read: false,
         },
@@ -120,7 +124,11 @@ export async function POST(
       `[POST /api/friends/${friendRequestId}/accept] user ${userId} accepted request from user ${friendRequest.sender_id}`
     );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      sender_id: friendRequest.sender_id,
+      receiver_id: userId
+    });
   } catch (error) {
     console.error(
       `[POST /api/friends/${friendRequestId}/accept] Error:`,

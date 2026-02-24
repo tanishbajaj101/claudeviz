@@ -1,56 +1,57 @@
 import { useState } from "react";
-import { UserPlus, Trophy, CircleDot } from "lucide-react";
+import { UserPlus, Trophy, CircleDot, CheckCircle2 } from "lucide-react";
 import { DbNotification } from "./NotificationsDropdown";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export function NotificationItem({
   notification,
-  onUpdate
+  onUpdate,
+  onRemove,
 }: {
   notification: DbNotification;
-  onUpdate: (id: number, read: boolean) => void;
+  onUpdate: (id: string, is_read: boolean) => void;
+  onRemove: (id: string) => void;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [actionResult, setActionResult] = useState<string | null>(null);
 
-  const { type, payload, read } = notification;
+  const { type, data, is_read } = notification;
 
   const markRead = async () => {
-    if (read) return;
+    if (is_read) return;
     try {
-      await fetch("/api/notifications/read", {
+      await fetch(`/api/notifications/${notification.id}/read`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [notification.id] })
       });
       onUpdate(notification.id, true);
-    } catch (e) { }
+    } catch (e) {
+      console.error("Failed to mark notification as read:", e);
+    }
   };
 
-  const handleFriendRespond = async (status: 'accepted' | 'rejected') => {
+  const handleFriendRespond = async (status: "accepted" | "rejected") => {
     setLoading(true);
     try {
-      // Need the friendship id, but we might only have requester_id in payload.
-      // Assuming payload has friendshipId or we fetch it... let's assume we call a robust API
-      // Actually, standard API expects friendship_id. 
-      // If our payload from createNotification for friend request doesn't have friendship_id, 
-      // we can update db.ts to include it. Let's assume payload.friendship_id exists or
-      // we adjust the API to accept requester_id. For now, we simulate.
-      // Wait, let's just make the /api/friends/respond call and pass requester_id to be safe?
-      // Actually, we'll need to fix this if it errors. Let's assume we pass what we have.
-      const res = await fetch("/api/friends/respond", {
+      const friendRequestId = data.friend_request_id as string;
+      if (!friendRequestId) {
+        console.error("No friend request ID in notification data");
+        return;
+      }
+
+      const endpoint =
+        status === "accepted"
+          ? `/api/friends/${friendRequestId}/accept`
+          : `/api/friends/${friendRequestId}/reject`;
+
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Hack: in a real app, payload should include friendship_id. 
-        // We'll pass the components to the API differently if needed.
-        body: JSON.stringify({ requester_id: payload.requester_id, status })
       });
 
       if (res.ok) {
-        setActionResult(status === 'accepted' ? 'Accepted' : 'Declined');
-        markRead();
+        // Remove the notification from UI immediately
+        onRemove(notification.id);
       }
     } finally {
       setLoading(false);
@@ -60,92 +61,161 @@ export function NotificationItem({
   const handleContestJoin = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/contests/${payload.contest_id}/join`, {
+      const contestId = data.contest_id as string;
+      const res = await fetch(`/api/contests/${contestId}/join`, {
         method: "POST",
       });
       if (res.ok) {
-        setActionResult('Joined Contest!');
+        setActionResult("Joined Contest!");
         markRead();
-        router.push(`/contests/${payload.contest_id}`);
+        router.push(`/contests/${contestId}`);
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClick = () => {
+    if (!is_read) {
+      if (type === "friend_online") {
+        markRead();
+      } else if (type === "friend_request_accepted") {
+        markRead();
+        const username = data.username as string;
+        if (username) {
+          router.push(`/profile/${username}`);
+        }
+      }
+    }
+  };
+
   return (
     <div
-      className={`flex flex-col gap-2 rounded-md p-3 transition-colors ${read ? 'opacity-60 bg-transparent hover:bg-zinc-900/50' : 'bg-zinc-900 border-l-2 border-emerald-500 hover:bg-zinc-800'
-        }`}
-      onClick={() => {
-        if (!read && type === 'friend_online') markRead();
-      }}
+      className={`flex cursor-pointer flex-col gap-2 rounded-md p-3 transition-colors ${
+        is_read
+          ? "bg-transparent opacity-60 hover:bg-zinc-900/50"
+          : "border-l-2 border-emerald-500 bg-zinc-900 hover:bg-zinc-800"
+      }`}
+      onClick={handleClick}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div className="mt-0.5 flex-shrink-0">
-          {type === 'friend_request' && <UserPlus size={16} className="text-blue-400" />}
-          {type === 'friend_online' && <CircleDot size={16} className="text-emerald-500 fill-emerald-500" />}
-          {type === 'contest_invite' && <Trophy size={16} className="text-yellow-500" />}
+          {type === "friend_request" && (
+            <UserPlus size={16} className="text-blue-400" />
+          )}
+          {type === "friend_online" && (
+            <CircleDot size={16} className="fill-emerald-500 text-emerald-500" />
+          )}
+          {type === "friend_request_accepted" && (
+            <CheckCircle2 size={16} className="text-emerald-400" />
+          )}
+          {type === "contest_invite" && (
+            <Trophy size={16} className="text-yellow-500" />
+          )}
         </div>
 
         {/* Content */}
         <div className="flex-1">
           <p className="text-sm text-zinc-200">
-            {type === 'friend_request' && (
-              <span><span className="font-semibold text-zinc-100">{payload.username}</span> sent you a friend request</span>
+            {type === "friend_request" && (
+              <span>
+                <span className="font-semibold text-zinc-100">
+                  {data.username as string}
+                </span>{" "}
+                sent you a friend request
+              </span>
             )}
-            {type === 'friend_online' && (
-              <Link href={`/profile/${payload.username || ''}`} className="hover:underline">
-                <span className="font-semibold text-zinc-100">{payload.username}</span> is now online
+            {type === "friend_online" && (
+              <Link
+                href={`/profile/${data.username as string}`}
+                className="hover:underline"
+              >
+                <span className="font-semibold text-zinc-100">
+                  {data.username as string}
+                </span>{" "}
+                is now online
               </Link>
             )}
-            {type === 'contest_invite' && (
-              <span><span className="font-semibold text-zinc-100">{payload.inviter_username}</span> invited you to a contest</span>
+            {type === "friend_request_accepted" && (
+              <span>
+                <span className="font-semibold text-zinc-100">
+                  {data.username as string}
+                </span>{" "}
+                accepted your friend request
+              </span>
+            )}
+            {type === "contest_invite" && (
+              <span>
+                <span className="font-semibold text-zinc-100">
+                  {data.inviter_username as string}
+                </span>{" "}
+                invited you to{" "}
+                <span className="font-semibold text-zinc-100">
+                  {data.contest_name as string}
+                </span>
+              </span>
             )}
           </p>
 
-          <span className="text-xs text-zinc-500 block mt-1">
-            {new Date(notification.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+          <span className="mt-1 block text-xs text-zinc-500">
+            {new Date(notification.created_at).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
           </span>
         </div>
       </div>
 
       {/* Actions */}
-      {!read && !actionResult && (
-        <div className="ml-7 flex items-center gap-2 mt-1">
-          {type === 'friend_request' && (
+      {!is_read && !actionResult && (
+        <div className="ml-7 mt-1 flex items-center gap-2">
+          {type === "friend_request" && (
             <>
               <button
                 disabled={loading}
-                onClick={() => handleFriendRespond('accepted')}
-                className="rounded bg-emerald-600/20 text-emerald-500 hover:bg-emerald-600/30 px-3 py-1 text-xs font-semibold disabled:opacity-50 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFriendRespond("accepted");
+                }}
+                className="rounded bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-500 transition-colors hover:bg-emerald-600/30 disabled:opacity-50"
               >
                 Accept
               </button>
               <button
                 disabled={loading}
-                onClick={() => handleFriendRespond('rejected')}
-                className="rounded text-red-400 hover:bg-red-400/10 px-3 py-1 text-xs font-semibold disabled:opacity-50 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFriendRespond("rejected");
+                }}
+                className="rounded px-3 py-1 text-xs font-semibold text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
               >
                 Decline
               </button>
             </>
           )}
 
-          {type === 'contest_invite' && (
+          {type === "contest_invite" && (
             <>
               <button
                 disabled={loading}
-                onClick={handleContestJoin}
-                className="rounded bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 px-3 py-1 text-xs font-semibold disabled:opacity-50 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContestJoin();
+                }}
+                className="rounded bg-yellow-500/20 px-3 py-1 text-xs font-semibold text-yellow-500 transition-colors hover:bg-yellow-500/30 disabled:opacity-50"
               >
                 Join
               </button>
               <button
                 disabled={loading}
-                onClick={() => markRead()}
-                className="rounded text-zinc-400 hover:bg-zinc-800 px-3 py-1 text-xs font-semibold disabled:opacity-50 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markRead();
+                }}
+                className="rounded px-3 py-1 text-xs font-semibold text-zinc-400 transition-colors hover:bg-zinc-800 disabled:opacity-50"
               >
                 Dismiss
               </button>
@@ -155,10 +225,11 @@ export function NotificationItem({
       )}
 
       {actionResult && (
-        <div className="ml-7 text-xs font-mono font-semibold text-zinc-400">
+        <div className="ml-7 font-mono text-xs font-semibold text-zinc-400">
           {actionResult}
         </div>
       )}
     </div>
   );
 }
+

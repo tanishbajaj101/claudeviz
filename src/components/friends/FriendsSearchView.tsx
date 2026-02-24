@@ -87,7 +87,7 @@ export function FriendsSearchView() {
                         {results.map((user) => (
                             <button
                                 key={user.id}
-                                onClick={() => router.push(`/profile/${user.id}`)}
+                                onClick={() => router.push(`/profile/${user.username}`)}
                                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left opacity-60 hover:opacity-80 transition-opacity hover:bg-zinc-800/40"
                             >
                                 {/* Avatar */}

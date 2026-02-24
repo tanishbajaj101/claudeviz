@@ -36,7 +36,21 @@ export function DiscussionTab({
   const { socket, isConnected } = useChatSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const status = getContestStatus(startsAt, durationMinutes);
+  // Recompute contest status periodically so UI updates at boundaries
+  const [status, setStatus] = useState<ContestStatus>(() =>
+    getContestStatus(startsAt, durationMinutes)
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newStatus = getContestStatus(startsAt, durationMinutes);
+      setStatus((prev) => {
+        if (prev !== newStatus) return newStatus;
+        return prev;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startsAt, durationMinutes]);
 
   // Fetch messages
   useEffect(() => {
@@ -47,12 +61,12 @@ export function DiscussionTab({
       .then((data) => {
         const messagesList = data.messages || [];
         setMessages(
-          messagesList.map((m: any) => ({
-            id: m.id,
-            senderId: m.senderId,
-            senderUsername: m.senderUsername,
-            content: m.content,
-            createdAt: m.createdAt,
+          messagesList.map((m: Record<string, unknown>) => ({
+            id: m.id as string,
+            senderId: (m.sender_id ?? m.senderId) as number,
+            senderUsername: (m.sender_username ?? m.senderUsername) as string,
+            content: m.content as string,
+            createdAt: (m.created_at ?? m.createdAt) as string,
           }))
         );
         setLoading(false);
@@ -66,24 +80,38 @@ export function DiscussionTab({
   // Join conversation room when socket connects
   useEffect(() => {
     if (socket && isConnected && conversationId) {
-      // Socket.IO will automatically join the room when we subscribe
+      // Join the conversation room so we receive message:new broadcasts
+      socket.emit("conversation:join", { conversationId }, (result) => {
+        if (!result.ok) {
+          console.warn("[DiscussionTab] Failed to join conversation room:", result.error);
+        }
+      });
+
+      return () => {
+        socket.emit("conversation:leave", { conversationId }, () => {});
+      };
     }
   }, [socket, isConnected, conversationId]);
 
   // Listen for new messages
   useSocketEvent(socket, "message:new", (payload: unknown) => {
     const data = payload as MessageNewPayload;
-    if (data.message.conversationId === conversationId) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: data.message.id,
-          senderId: data.message.senderId,
-          senderUsername: data.message.senderUsername,
-          content: data.message.content,
-          createdAt: data.message.createdAt,
-        },
-      ]);
+    const msg = data.message;
+    if (msg.conversationId === conversationId) {
+      setMessages((prev) => {
+        // Deduplicate: avoid adding if already present (from POST response)
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [
+          ...prev,
+          {
+            id: msg.id,
+            senderId: msg.senderId,
+            senderUsername: msg.senderUsername,
+            content: msg.content,
+            createdAt: msg.createdAt,
+          },
+        ];
+      });
     }
   });
 

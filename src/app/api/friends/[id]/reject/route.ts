@@ -71,9 +71,22 @@ export async function POST(
       );
     }
 
-    await prisma.friendRequest.update({
-      where: { id: friendRequestId },
-      data: { status: "rejected" },
+    // Reject and delete original notification in one transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.friendRequest.update({
+        where: { id: friendRequestId },
+        data: { status: "rejected" },
+      });
+
+      // Delete the original friend_request notification
+      await tx.notification.deleteMany({
+        where: {
+          type: "friend_request",
+          data: {
+            contains: friendRequestId,
+          },
+        },
+      });
     });
 
     console.log(

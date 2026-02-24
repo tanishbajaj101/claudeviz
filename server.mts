@@ -25,7 +25,8 @@
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
-import { getSocketServer } from "./src/lib/socket/server.js";
+import * as serverModule from "./src/lib/socket/server";
+const getSocketServer = (serverModule as any).getSocketServer || (serverModule as any).default?.getSocketServer;
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME ?? "localhost";

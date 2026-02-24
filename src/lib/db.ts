@@ -28,7 +28,7 @@ export interface DbSubmission {
 
 let db: Database.Database | null = null;
 
-function getDb(): Database.Database {
+export function getDb(): Database.Database {
   if (!db) {
     const dbDir = path.join(process.cwd(), "data");
     if (!fs.existsSync(dbDir)) {

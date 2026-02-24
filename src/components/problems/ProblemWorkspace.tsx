@@ -5,8 +5,10 @@ import { useSession } from "next-auth/react";
 import { Problem, ProblemContext, SubmissionResult } from "@/types";
 import { CodeEditor } from "@/components/editor/CodeEditor";
 import { ChatPanel } from "@/components/chat/ChatPanel";
+import { RecommendModal } from "@/components/problems/RecommendModal";
 import { useJudge } from "@/hooks/useJudge";
 import { useSubmissions } from "@/hooks/useSubmissions";
+import { Share2 } from "lucide-react";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   3: { label: "Accepted", color: "text-emerald-400" },
@@ -24,10 +26,31 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const [activeTab, setActiveTab] = useState<"description" | "chat">("description");
   const [selectedTestCase, setSelectedTestCase] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [solvedStatus, setSolvedStatus] = useState<{ solved: boolean; solved_at: string | null } | null>(null);
+  const [showRecommendModal, setShowRecommendModal] = useState(false);
   const judge = useJudge();
   const { solvedProblems, recordSubmission } = useSubmissions();
 
   const isAuthenticated = !!session?.user;
+
+  // Fetch solved status on mount
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchSolvedStatus = async () => {
+      try {
+        const res = await fetch(`/api/problems/${problem.id}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          setSolvedStatus(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch solved status:", err);
+      }
+    };
+
+    fetchSolvedStatus();
+  }, [problem.id, isAuthenticated]);
 
   const lastFailedResult = useMemo<SubmissionResult | null>(() => {
     if (judge.results.length === 0) return null;
@@ -105,7 +128,12 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
         {/* Tab content */}
         {activeTab === "description" ? (
           <div className="flex-1 overflow-y-auto p-5">
-            <ProblemDescription problem={problem} />
+            <ProblemDescription
+              problem={problem}
+              solvedStatus={solvedStatus}
+              onRecommend={() => setShowRecommendModal(true)}
+              isAuthenticated={isAuthenticated}
+            />
           </div>
         ) : (
           <div className="flex-1 overflow-hidden">
@@ -116,6 +144,15 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
           </div>
         )}
       </div>
+
+      {/* Recommend Modal */}
+      {showRecommendModal && session?.user?.dbUserId && (
+        <RecommendModal
+          problem={problem}
+          currentUserId={session.user.dbUserId as number}
+          onClose={() => setShowRecommendModal(false)}
+        />
+      )}
 
       {/* RIGHT PANEL */}
       <div className="flex flex-1 flex-col">
@@ -205,7 +242,17 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   );
 }
 
-function ProblemDescription({ problem }: { problem: Problem }) {
+function ProblemDescription({
+  problem,
+  solvedStatus,
+  onRecommend,
+  isAuthenticated,
+}: {
+  problem: Problem;
+  solvedStatus: { solved: boolean; solved_at: string | null } | null;
+  onRecommend: () => void;
+  isAuthenticated: boolean;
+}) {
   const difficultyColor =
     problem.difficulty === "Easy"
       ? "text-emerald-400"
@@ -216,9 +263,33 @@ function ProblemDescription({ problem }: { problem: Problem }) {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-mono text-xl font-bold text-zinc-100">
-          {problem.title}
-        </h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="font-mono text-xl font-bold text-zinc-100">
+              {problem.title}
+            </h1>
+            {solvedStatus?.solved && (
+              <div
+                className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1"
+                title={`You solved this problem on ${new Date(solvedStatus.solved_at!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
+              >
+                <span className="font-mono text-xs font-medium text-emerald-400">
+                  Solved ✓
+                </span>
+              </div>
+            )}
+          </div>
+          {isAuthenticated && (
+            <button
+              onClick={onRecommend}
+              className="flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800/50 px-3 py-1.5 font-mono text-xs text-zinc-300 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400"
+              title="Recommend to a friend"
+            >
+              <Share2 size={14} />
+              <span>Recommend</span>
+            </button>
+          )}
+        </div>
         <span className={`font-mono text-sm font-medium ${difficultyColor}`}>
           {problem.difficulty}
         </span>

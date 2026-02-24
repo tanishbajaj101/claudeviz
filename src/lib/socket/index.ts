@@ -77,6 +77,8 @@ export type {
   MessageMarkReadPayload,
   TypingStartPayload,
   TypingStopPayload,
+  ConversationJoinPayload,
+  ConversationLeavePayload,
   ChatServerToClientEvents,
   ChatClientToServerEvents,
   // Contests

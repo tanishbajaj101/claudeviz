@@ -3,28 +3,23 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { getProblems } from "@/data/problems";
-import { useSubmissions } from "@/hooks/useSubmissions";
-import Image from "next/image";
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  Easy: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
-  Medium: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-  Hard: "text-red-400 border-red-500/30 bg-red-500/10",
-};
+import { ProfileClient } from "@/components/profile/ProfileClient";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const problems = getProblems();
-  const { profile } = useSubmissions();
-  const solvedSet = new Set(profile.solvedProblems);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
+      return;
     }
-  }, [status, router]);
+
+    // Redirect to username-based profile if authenticated
+    if (status === "authenticated" && session?.user?.username) {
+      router.push(`/profile/${session.user.username}`);
+    }
+  }, [status, session, router]);
 
   if (status === "loading") {
     return (
@@ -34,105 +29,6 @@ export default function ProfilePage() {
     );
   }
 
-  if (!session?.user) return null;
-
-  const categories = Array.from(new Set(problems.map((p) => p.category)));
-  const byDifficulty = {
-    Easy: problems.filter((p) => p.difficulty === "Easy"),
-    Medium: problems.filter((p) => p.difficulty === "Medium"),
-    Hard: problems.filter((p) => p.difficulty === "Hard"),
-  };
-
-  return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      {/* Profile header */}
-      <div className="mb-8 flex items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
-        {session.user.username && (
-          <img
-            src={`/api/users/avatar?username=${session.user.username}`}
-            alt="User Avatar"
-            className="w-16 h-16 rounded-full"
-          />
-        )}
-        <div>
-          <h1 className="font-mono text-xl font-bold text-zinc-100">
-            {session.user.name}
-          </h1>
-          <p className="font-mono text-sm text-emerald-400">
-            @{session.user.username}
-          </p>
-          <p className="font-mono text-sm text-zinc-500">
-            {session.user.email}
-          </p>
-        </div>
-      </div>
-
-      {/* Stats grid */}
-      <div className="mb-8 grid grid-cols-3 gap-4">
-        {(["Easy", "Medium", "Hard"] as const).map((diff) => (
-          <div
-            key={diff}
-            className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4"
-          >
-            <p className="font-mono text-xs text-zinc-500">{diff}</p>
-            <p
-              className={`font-mono text-2xl font-bold ${DIFFICULTY_COLORS[diff].split(" ")[0]}`}
-            >
-              {byDifficulty[diff].filter((p) => solvedSet.has(p.id)).length}
-              <span className="text-sm text-zinc-600">
-                /{byDifficulty[diff].length}
-              </span>
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Category breakdown */}
-      <div className="mb-8">
-        <h2 className="mb-4 font-mono text-lg font-bold text-zinc-200">
-          Categories
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          {categories.map((cat) => {
-            const catProblems = problems.filter((p) => p.category === cat);
-            return (
-              <div
-                key={cat}
-                className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-3"
-              >
-                <span className="font-mono text-sm text-zinc-300">{cat}</span>
-                <span className="font-mono text-xs text-zinc-500">
-                  {catProblems.filter((p) => solvedSet.has(p.id)).length}/{catProblems.length}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Problem grid */}
-      <div>
-        <h2 className="mb-4 font-mono text-lg font-bold text-zinc-200">
-          All Problems
-        </h2>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-          {problems.map((p) => (
-            <a
-              key={p.id}
-              href={`/problems/${p.id}`}
-              className={`flex flex-col items-center justify-center rounded-md border p-3 transition-colors hover:opacity-80 ${solvedSet.has(p.id)
-                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-                  : DIFFICULTY_COLORS[p.difficulty]
-                }`}
-            >
-              <span className="font-mono text-xs">{p.title}</span>
-              {solvedSet.has(p.id) && (
-                <span className="font-mono text-xs text-emerald-500">✓</span>
-              )}
-            </a>
-          ))}
-        </div>
-      </div>
-    </main>
-  );
+  // While redirecting, show the profile client
+  return <ProfileClient />;
 }

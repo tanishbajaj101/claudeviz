@@ -11,7 +11,7 @@ import { ChatPanel } from "@/components/chat/ChatPanel";
 import { CountdownTimer } from "@/components/contests/CountdownTimer";
 import { LeaderboardTab } from "@/components/contests/LeaderboardTab";
 import { DiscussionTab } from "@/components/contests/DiscussionTab";
-import { getContestStatus } from "@/lib/contest-status";
+import { getContestStatus, type ContestStatus } from "@/lib/contest-status";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   3: { label: "Accepted", color: "text-emerald-400" },
@@ -52,8 +52,21 @@ export function ContestProblemWorkspace({
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
 
   const isAuthenticated = !!session?.user;
-  const status = getContestStatus(contestStartsAt, contestDuration);
   const endsAt = new Date(new Date(contestStartsAt).getTime() + contestDuration * 60000);
+
+  // Recompute contest status periodically so submit button disables at end
+  const [status, setStatus] = useState(() => getContestStatus(contestStartsAt, contestDuration));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newStatus = getContestStatus(contestStartsAt, contestDuration);
+      setStatus((prev) => {
+        if (prev !== newStatus) return newStatus;
+        return prev;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [contestStartsAt, contestDuration]);
 
   const lastFailedResult = useMemo<SubmissionResult | null>(() => {
     if (results.length === 0) return null;

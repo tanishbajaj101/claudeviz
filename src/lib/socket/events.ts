@@ -83,6 +83,16 @@ export interface ChatServerToClientEvents {
   "user:typing": (payload: UserTypingPayload) => void;
 }
 
+/** Client -> Server: join a conversation room. */
+export interface ConversationJoinPayload {
+  conversationId: string;
+}
+
+/** Client -> Server: leave a conversation room. */
+export interface ConversationLeavePayload {
+  conversationId: string;
+}
+
 // Chat client-to-server event map
 export interface ChatClientToServerEvents {
   "message:send": (
@@ -91,6 +101,14 @@ export interface ChatClientToServerEvents {
   ) => void;
   "message:markRead": (
     payload: MessageMarkReadPayload,
+    ack: (result: { ok: boolean; error?: string }) => void
+  ) => void;
+  "conversation:join": (
+    payload: ConversationJoinPayload,
+    ack: (result: { ok: boolean; error?: string }) => void
+  ) => void;
+  "conversation:leave": (
+    payload: ConversationLeavePayload,
     ack: (result: { ok: boolean; error?: string }) => void
   ) => void;
   "typing:start": (payload: TypingStartPayload) => void;

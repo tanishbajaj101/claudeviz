@@ -90,17 +90,17 @@ export function SidebarChat() {
         } catch { /* best effort */ }
     }, [convId, refreshFriends]);
 
-    // Join chat room
+    // Join chat room so we receive real-time message:new broadcasts
     useEffect(() => {
         if (!socket || !convId) return;
-        socket.emit("message:send", {
-            conversationId: convId,
-            type: "text",
-            content: "\x00__room_join__",
-        }, () => { });
-        // Actually joining the room is handled server-side on connect
-        // The server auto-joins when we're a participant.
-        // We just need to listen for events.
+        socket.emit("conversation:join", { conversationId: convId }, (result) => {
+            if (!result.ok) {
+                console.warn("[SidebarChat] Failed to join conversation room:", result.error);
+            }
+        });
+        return () => {
+            socket.emit("conversation:leave", { conversationId: convId }, () => { });
+        };
     }, [socket, convId]);
 
     // Load messages + mark read on mount

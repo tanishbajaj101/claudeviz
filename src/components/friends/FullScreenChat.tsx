@@ -76,6 +76,20 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
         }
     }, [conversationId]);
 
+    // Join conversation room so we receive real-time broadcasts
+    useEffect(() => {
+        if (!socket || !conversationId) return;
+        socket.emit("conversation:join", { conversationId }, (result) => {
+            if (!result.ok) {
+                console.warn("[FullScreenChat] Failed to join conversation room:", result.error);
+            }
+        });
+        return () => {
+            socket.emit("conversation:leave", { conversationId }, () => { });
+        };
+    }, [socket, conversationId]);
+
+
     useEffect(() => {
         mountedRef.current = true;
         setLoading(true);

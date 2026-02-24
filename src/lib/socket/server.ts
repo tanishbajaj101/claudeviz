@@ -19,7 +19,10 @@ import type { Server as HttpServer } from "http";
 import type { SocketData } from "./events";
 import { socketAuthMiddleware } from "./auth";
 import { registerConnection, unregisterConnection } from "./connections";
+import { getContestStatus } from "@/lib/contest-status";
 import {
+  joinConversation,
+  leaveConversation,
   joinContest,
   leaveContest,
   joinNotificationRoom,
@@ -91,6 +94,37 @@ export function getSocketServer(httpServer?: HttpServer): Server {
       `[chat] connected: user ${username} (id=${userId}, socket=${socket.id})`
     );
 
+    // -- conversation:join --
+    socket.on(
+      "conversation:join",
+      async (
+        payload: { conversationId: string },
+        ack: (result: { ok: boolean; error?: string }) => void
+      ) => {
+        const ok = await joinConversation(asSocket(socket), payload.conversationId, userId);
+        if (!ok) {
+          ack({
+            ok: false,
+            error: "Cannot join conversation room — not a participant",
+          });
+          return;
+        }
+        ack({ ok: true });
+      }
+    );
+
+    // -- conversation:leave --
+    socket.on(
+      "conversation:leave",
+      async (
+        payload: { conversationId: string },
+        ack: (result: { ok: boolean; error?: string }) => void
+      ) => {
+        const ok = await leaveConversation(asSocket(socket), payload.conversationId);
+        ack({ ok });
+      }
+    );
+
     // -- message:send --
     socket.on(
       "message:send",
@@ -116,6 +150,31 @@ export function getSocketServer(httpServer?: HttpServer): Server {
           if (!participant) {
             ack({ ok: false, error: "Not a participant in this conversation" });
             return;
+          }
+
+          // Enforce contest chat timing: only allow messages during active contests
+          const conversation = await prisma.conversation.findUnique({
+            where: { id: payload.conversationId },
+            include: {
+              contest: {
+                select: { starts_at: true, duration_minutes: true },
+              },
+            },
+          });
+
+          if (conversation?.type === "contest" && conversation.contest) {
+            const contestStatus = getContestStatus(
+              conversation.contest.starts_at,
+              conversation.contest.duration_minutes
+            );
+            if (contestStatus === "upcoming") {
+              ack({ ok: false, error: "Contest has not started yet" });
+              return;
+            }
+            if (contestStatus === "completed") {
+              ack({ ok: false, error: "Contest has ended" });
+              return;
+            }
           }
 
           const message = await prisma.message.create({

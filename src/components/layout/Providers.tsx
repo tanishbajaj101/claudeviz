@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { useOnboardingRedirect } from "@/hooks/useOnboardingRedirect";
 import { FriendsProvider } from "@/components/friends/FriendsContext";
 import { NotificationsProvider } from "@/components/notifications/NotificationsProvider";
+import { ToastNotifications } from "@/components/notifications/ToastNotifications";
 
 function OnboardingGuard({ children }: { children: ReactNode }) {
   useOnboardingRedirect();
@@ -17,6 +18,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <FriendsProvider>
         <NotificationsProvider>
           <OnboardingGuard>{children}</OnboardingGuard>
+          <ToastNotifications />
         </NotificationsProvider>
       </FriendsProvider>
     </SessionProvider>

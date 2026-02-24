@@ -160,7 +160,7 @@ model FriendRequest {
   id          String              @id @default(uuid())
   sender_id   Int
   receiver_id Int
-  status      FriendRequestStatus @default("pending")
+  status      FriendRequestStatus @default(pending)
   created_at  DateTime            @default(now())
   updated_at  DateTime            @updatedAt
   receiver    User                @relation("FriendRequestReceiver", fields: [receiver_id], references: [id])
