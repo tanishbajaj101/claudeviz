@@ -5,7 +5,9 @@
       "Bash(head:*)",
       "Bash(tail:*)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(cd \"c:/claudebot/algoarena\" && npx tsc --noEmit 2>&1)",
+      "Bash(cd \"c:/claudebot/algoarena\" && npx eslint \"src/lib/contest-helpers.ts\" \"src/app/api/contests/[id]/submit/route.ts\" \"src/app/api/contests/[id]/leaderboard/route.ts\" \"src/app/api/contests/[id]/timing/route.ts\" 2>&1)"
     ]
   }
 }

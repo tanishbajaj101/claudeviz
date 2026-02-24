@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/components/layout/Providers";
 import { Navbar } from "@/components/layout/Navbar";
+import { FriendsSidebar } from "@/components/friends/FriendsSidebar";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <Providers>
           <Navbar />
+          <FriendsSidebar />
           {children}
         </Providers>
       </body>

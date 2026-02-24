@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Search, Send, Loader2, CheckCircle2 } from "lucide-react";
-import { useFriends } from "@/hooks/useFriends";
 import { Problem } from "@/types";
+
+interface FriendEntry {
+    id: number;
+    username: string;
+    avatar_svg: string | null;
+    is_online: boolean;
+}
 
 interface RecommendModalProps {
     problem: Problem;
@@ -11,8 +17,8 @@ interface RecommendModalProps {
     onClose: () => void;
 }
 
-export function RecommendModal({ problem, currentUserId, onClose }: RecommendModalProps) {
-    const { friends, onlineFriends } = useFriends(currentUserId);
+export function RecommendModal({ problem, onClose }: RecommendModalProps) {
+    const [friends, setFriends] = useState<FriendEntry[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedFriends, setSelectedFriends] = useState<Set<number>>(new Set());
     const [note, setNote] = useState("");
@@ -20,9 +26,20 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
+    const fetchFriends = useCallback(async () => {
+        try {
+            const res = await fetch("/api/friends");
+            if (res.ok) {
+                const data = await res.json() as { friends: FriendEntry[] };
+                setFriends(data.friends ?? []);
+            }
+        } catch { /* ignore */ }
+    }, []);
+
+    useEffect(() => { void fetchFriends(); }, [fetchFriends]);
+
     const filteredFriends = friends.filter(f =>
-        f.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        f.name.toLowerCase().includes(searchQuery.toLowerCase())
+        f.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const toggleFriend = (id: number) => {
@@ -36,43 +53,41 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
 
     const handleSend = async () => {
         if (selectedFriends.size === 0) return;
-
         setSending(true);
         setError(null);
 
         try {
-            const promises = Array.from(selectedFriends).map(friendId =>
-                fetch("/api/chat/messages", {
+            // For each selected friend, get/create a direct conversation then send the message
+            const promises = Array.from(selectedFriends).map(async (friendId) => {
+                // Get or create conversation
+                const convRes = await fetch(`/api/conversations/direct?user_id=${friendId}`);
+                if (!convRes.ok) throw new Error("Could not open conversation");
+                const convData = await convRes.json() as { conversation: { id: string } };
+                const convId = convData.conversation.id;
+
+                // Send problem recommendation message
+                const msgRes = await fetch(`/api/conversations/${convId}/messages`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        recipient_id: friendId,
                         type: "problem_recommendation",
-                        content: note, // we will put the note in the content field.
+                        content: note || `Check out this problem: ${problem.title}`,
                         metadata: {
                             problem_id: problem.id,
                             problem_name: problem.title,
                             difficulty: problem.difficulty,
-                            note: note
-                        }
-                    })
-                }).then(res => {
-                    if (!res.ok) throw new Error("Failed to send some recommendations");
-                    return res.json();
-                })
-            );
+                            note: note || undefined,
+                        },
+                    }),
+                });
+                if (!msgRes.ok) throw new Error("Failed to send recommendation");
+            });
 
             await Promise.all(promises);
-
             setSuccess(true);
-            setTimeout(() => {
-                onClose();
-                // Assuming there is a global toast system, we could trigger it here.
-                // For now, the inline success state + auto-close handles it.
-            }, 1500);
-
-        } catch (err: any) {
-            setError(err.message || "Failed to recommend problem");
+            setTimeout(() => { onClose(); }, 1500);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to recommend problem");
         } finally {
             setSending(false);
         }
@@ -95,7 +110,6 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
 
                 {/* Body */}
                 <div className="p-5 flex flex-col gap-4">
-
                     <div className="text-sm text-zinc-400">
                         Recommending: <span className="font-medium text-zinc-200">{problem.title}</span>
                     </div>
@@ -114,7 +128,7 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
                     <div className="h-48 overflow-y-auto rounded-md border border-zinc-800 bg-zinc-900/50">
                         {friends.length === 0 ? (
                             <div className="flex h-full items-center justify-center text-sm text-zinc-500">
-                                You don't have any friends yet.
+                                You don&apos;t have any friends yet.
                             </div>
                         ) : filteredFriends.length === 0 ? (
                             <div className="flex h-full items-center justify-center text-sm text-zinc-500">
@@ -123,14 +137,12 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
                         ) : (
                             <div className="divide-y divide-zinc-800 border-t border-zinc-800">
                                 {filteredFriends.map(friend => {
-                                    const isOnline = onlineFriends.has(friend.id);
                                     const isSelected = selectedFriends.has(friend.id);
-
                                     return (
                                         <button
                                             key={friend.id}
                                             onClick={() => toggleFriend(friend.id)}
-                                            className={`w-full flex items-center justify-between px-3 py-2 hover:bg-zinc-800 transition-colors ${isSelected ? 'bg-emerald-500/5' : ''}`}
+                                            className={`w-full flex items-center justify-between px-3 py-2 hover:bg-zinc-800 transition-colors ${isSelected ? "bg-emerald-500/5" : ""}`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="relative">
@@ -139,14 +151,13 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
                                                         alt={friend.username}
                                                         className="h-8 w-8 rounded-full bg-zinc-800"
                                                     />
-                                                    <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-zinc-900 ${isOnline ? 'bg-emerald-500' : 'bg-zinc-500'}`} />
+                                                    <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-zinc-900 ${friend.is_online ? "bg-emerald-500" : "bg-zinc-500"}`} />
                                                 </div>
                                                 <div className="text-left flex flex-col">
-                                                    <span className="text-sm font-medium text-zinc-200">{friend.name}</span>
-                                                    <span className="text-xs text-zinc-500">@{friend.username}</span>
+                                                    <span className="text-sm font-medium text-zinc-200">{friend.username}</span>
                                                 </div>
                                             </div>
-                                            <div className={`flex h-5 w-5 items-center justify-center rounded border ${isSelected ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-700 bg-zinc-900'}`}>
+                                            <div className={`flex h-5 w-5 items-center justify-center rounded border ${isSelected ? "bg-emerald-500 border-emerald-500" : "border-zinc-700 bg-zinc-900"}`}>
                                                 {isSelected && <CheckCircle2 size={12} className="text-zinc-950" />}
                                             </div>
                                         </button>
@@ -165,9 +176,7 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
                             className="w-full resize-none rounded-md border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
                             rows={2}
                         />
-                        <div className="mt-1 text-right text-xs text-zinc-500">
-                            {note.length}/140
-                        </div>
+                        <div className="mt-1 text-right text-xs text-zinc-500">{note.length}/140</div>
                     </div>
 
                     {error && <div className="text-sm text-red-500">{error}</div>}
@@ -178,7 +187,7 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
                         </div>
                     ) : (
                         <button
-                            onClick={handleSend}
+                            onClick={() => void handleSend()}
                             disabled={selectedFriends.size === 0 || sending}
                             className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
                         >
@@ -186,9 +195,8 @@ export function RecommendModal({ problem, currentUserId, onClose }: RecommendMod
                             Send Recommendation
                         </button>
                     )}
-
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

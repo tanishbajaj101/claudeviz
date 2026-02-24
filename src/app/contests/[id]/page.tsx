@@ -1,291 +1,351 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Clock, Users, ArrowRight, ArrowLeft, Trophy, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { ContestLeaderboard } from "@/components/contests/ContestLeaderboard";
-import { InviteFriendsDropdown } from "@/components/contests/InviteFriendsDropdown";
+import { Trophy, Users, Clock, Loader2, ChevronRight } from "lucide-react";
+import { getContestStatus, type ContestStatus } from "@/lib/contest-status";
+import { LargeCountdown, CountdownTimer } from "@/components/contests/CountdownTimer";
+import { LeaderboardTab } from "@/components/contests/LeaderboardTab";
+import { DiscussionTab } from "@/components/contests/DiscussionTab";
 
-export default function ContestLobbyPage() {
-    const { data: session, status } = useSession();
-    const params = useParams();
-    const router = useRouter();
-
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
-    const [isJoined, setIsJoined] = useState(false);
-    const [joining, setJoining] = useState(false);
-
-    const contestId = parseInt(params.id as string, 10);
-
-    useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/auth/signin");
-        }
-    }, [status, router]);
-
-    const fetchData = async () => {
-        try {
-            const res = await fetch(`/api/contests/${contestId}`);
-      if (!res.ok) throw new Error("Failed to load contest");
-      const json = await res.json();
-      setData(json);
-
-      if (session?.user?.dbUserId) {
-        setIsJoined(json.participants.some((p: any) => p.id === session.user.dbUserId));
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+interface ContestProblem {
+  order: number;
+  difficulty: "easy" | "medium" | "hard";
+  problem: {
+    id: string;
+    title: string;
+    description: string;
+    constraints: string[];
   };
+}
+
+interface ContestDetail {
+  id: string;
+  title: string;
+  creator: { id: number; username: string };
+  starts_at: string;
+  duration_minutes: number;
+  is_public: boolean;
+  status: ContestStatus;
+  participant_count: number;
+  participants: string[];
+  is_participant: boolean;
+  problems?: ContestProblem[];
+  conversation_id?: string;
+}
+
+type TabType = "problems" | "leaderboard" | "discussion";
+
+export default function ContestDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+  const contestId = params?.id as string;
+
+  const [contest, setContest] = useState<ContestDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>("problems");
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchData();
-    }
-  }, [status, contestId, session?.user?.dbUserId]);
+    if (!contestId) return;
 
-  // Poll for updates if in lobby or active
-  useEffect(() => {
-    if (!data) return;
-    
-    const isUpcoming = new Date(data.contest.starts_at) > new Date();
-    const endTime = new Date(data.contest.starts_at).getTime() + data.contest.duration_minutes * 60000;
-    const isActive = new Date() > new Date(data.contest.starts_at) && new Date().getTime() < endTime;
-    
-    if (isUpcoming || isActive) {
-      const interval = setInterval(fetchData, 5000); // Polling every 5s for participants/leaderboard
-      return () => clearInterval(interval);
-    }
-  }, [data?.contest.starts_at, data?.contest.duration_minutes]);
-
-  // Timer logic
-  useEffect(() => {
-    if (!data) return;
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const startTime = new Date(data.contest.starts_at).getTime();
-      const endTime = startTime + data.contest.duration_minutes * 60000;
-
-      if (now < startTime) {
-        // Countdown to start
-        const diff = startTime - now;
-        const m = Math.floor(diff / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        setTimeRemaining(`Starts in ${m}m ${s}s`);
-      } else if (now >= startTime && now < endTime) {
-        // Countdown to end
-        const diff = endTime - now;
-        const m = Math.floor(diff / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        setTimeRemaining(`Ends in ${m}m ${s}s`);
-      } else {
-        setTimeRemaining("Contest Ended");
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [data]);
+    fetch(`/api/contests/${contestId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setContest(data.contest);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("[ContestDetailPage] Error:", err);
+        setLoading(false);
+      });
+  }, [contestId]);
 
   const handleJoin = async () => {
     setJoining(true);
     try {
-      const res = await fetch(`/api/contests/${contestId}`, {
+      const res = await fetch(`/api/contests/${contestId}/join`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "join" })
       });
+
       if (res.ok) {
-        setIsJoined(true);
-        fetchData();
+        // Refresh contest data
+        const data = await fetch(`/api/contests/${contestId}`).then((r) => r.json());
+        setContest(data.contest);
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to join contest");
       }
     } catch (err) {
-      console.error(err);
+      console.error("[ContestDetailPage] Error joining:", err);
+      alert("Failed to join contest");
     } finally {
       setJoining(false);
     }
   };
 
-  if (loading || status === "loading") {
-    return <div className="flex h-screen items-center justify-center font-mono text-zinc-500">Loading arena...</div>;
-  }
+  const handleContestComplete = () => {
+    // Refresh contest data
+    fetch(`/api/contests/${contestId}`)
+      .then((res) => res.json())
+      .then((data) => setContest(data.contest))
+      .catch(console.error);
+  };
 
-  if (error || !data) {
+  if (sessionStatus === "loading" || loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-4">
-        <AlertTriangle size={48} className="text-red-500" />
-        <h1 className="text-2xl font-bold font-mono text-white">Error</h1>
-        <p className="text-zinc-400">{error || "Something went wrong"}</p>
-        <Link href="/contests" className="text-emerald-500 hover:underline">Back to Contests</Link>
-      </div>
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+        </div>
+      </main>
     );
   }
 
-  const { contest, problems, participants, leaderboard } = data;
-  const now = new Date();
-  const startTime = new Date(contest.starts_at);
-  const endTime = new Date(startTime.getTime() + contest.duration_minutes * 60000);
-  const isUpcoming = now < startTime;
-  const isActive = now >= startTime && now < endTime;
-  const isEnded = now >= endTime;
+  if (!contest) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+          <p className="text-sm text-zinc-400">Contest not found</p>
+        </div>
+      </main>
+    );
+  }
 
-  // Derive which problems the current user has solved in this contest using leaderboard payload
-  const myLeaderboardEntry = leaderboard.find((e: any) => e.user_id === session?.user?.dbUserId);
-  const myScore = myLeaderboardEntry?.total_score || 0;
+  const status = getContestStatus(contest.starts_at, contest.duration_minutes);
+  const startsAt = new Date(contest.starts_at);
+  const endsAt = new Date(startsAt.getTime() + contest.duration_minutes * 60000);
+
+  const canJoin =
+    session?.user &&
+    !contest.is_participant &&
+    status === "upcoming" &&
+    (contest.is_public || true); // TODO: check for invite notification
 
   return (
-    <main className="min-h-[calc(100vh-3.5rem)] bg-zinc-950 px-4 py-8">
-      <div className="mx-auto max-w-6xl">
-        <Link href="/contests" className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 mb-6 transition-colors">
-          <ArrowLeft size={16} /> Back to Dashboard
-        </Link>
-        
-        {/* Header Block */}
-        <div className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden shadow-2xl relative">
-          <div className={`absolute top-0 left-0 w-full h-1 ${isUpcoming ? 'bg-blue-500' : isActive ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-600'}`} />
-          <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="hidden md:flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
-                <Trophy className={`h-8 w-8 ${isUpcoming ? 'text-blue-400' : isActive ? 'text-emerald-400' : 'text-zinc-500'}`} />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold font-mono text-zinc-100">{contest.title}</h1>
-                <div className="mt-2 flex items-center gap-4 text-sm text-zinc-400">
-                  <span className="flex items-center gap-1"><Clock size={14} /> {contest.duration_minutes}m Duration</span>
-                  <span className="flex items-center gap-1"><Users size={14} /> {participants.length} Joined</span>
-                  <span className={`font-mono font-medium px-2 py-0.5 rounded text-xs ${isUpcoming ? 'bg-blue-500/10 text-blue-400' : isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-400'}`}>
-                    {isUpcoming ? 'LOBBY' : isActive ? 'ACTIVE' : 'ENDED'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center md:text-right flex flex-col items-center md:items-end w-full md:w-auto">
-              <div className="font-mono text-2xl font-bold tracking-tight text-white tabular-nums drop-shadow-md">
-                {timeRemaining || "..."}
-              </div>
-              <div className="mt-4 flex gap-3 flex-wrap justify-center w-full">
-                {isUpcoming && isJoined && (
-                  <InviteFriendsDropdown contestId={contestId} currentUserId={session?.user?.dbUserId} />
-                )}
-                
-                {!isJoined && !isEnded ? (
-                  <button 
-                    onClick={handleJoin}
-                    disabled={joining}
-                    className="flex flex-1 md:flex-none items-center justify-center gap-2 rounded-md bg-emerald-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
-                  >
-                    {joining ? "Joining..." : "Join Contest"}
-                  </button>
-                ) : isJoined && !isEnded ? (
-                  <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-400">
-                    <CheckCircle2 size={16} /> Joined Arena
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
+    <main className="mx-auto max-w-7xl px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="font-mono text-3xl font-bold tracking-tight text-zinc-100">
+            {contest.title}
+          </h1>
+          <StatusBadge status={status} />
         </div>
 
-        {/* Dynamic Content: Lobby vs Active vs Ended */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Content Area (Problems) */}
-          <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-xl font-bold font-mono text-zinc-100 mb-4 flex items-center gap-2">
-              Contest Problems
-            </h2>
-            
-            {isUpcoming ? (
-               <div className="rounded-lg border border-dashed border-zinc-800 p-12 text-center text-zinc-500">
-                 <LockIcon className="mx-auto mb-4 h-12 w-12 text-zinc-700" />
-                 <h3 className="font-medium text-zinc-300 mb-1">Problems locked</h3>
-                 <p className="text-sm">They will be revealed instantly when the clock hits zero.</p>
-               </div>
-            ) : (
-              <div className="space-y-3">
-                {problems.map((p: any) => (
-                  <Link 
-                    href={`/problems/${p.problem_id}?contestId=${contestId}`}
-                    key={p.id}
-                    className={`group flex items-center justify-between rounded-lg border bg-zinc-900 p-4 transition-all ${!isJoined && !isEnded ? 'opacity-50 cursor-not-allowed border-zinc-800' : 'border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/50'}`}
-                    onClick={(e) => { if (!isJoined && !isEnded) e.preventDefault(); }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded bg-zinc-950 font-mono font-bold text-zinc-400">
-                        {String.fromCharCode(65 + p.slot_index - 1)} {/* A, B, C */}
-                      </div>
-                      <div>
-                        {/* Title hidden if we didn't populate it in DB, we rely on problem data. Oh wait, we only stored problem_id in contest_problems */}
-                        <div className="font-mono font-semibold text-zinc-200 group-hover:text-white transition-colors">
-                          Problem {p.problem_id.replace(/-/g, ' ')}
-                        </div>
-                        <div className="flex gap-3 text-xs text-zinc-500 mt-1">
-                          <span className={`font-medium ${p.difficulty === 'Easy' ? 'text-emerald-400' : p.difficulty === 'Medium' ? 'text-amber-400' : 'text-red-400'}`}>
-                            {p.difficulty}
-                          </span>
-                          <span>{p.points} points</span>
-                        </div>
-                      </div>
-                    </div>
-                    <ArrowRight size={18} className="text-zinc-600 group-hover:text-emerald-500" />
-                  </Link>
-                ))}
-              </div>
-            )}
-            
-            {/* If ended, maybe a nice summary */}
-            {isEnded && (
-              <div className="mt-8 rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-6 flex flex-col items-center">
-                <Trophy className="text-emerald-500 h-10 w-10 mb-3" />
-                <h3 className="text-lg font-bold text-zinc-100">Contest Over</h3>
-                <p className="text-sm text-zinc-400 text-center max-w-md mt-2">
-                  The arena is now frozen. Your final score is {myScore}. Great effort algorithm gladiator!
-                </p>
-              </div>
-            )}
+        <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span>{contest.participant_count} participants</span>
           </div>
-
-          {/* Sidebar Area (Leaderboard) */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold font-mono text-zinc-100 mb-4 flex items-center gap-2">
-              Leaderboard
-            </h2>
-            <ContestLeaderboard 
-              leaderboard={leaderboard} 
-              currentUserId={session?.user?.dbUserId} 
-            />
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span>{contest.duration_minutes} minutes</span>
           </div>
-          
+          <span>Created by {contest.creator.username}</span>
         </div>
       </div>
+
+      {/* Countdown Timer */}
+      {status === "upcoming" && (
+        <div className="mb-8">
+          <LargeCountdown
+            targetTime={startsAt.getTime()}
+            label="Contest starts in"
+            onComplete={handleContestComplete}
+          />
+        </div>
+      )}
+
+      {status === "active" && (
+        <div className="mb-8 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <CountdownTimer
+            targetTime={endsAt.getTime()}
+            label="Time Remaining"
+            onComplete={handleContestComplete}
+          />
+        </div>
+      )}
+
+      {status === "completed" && (
+        <div className="mb-8 rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-center">
+          <p className="font-mono text-sm text-zinc-400">Contest has ended</p>
+        </div>
+      )}
+
+      {/* Join Button */}
+      {canJoin && (
+        <div className="mb-8">
+          <button
+            onClick={handleJoin}
+            disabled={joining}
+            className="w-full rounded-md bg-emerald-600 py-3 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+          >
+            {joining ? "Joining..." : "Join Contest"}
+          </button>
+        </div>
+      )}
+
+      {/* Tabs */}
+      {contest.is_participant && (
+        <div className="mb-6 border-b border-zinc-800">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setActiveTab("problems")}
+              className={`border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+                activeTab === "problems"
+                  ? "border-emerald-500 text-emerald-400"
+                  : "border-transparent text-zinc-400 hover:text-zinc-300"
+              }`}
+            >
+              Problems
+            </button>
+            <button
+              onClick={() => setActiveTab("leaderboard")}
+              className={`border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+                activeTab === "leaderboard"
+                  ? "border-emerald-500 text-emerald-400"
+                  : "border-transparent text-zinc-400 hover:text-zinc-300"
+              }`}
+            >
+              Leaderboard
+            </button>
+            <button
+              onClick={() => setActiveTab("discussion")}
+              className={`border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+                activeTab === "discussion"
+                  ? "border-emerald-500 text-emerald-400"
+                  : "border-transparent text-zinc-400 hover:text-zinc-300"
+              }`}
+            >
+              Discussion
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Content */}
+      {contest.is_participant && (
+        <div>
+          {activeTab === "problems" && (
+            <div>
+              {status === "upcoming" && !contest.problems && (
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+                  <Trophy className="mx-auto h-12 w-12 text-zinc-600" />
+                  <p className="mt-4 text-sm text-zinc-400">
+                    Problems will be revealed when the contest starts
+                  </p>
+                </div>
+              )}
+
+              {contest.problems && contest.problems.length > 0 && (
+                <div className="space-y-4">
+                  {contest.problems.map((cp) => (
+                    <Link
+                      key={cp.problem.id}
+                      href={`/contests/${contestId}/problems/${cp.problem.id}`}
+                      className="block rounded-lg border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="mb-2 flex items-center gap-3">
+                            <span className="font-mono text-sm text-zinc-500">
+                              #{cp.order}
+                            </span>
+                            <h3 className="font-mono text-lg font-semibold text-zinc-100">
+                              {cp.problem.title}
+                            </h3>
+                            <DifficultyBadge difficulty={cp.difficulty} />
+                          </div>
+                          <p className="line-clamp-2 text-sm text-zinc-400">
+                            {cp.problem.description.split("\n")[0]}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-zinc-600" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "leaderboard" && (
+            <LeaderboardTab
+              contestId={contestId}
+              currentUserId={session?.user?.dbUserId as number}
+            />
+          )}
+
+          {activeTab === "discussion" && contest.conversation_id && (
+            <DiscussionTab
+              contestId={contestId}
+              conversationId={contest.conversation_id}
+              startsAt={contest.starts_at}
+              durationMinutes={contest.duration_minutes}
+              currentUserId={session?.user?.dbUserId as number}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Not a participant */}
+      {!contest.is_participant && !canJoin && (
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+          <p className="text-sm text-zinc-400">
+            {session?.user
+              ? "You are not a participant in this contest"
+              : "Sign in to view contest details"}
+          </p>
+        </div>
+      )}
     </main>
   );
 }
 
-function LockIcon(props: any) {
+function StatusBadge({ status }: { status: ContestStatus }) {
+  const styles = {
+    upcoming: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    active: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    completed: "bg-zinc-700/10 text-zinc-400 border-zinc-700/20",
+  };
+
+  const labels = {
+    upcoming: "Upcoming",
+    active: "Live",
+    completed: "Completed",
+  };
+
   return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <span
+      className={`rounded-full border px-3 py-1 font-mono text-xs font-medium ${styles[status]}`}
     >
-      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
+      {labels[status]}
+    </span>
+  );
+}
+
+function DifficultyBadge({ difficulty }: { difficulty: "easy" | "medium" | "hard" }) {
+  const styles = {
+    easy: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    medium: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    hard: "bg-red-500/10 text-red-400 border-red-500/20",
+  };
+
+  const labels = {
+    easy: "Easy",
+    medium: "Medium",
+    hard: "Hard",
+  };
+
+  return (
+    <span
+      className={`rounded-full border px-2 py-0.5 font-mono text-xs font-medium ${styles[difficulty]}`}
+    >
+      {labels[difficulty]}
+    </span>
   );
 }

@@ -13,7 +13,7 @@ export interface ToastMessage {
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
-  const { socket } = useSocket(session?.user?.dbUserId);
+  const { socket } = useSocket("/notifications");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (message: string, type: "default" | "success" | "info" = "default", duration = 7000) => {
@@ -28,11 +28,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!socket || !session?.user?.dbUserId) return;
 
-    const handleFriendOnline = (data: { userId: number; username?: string }) => {
-      // The backend emits friend:online but we need to ensure the payload includes username if possible.
-      // If not, we might just say "A friend came online" or handle it from the friends list state later.
-      // Assuming backend emits { userId, username: "..." } for this specific event:
-      addToast(data.username ? `${data.username} just came online!` : "A friend just came online!", "success", 7000);
+    const handleFriendOnline = (data: { userId: number; username: string }) => {
+      addToast(`${data.username} just came online!`, "success", 7000);
     };
 
     const handleNotificationNew = () => {

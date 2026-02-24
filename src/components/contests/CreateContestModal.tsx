@@ -1,196 +1,395 @@
 "use client";
 
-import { useState } from "react";
-import { X, Calendar, Clock, Lock, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Plus, Minus, Loader2 } from "lucide-react";
+import { problems } from "@/data/problems";
 
 interface CreateContestModalProps {
-    onClose: () => void;
-    onSuccess: (contest: any) => void;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+interface ProblemSlot {
+  difficulty: "easy" | "medium" | "hard";
+  topics: string[];
+}
+
+interface Friend {
+  id: number;
+  username: string;
+  avatar_url: string | null;
 }
 
 export function CreateContestModal({ onClose, onSuccess }: CreateContestModalProps) {
-    const [title, setTitle] = useState("");
-    const [isPublic, setIsPublic] = useState(true);
-    const [date, setDate] = useState("");
-    const [time, setTime] = useState("");
-    const [duration, setDuration] = useState("60");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [startTime, setStartTime] = useState("");
+  const [questionCount, setQuestionCount] = useState(3);
+  const [duration, setDuration] = useState(45);
+  const [problemSlots, setProblemSlots] = useState<ProblemSlot[]>([
+    { difficulty: "easy", topics: [] },
+    { difficulty: "medium", topics: [] },
+    { difficulty: "hard", topics: [] },
+  ]);
+  const [globalTopics, setGlobalTopics] = useState<string[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
+  // Get all unique tags from problems
+  const allTags = Array.from(new Set(problems.flatMap((p) => p.tags))).sort();
 
-        try {
-            if (!title || !date || !time || !duration) {
-                throw new Error("Please fill out all fields.");
-            }
+  useEffect(() => {
+    // Fetch friends list
+    fetch("/api/friends")
+      .then((res) => res.json())
+      .then((data) => setFriends(data.friends || []))
+      .catch(console.error);
+  }, []);
 
-            // Combine date and time
-            const startDateTime = new Date(`${date}T${time}`).toISOString();
+  useEffect(() => {
+    // Auto-suggest duration based on question count
+    setDuration(questionCount * 15);
+  }, [questionCount]);
 
+  useEffect(() => {
+    // Update problem slots when question count changes
+    const newSlots: ProblemSlot[] = [];
+    for (let i = 0; i < questionCount; i++) {
+      if (problemSlots[i]) {
+        newSlots.push(problemSlots[i]);
+      } else {
+        // Default difficulty pattern: easy -> medium -> hard
+        const difficulty =
+          i % 3 === 0 ? "easy" : i % 3 === 1 ? "medium" : "hard";
+        newSlots.push({ difficulty, topics: [...globalTopics] });
+      }
+    }
+    setProblemSlots(newSlots);
+  }, [questionCount]);
+
+  useEffect(() => {
+    // Apply global topics to all slots
+    setProblemSlots((prev) =>
+      prev.map((slot) => ({ ...slot, topics: [...globalTopics] }))
+    );
+  }, [globalTopics]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validation
+    if (!title.trim()) {
+      setError("Contest title is required");
+      return;
+    }
+
+    if (!startTime) {
+      setError("Start time is required");
+      return;
+    }
+
+    const startsAt = new Date(startTime);
+    if (startsAt <= new Date()) {
+      setError("Start time must be in the future");
+      return;
+    }
+
+    // Validate each problem slot has at least one topic
+    for (let i = 0; i < problemSlots.length; i++) {
+      if (problemSlots[i].topics.length === 0) {
+        setError(`Problem ${i + 1} must have at least one topic selected`);
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
       const res = await fetch("/api/contests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
-          isPublic,
-          duration_minutes: parseInt(duration, 10),
-          starts_at: startDateTime,
-          // Generate 3 random questions by asking the backend for a mix
-          topics: [],
-          questions: [
-            { difficulty: "easy" },
-            { difficulty: "medium" },
-            { difficulty: "hard" }
-          ]
+          title: title.trim(),
+          is_public: isPublic,
+          starts_at: startsAt.toISOString(),
+          duration_minutes: duration,
+          problems: problemSlots,
+          invited_user_ids: selectedFriends.length > 0 ? selectedFriends : undefined,
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create contest");
-
-      onSuccess(data.contest);
-    } catch (err: any) {
-      setError(err.message);
+      if (res.ok) {
+        onSuccess();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to create contest");
+      }
+    } catch (err) {
+      console.error("[CreateContestModal] Error:", err);
+      setError("Failed to create contest");
+    } finally {
       setLoading(false);
     }
   };
 
+  const toggleTopic = (topic: string) => {
+    setGlobalTopics((prev) =>
+      prev.includes(topic)
+        ? prev.filter((t) => t !== topic)
+        : [...prev, topic]
+    );
+  };
+
+  const toggleFriend = (friendId: number) => {
+    setSelectedFriends((prev) =>
+      prev.includes(friendId)
+        ? prev.filter((id) => id !== friendId)
+        : [...prev, friendId]
+    );
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
-          <h2 className="font-mono text-xl font-bold text-zinc-100">Create New Contest</h2>
-          <button 
-            onClick={onClose}
-            className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900 p-6">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-md p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+        >
+          <X className="h-5 w-5" />
+        </button>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="space-y-5">
-            
-            {error && (
-              <div className="rounded-md bg-red-500/10 p-3 text-sm font-medium text-red-500 border border-red-500/20">
-                {error}
-              </div>
-            )}
+        <h2 className="mb-6 font-mono text-2xl font-bold text-zinc-100">
+          Create Contest
+        </h2>
 
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-300">Contest Title</label>
-              <input 
-                type="text" 
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Weekly Speedrun Arena"
-                className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-zinc-300">Start Date</label>
-                <div className="relative">
-                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                  <input 
-                    type="date" 
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full rounded-md border border-zinc-800 bg-zinc-900 pl-10 pr-3 py-2 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
-                    style={{ colorScheme: 'dark' }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-zinc-300">Start Time</label>
-                <div className="relative">
-                  <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                  <input 
-                    type="time" 
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="w-full rounded-md border border-zinc-800 bg-zinc-900 pl-10 pr-3 py-2 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
-                    style={{ colorScheme: 'dark' }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-300">Duration (Minutes)</label>
-              <select 
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="30">30 Minutes (Sprint)</option>
-                <option value="60">60 Minutes (Standard)</option>
-                <option value="90">90 Minutes (Endurance)</option>
-                <option value="120">120 Minutes (Marathon)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Privacy Setting</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsPublic(true)}
-                  className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors ${isPublic ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
-                >
-                  <Globe size={18} className={isPublic ? 'text-emerald-400' : 'text-zinc-500'} />
-                  <div>
-                    <div className={`font-medium text-sm ${isPublic ? 'text-emerald-400' : 'text-zinc-300'}`}>Public</div>
-                    <div className="text-[10px] text-zinc-500 mt-0.5">Visible to everyone in the arenas tab</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsPublic(false)}
-                  className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors ${!isPublic ? 'border-amber-500 bg-amber-500/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
-                >
-                  <Lock size={18} className={!isPublic ? 'text-amber-400' : 'text-zinc-500'} />
-                  <div>
-                    <div className={`font-medium text-sm ${!isPublic ? 'text-amber-400' : 'text-zinc-300'}`}>Invite Only</div>
-                    <div className="text-[10px] text-zinc-500 mt-0.5">Hidden, join via link or direct invite</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Note about auto-generated problems */}
-            <div className="rounded-md border border-zinc-800 bg-zinc-900 p-3 text-xs text-zinc-400 flex items-start gap-2">
-              <span className="text-zinc-500 flex-shrink-0">ⓘ</span>
-              <span>This contest will automatically generate 3 problems (Easy, Medium, Hard) from the global problem bank to prevent cheating/pre-solving.</span>
-            </div>
-
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title */}
+          <div>
+            <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+              Contest Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
+              placeholder="Weekly Challenge"
+            />
           </div>
 
-          <div className="mt-8 flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
-            <button 
-              type="button" 
+          {/* Public/Private */}
+          <div>
+            <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+              Visibility
+            </label>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className={`flex-1 rounded-md border px-4 py-2 font-mono text-sm transition-colors ${
+                  isPublic
+                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                    : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
+                }`}
+              >
+                Public
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className={`flex-1 rounded-md border px-4 py-2 font-mono text-sm transition-colors ${
+                  !isPublic
+                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                    : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
+                }`}
+              >
+                Private
+              </button>
+            </div>
+          </div>
+
+          {/* Start Time */}
+          <div>
+            <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+              Start Time
+            </label>
+            <input
+              type="datetime-local"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Question Count */}
+          <div>
+            <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+              Number of Questions (2-5)
+            </label>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setQuestionCount(Math.max(2, questionCount - 1))}
+                className="rounded-md border border-zinc-700 bg-zinc-800 p-2 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-100 disabled:opacity-50"
+                disabled={questionCount <= 2}
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <span className="font-mono text-lg font-semibold text-zinc-100">
+                {questionCount}
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuestionCount(Math.min(5, questionCount + 1))}
+                className="rounded-md border border-zinc-700 bg-zinc-800 p-2 text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-100 disabled:opacity-50"
+                disabled={questionCount >= 5}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div>
+            <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+              Duration (minutes)
+            </label>
+            <input
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
+              min="1"
+              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Global Topics */}
+          <div>
+            <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+              Topics (applies to all questions)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTopic(tag)}
+                  className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
+                    globalTopics.includes(tag)
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Problem Slots */}
+          <div>
+            <label className="mb-3 block font-mono text-sm font-medium text-zinc-300">
+              Problem Configuration
+              <span className="ml-2 text-xs text-zinc-500">
+                (Problems will be randomly selected)
+              </span>
+            </label>
+            <div className="space-y-3">
+              {problemSlots.map((slot, i) => (
+                <div
+                  key={i}
+                  className="rounded-md border border-zinc-700 bg-zinc-800 p-3"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-mono text-sm font-medium text-zinc-300">
+                      Problem {i + 1}
+                    </span>
+                    <select
+                      value={slot.difficulty}
+                      onChange={(e) => {
+                        const newSlots = [...problemSlots];
+                        newSlots[i].difficulty = e.target.value as
+                          | "easy"
+                          | "medium"
+                          | "hard";
+                        setProblemSlots(newSlots);
+                      }}
+                      className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-100 focus:border-emerald-500 focus:outline-none"
+                    >
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </div>
+                  <div className="text-xs text-zinc-500">
+                    Topics: {slot.topics.join(", ") || "All"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Invite Friends */}
+          {!isPublic && friends.length > 0 && (
+            <div>
+              <label className="mb-2 block font-mono text-sm font-medium text-zinc-300">
+                Invite Friends (Optional)
+              </label>
+              <div className="max-h-40 overflow-y-auto rounded-md border border-zinc-700 bg-zinc-800 p-2">
+                {friends.map((friend) => (
+                  <button
+                    key={friend.id}
+                    type="button"
+                    onClick={() => toggleFriend(friend.id)}
+                    className={`mb-2 flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition-colors ${
+                      selectedFriends.includes(friend.id)
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "text-zinc-400 hover:bg-zinc-700"
+                    }`}
+                  >
+                    <span className="font-mono text-sm">{friend.username}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-md border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
+          {/* Submit */}
+          <div className="flex gap-3">
+            <button
+              type="button"
               onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800"
+              className="flex-1 rounded-md border border-zinc-700 bg-zinc-800 py-2 font-mono text-sm text-zinc-300 transition-colors hover:border-zinc-600"
+              disabled={loading}
             >
               Cancel
             </button>
-            <button 
+            <button
               type="submit"
+              className="flex flex-1 items-center justify-center gap-2 rounded-md bg-emerald-600 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
               disabled={loading}
-              className="rounded-md bg-emerald-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             >
-              {loading ? "Creating..." : "Create Contest"}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Contest"
+              )}
             </button>
           </div>
         </form>
-
       </div>
     </div>
   );

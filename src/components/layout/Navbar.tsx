@@ -2,25 +2,82 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
+import { Home, Code, User, Trophy, Users, Bell } from "lucide-react";
+import { useFriends } from "@/components/friends/FriendsContext";
+import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 
 export function Navbar() {
   const { data: session } = useSession();
+  const { toggleSidebar, unreadChatCount } = useFriends();
 
   return (
     <nav className="border-b border-zinc-800 bg-zinc-950">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 font-mono text-sm font-bold text-zinc-950">
-            AA
-          </div>
-          <span className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
-            AlgoArena
-          </span>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 font-mono text-sm font-bold text-zinc-950">
+              AA
+            </div>
+            <span className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+              AlgoArena
+            </span>
+          </Link>
+
+          {session?.user && (
+            <div className="flex items-center gap-1">
+              <Link
+                href="/"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+              >
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+              <Link
+                href="/problems"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+              >
+                <Code className="h-4 w-4" />
+                <span>Problems</span>
+              </Link>
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+              >
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+              <Link
+                href="/contests"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+              >
+                <Trophy className="h-4 w-4" />
+                <span>Contests</span>
+              </Link>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-4">
           {session?.user ? (
             <div className="flex items-center gap-3">
+              {/* Friends icon with real-time unread badge */}
+              <button
+                onClick={toggleSidebar}
+                className="relative rounded-md p-2 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                aria-label="Friends and messages"
+              >
+                <Users className="h-5 w-5" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadChatCount > 9 ? "9+" : unreadChatCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notifications dropdown */}
+              <NotificationsDropdown />
+
+              {/* User menu */}
               <Link
                 href="/profile"
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
@@ -29,7 +86,7 @@ export function Navbar() {
                   <img
                     src={`/api/users/avatar?username=${session.user.username}`}
                     alt="User Avatar"
-                    className="w-6 h-6 rounded-full"
+                    className="h-6 w-6 rounded-full"
                   />
                 )}
                 <span className="font-mono">{session.user.username}</span>

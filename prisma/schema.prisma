@@ -1,9 +1,3 @@
-// AlgoArena Prisma Schema
-// Database: SQLite (better-sqlite3 compatible, WAL mode)
-// All primary keys are UUIDs stored as TEXT.
-// JSON fields use String (SQLite has no native JSONB).
-// Contest status is NEVER stored — always derived from starts_at + duration_minutes.
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -13,37 +7,28 @@ datasource db {
   provider = "sqlite"
 }
 
-// ---------------------------------------------------------------------------
-// User
-// Mirrors the existing `users` table created by better-sqlite3 in db.ts.
-// Prisma manages the NEW tables; this model lets relations compile correctly.
-// ---------------------------------------------------------------------------
 model User {
-  id         Int    @id @default(autoincrement())
-  google_id  String @unique
-  email      String
-  name       String
-  username   String @unique
-  avatar_svg String
-  created_at String @default("") // managed by better-sqlite3 legacy code
-
-  // Relations to new models
-  createdContests       Contest[]               @relation("ContestCreator")
-  contestParticipations ContestParticipant[]
-  contestSubmissions    ContestSubmission[]
-  sentMessages          Message[]               @relation("MessageSender")
+  id                      Int                       @id @default(autoincrement())
+  google_id               String                    @unique(map: "sqlite_autoindex_users_1")
+  email                   String
+  name                    String
+  username                String                    @unique(map: "sqlite_autoindex_users_2")
+  avatar_svg              String
+  created_at              String                    @default("datetime('now')")
+  contestParticipations   ContestParticipant[]
+  contestSubmissions      ContestSubmission[]
+  createdContests         Contest[]                 @relation("ContestCreator")
   conversationMemberships ConversationParticipant[]
-  notifications         Notification[]
-  sentFriendRequests    FriendRequest[]         @relation("FriendRequestSender")
-  receivedFriendRequests FriendRequest[]        @relation("FriendRequestReceiver")
+  receivedFriendRequests  FriendRequest[]           @relation("FriendRequestReceiver")
+  sentFriendRequests      FriendRequest[]           @relation("FriendRequestSender")
+  sentMessages            Message[]                 @relation("MessageSender")
+  notifications           Notification[]
+  submissions             Submission[]
 
+  @@index([google_id], map: "idx_users_google_id")
   @@map("users")
 }
 
-// ---------------------------------------------------------------------------
-// Submission (existing table — legacy, managed by better-sqlite3)
-// Declared here only so Prisma can introspect without conflicts.
-// ---------------------------------------------------------------------------
 model Submission {
   id         Int     @id @default(autoincrement())
   user_id    Int
@@ -51,71 +36,57 @@ model Submission {
   status     String
   time       String?
   memory     Float?
-  created_at String  @default("")
+  created_at String  @default("datetime('now')")
+  users      User    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+  @@index([problem_id], map: "idx_submissions_problem_id")
+  @@index([user_id], map: "idx_submissions_user_id")
   @@map("submissions")
 }
 
-// ---------------------------------------------------------------------------
-// Contest
-// status is NEVER stored here — derive it with getContestStatus() helper.
-// ---------------------------------------------------------------------------
 model Contest {
-  id               String   @id @default(uuid())
-  title            String
-  creator_id       Int
-  is_public        Boolean  @default(false)
-  starts_at        DateTime
-  duration_minutes Int
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  creator              User                  @relation("ContestCreator", fields: [creator_id], references: [id])
-  problems             ContestProblem[]
-  participants         ContestParticipant[]
-  contestSubmissions   ContestSubmission[]
-  conversations        Conversation[]
+  id                 String               @id @default(uuid())
+  title              String
+  creator_id         Int
+  is_public          Boolean              @default(false)
+  starts_at          DateTime
+  duration_minutes   Int
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  participants       ContestParticipant[]
+  problems           ContestProblem[]
+  contestSubmissions ContestSubmission[]
+  creator            User                 @relation("ContestCreator", fields: [creator_id], references: [id])
+  conversations      Conversation[]
 
   @@map("contests")
 }
 
-// ---------------------------------------------------------------------------
-// ContestProblem — problems assigned to a contest with ordering and difficulty
-// ---------------------------------------------------------------------------
 model ContestProblem {
-  id         String          @id @default(uuid())
+  id         String            @id @default(uuid())
   contest_id String
   problem_id String
   order      Int
   difficulty ProblemDifficulty
-
-  contest Contest @relation(fields: [contest_id], references: [id])
+  contest    Contest           @relation(fields: [contest_id], references: [id])
 
   @@unique([contest_id, problem_id])
   @@map("contest_problems")
 }
 
-// ---------------------------------------------------------------------------
-// ContestParticipant — users enrolled in a contest
-// ---------------------------------------------------------------------------
 model ContestParticipant {
   id          String   @id @default(uuid())
   contest_id  String
   user_id     Int
   total_score Int      @default(0)
   joined_at   DateTime @default(now())
-
-  contest Contest @relation(fields: [contest_id], references: [id])
-  user    User    @relation(fields: [user_id], references: [id])
+  user        User     @relation(fields: [user_id], references: [id])
+  contest     Contest  @relation(fields: [contest_id], references: [id])
 
   @@unique([contest_id, user_id])
   @@map("contest_participants")
 }
 
-// ---------------------------------------------------------------------------
-// ContestSubmission — a user's submission for a problem within a contest
-// Scoring: Easy=100, Medium=200, Hard=300 (only when is_correct=true)
-// ---------------------------------------------------------------------------
 model ContestSubmission {
   id           String   @id @default(uuid())
   contest_id   String
@@ -124,115 +95,79 @@ model ContestSubmission {
   is_correct   Boolean
   score        Int      @default(0)
   submitted_at DateTime @default(now())
-
-  contest Contest @relation(fields: [contest_id], references: [id])
-  user    User    @relation(fields: [user_id], references: [id])
+  user         User     @relation(fields: [user_id], references: [id])
+  contest      Contest  @relation(fields: [contest_id], references: [id])
 
   @@map("contest_submissions")
 }
 
-// ---------------------------------------------------------------------------
-// Conversation — a chat room, either a direct DM or tied to a contest
-// ---------------------------------------------------------------------------
 model Conversation {
-  id         String           @id @default(uuid())
-  type       ConversationType
-  contest_id String?
-  created_at DateTime         @default(now())
-  updated_at DateTime         @updatedAt
-
-  contest      Contest?                 @relation(fields: [contest_id], references: [id])
+  id           String                    @id @default(uuid())
+  type         ConversationType
+  contest_id   String?
+  created_at   DateTime                  @default(now())
+  updated_at   DateTime                  @updatedAt
   participants ConversationParticipant[]
+  contest      Contest?                  @relation(fields: [contest_id], references: [id])
   messages     Message[]
 
   @@map("conversations")
 }
 
-// ---------------------------------------------------------------------------
-// ConversationParticipant — join table; tracks last-seen for unread detection
-// Unread messages: messages with id > last_seen_message_id (or all if null)
-// ---------------------------------------------------------------------------
 model ConversationParticipant {
-  id                   String   @id @default(uuid())
+  id                   String       @id @default(uuid())
   conversation_id      String
   user_id              Int
   last_seen_message_id String?
-  joined_at            DateTime @default(now())
-
-  conversation      Conversation @relation(fields: [conversation_id], references: [id])
-  user              User         @relation(fields: [user_id], references: [id])
-  last_seen_message Message?     @relation("LastSeenMessage", fields: [last_seen_message_id], references: [id])
+  joined_at            DateTime     @default(now())
+  last_seen_message    Message?     @relation("LastSeenMessage", fields: [last_seen_message_id], references: [id])
+  user                 User         @relation(fields: [user_id], references: [id])
+  conversation         Conversation @relation(fields: [conversation_id], references: [id])
 
   @@unique([conversation_id, user_id])
   @@map("conversation_participants")
 }
 
-// ---------------------------------------------------------------------------
-// Message — a single message within a conversation
-// metadata stores type-specific JSON payloads (see below).
-//
-// metadata shapes by type:
-//   text                  — (none required)
-//   problem_recommendation — { problem_id, problem_name, difficulty, note? }
-//   code_snippet          — { code, language, problem_id? }
-//   contest_invite        — { contest_id, contest_name, start_time }
-// ---------------------------------------------------------------------------
 model Message {
-  id              String      @id @default(uuid())
+  id              String                    @id @default(uuid())
   conversation_id String
   sender_id       Int
   type            MessageType
   content         String
-  metadata        String?     // JSON string; null for plain text messages
-  created_at      DateTime    @default(now())
-
-  conversation Conversation @relation(fields: [conversation_id], references: [id])
-  sender       User         @relation("MessageSender", fields: [sender_id], references: [id])
-
-  // Participants who last saw this message
-  lastSeenBy ConversationParticipant[] @relation("LastSeenMessage")
+  metadata        String?
+  created_at      DateTime                  @default(now())
+  lastSeenBy      ConversationParticipant[] @relation("LastSeenMessage")
+  sender          User                      @relation("MessageSender", fields: [sender_id], references: [id])
+  conversation    Conversation              @relation(fields: [conversation_id], references: [id])
 
   @@index([conversation_id, created_at])
   @@map("messages")
 }
 
-// ---------------------------------------------------------------------------
-// Notification — in-app notifications for users
-// data stores event-specific JSON payload
-// ---------------------------------------------------------------------------
 model Notification {
   id         String           @id @default(uuid())
   user_id    Int
   type       NotificationType
-  data       String           // JSON string
+  data       String
   is_read    Boolean          @default(false)
   created_at DateTime         @default(now())
-
-  user User @relation(fields: [user_id], references: [id])
+  user       User             @relation(fields: [user_id], references: [id])
 
   @@map("notifications")
 }
 
-// ---------------------------------------------------------------------------
-// FriendRequest — friendship lifecycle management
-// ---------------------------------------------------------------------------
 model FriendRequest {
   id          String              @id @default(uuid())
   sender_id   Int
   receiver_id Int
-  status      FriendRequestStatus @default(pending)
+  status      FriendRequestStatus @default("pending")
   created_at  DateTime            @default(now())
   updated_at  DateTime            @updatedAt
-
-  sender   User @relation("FriendRequestSender", fields: [sender_id], references: [id])
-  receiver User @relation("FriendRequestReceiver", fields: [receiver_id], references: [id])
+  receiver    User                @relation("FriendRequestReceiver", fields: [receiver_id], references: [id])
+  sender      User                @relation("FriendRequestSender", fields: [sender_id], references: [id])
 
   @@map("friend_requests")
 }
-
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
 
 enum ConversationType {
   direct
@@ -248,6 +183,7 @@ enum MessageType {
 
 enum NotificationType {
   friend_request
+  friend_request_accepted
   friend_online
   contest_invite
   contest_starting
