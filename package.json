@@ -13,6 +13,7 @@
     "@dicebear/core": "^9.3.2",
     "@langchain/core": "^1.1.24",
     "@langchain/openai": "^1.2.7",
+    "@prisma/adapter-better-sqlite3": "^7.4.1",
     "@types/prismjs": "^1.26.6",
     "better-sqlite3": "^12.6.2",
     "langchain": "^1.2.24",
@@ -29,6 +30,7 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@prisma/client": "^7.4.1",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
@@ -37,6 +39,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^10.0.1",
     "eslint-config-next": "^0.2.4",
+    "prisma": "^7.4.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

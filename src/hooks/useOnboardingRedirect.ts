@@ -16,5 +16,10 @@ export function useOnboardingRedirect() {
     if (session?.user?.isNewUser && pathname !== "/onboarding") {
       router.push("/onboarding");
     }
+
+    // If user is NOT new and on onboarding page, redirect to home
+    if (session?.user?.isNewUser === false && pathname === "/onboarding") {
+      router.push("/");
+    }
   }, [session?.user?.isNewUser, pathname, router, status]);
 }

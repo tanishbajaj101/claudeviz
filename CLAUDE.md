@@ -5,6 +5,7 @@ LeetCode alternative: problem list → split-pane workspace (editor + Judge0 run
 ## Stack
 
 - Next.js 14+ (App Router), TypeScript strict, Tailwind CSS
+- Prisma 7 ORM — SQLite database (`data/algoarena.db`)
 - `react-simple-code-editor` + Prism.js — C++ only (`language_id: 54`, GCC 9.2.0)
 - Judge0 CE API — code execution with per-problem resource limits
 - NextAuth.js — Google OAuth 2.0
@@ -17,6 +18,9 @@ LeetCode alternative: problem list → split-pane workspace (editor + Judge0 run
 - `npm run build` — Production build (run after every change set)
 - `npm run lint` — ESLint
 - `npm run typecheck` — TypeScript strict check
+- `npx prisma migrate dev` — Create and apply migrations
+- `npx prisma studio` — Visual database browser
+- `npx prisma generate` — Generate Prisma Client (auto-runs after migrate)
 
 ## Architecture
 
@@ -38,6 +42,8 @@ src/
 │   ├── problems/                         # Problem list, filters, cards
 │   └── layout/                           # Navbar, split-pane, sidebar
 ├── lib/
+│   ├── prisma.ts                         # Prisma client singleton
+│   ├── contest-status.ts                 # Contest status derivation helpers
 │   ├── judge0.ts                         # Judge0 API client
 │   ├── chatbot.ts                        # Main Agent (detects viz needs, calls viz agent)
 │   ├── visualization-agent.ts            # Viz Agent (generates tracer code from requests)
@@ -47,7 +53,10 @@ src/
 ├── data/
 │   └── problems.ts                       # All problem definitions (→ docs/problem-data-reference.md)
 ├── types/index.ts                        # TypeScript interfaces
-└── hooks/                                # Custom React hooks
+├── hooks/                                # Custom React hooks
+└── prisma/
+    ├── schema.prisma                     # Database schema (Prisma 7)
+    └── migrations/                       # Database migrations
 ```
 
 ## Code Style
@@ -114,6 +123,58 @@ CLAUDE.md covers project-wide rules. For **task-specific** work, reference the a
 **`docs/visualization-agent-prompt.md`** — The runtime LangChain system prompt for the Visualization Agent. Loaded by `src/lib/visualization-agent.ts`. Defines: what it receives from the Main Agent, exact JSON response format (`{ type, code, description }`), full tracer API reference (`Array1DTracer`, `Array2DTracer`, `GraphTracer`, `LogTracer`, `ChartTracer` — all methods), 6 code generation rules, 3 complete working examples (binary search, two sum correct, two sum wrong approach), and common mistakes to avoid.
 
 **`docs/problem-data-reference.md`** — Schema and examples for `src/data/problems.ts`. Includes: `Problem` TypeScript interface, Judge0 limits table by difficulty, two fully worked examples (Two Sum, Binary Search) with all fields populated (description, constraints, test cases, judge0Limits, starterCode, editorial), and the starter code pattern (why `main()` handles I/O so users only implement the `Solution` method).
+
+## Completed Work: Database Models (Prisma)
+
+**Stack addition:** Prisma 7 ORM with SQLite (same `data/algoarena.db` as legacy `better-sqlite3` tables).
+
+### Database Models
+
+| Model | Table | Fields | Notes |
+|-------|-------|--------|-------|
+| `Contest` | `contests` | `id` (UUID), `title`, `creator_id`, `is_public`, `starts_at`, `duration_minutes`, timestamps | **NO status column** — status derived via `getContestStatus()` |
+| `ContestProblem` | `contest_problems` | `id` (UUID), `contest_id`, `problem_id`, `order`, `difficulty` (easy/medium/hard) | Unique: (contest_id, problem_id) |
+| `ContestParticipant` | `contest_participants` | `id` (UUID), `contest_id`, `user_id`, `total_score`, `joined_at` | Unique: (contest_id, user_id) |
+| `ContestSubmission` | `contest_submissions` | `id` (UUID), `contest_id`, `user_id`, `problem_id`, `is_correct`, `score`, `submitted_at` | Scoring: easy=100, medium=200, hard=300 |
+| `Conversation` | `conversations` | `id` (UUID), `type` (direct/contest), `contest_id?`, timestamps | Supports 1-on-1 chat + contest chat rooms |
+| `ConversationParticipant` | `conversation_participants` | `id` (UUID), `conversation_id`, `user_id`, `last_seen_message_id?`, `joined_at` | Unique: (conversation_id, user_id) |
+| `Message` | `messages` | `id` (UUID), `conversation_id`, `sender_id`, `type`, `content`, `metadata?` (JSONB), `created_at` | Index: (conversation_id, created_at). Types: text, problem_recommendation, code_snippet, contest_invite |
+| `Notification` | `notifications` | `id` (UUID), `user_id`, `type`, `data` (JSONB), `is_read`, `created_at` | Types: friend_request, friend_online, contest_invite, contest_starting |
+| `FriendRequest` | `friend_requests` | `id` (UUID), `sender_id`, `receiver_id`, `status` (pending/accepted/rejected), timestamps | Status defaults to pending |
+
+### Helper Functions
+
+**`src/lib/contest-status.ts`** — Contest status derivation (import from `@/lib/contest-status`)
+
+```typescript
+getContestStatus(startsAt, durationMinutes, now?)  // → 'upcoming' | 'active' | 'completed'
+getContestEndTime(startsAt, durationMinutes)       // → Date
+getContestRemainingMs(startsAt, durationMinutes)   // → number (milliseconds)
+calculateContestScore(difficulty, isCorrect)       // → 0 | 100 | 200 | 300
+CONTEST_SCORES = { easy: 100, medium: 200, hard: 300 }
+```
+
+**`src/lib/prisma.ts`** — Prisma client singleton (import from `@/lib/prisma`)
+
+```typescript
+import { prisma } from "@/lib/prisma";
+```
+
+### Files
+
+- `prisma/schema.prisma` — Complete Prisma schema with 9 models (+ 2 legacy tables mapped)
+- `prisma.config.ts` — Prisma 7 config (points to `data/algoarena.db`)
+- `prisma/migrations/0_baseline/migration.sql` — Baseline for existing `users`/`submissions` tables
+- `prisma/migrations/20260224082134_init_all_models/migration.sql` — Creates all 8 new tables
+- `src/lib/contest-status.ts` — Status derivation helpers
+- `src/lib/prisma.ts` — Prisma client singleton
+
+### Critical Rules (Database)
+
+1. **Contest status is NEVER stored.** Always compute at runtime via `getContestStatus(contest.starts_at, contest.duration_minutes)`.
+2. **Contest scoring is hardcoded.** Easy=100, Medium=200, Hard=300. No time bonuses. No penalties.
+3. **Message metadata is JSONB.** Store type-specific payloads (problem recommendations, code snippets, contest invites).
+4. **Conversation model is polymorphic.** `type='direct'` for 1-on-1 friend chat, `type='contest'` for contest chat rooms.
 
 ## Testing Checklist
 

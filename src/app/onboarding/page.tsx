@@ -38,7 +38,7 @@ type RandomBtn = {
 };
 
 export default function OnboardingPage() {
-  useSession();
+  const { update } = useSession();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -173,6 +173,7 @@ export default function OnboardingPage() {
         body: JSON.stringify({ name: name.trim(), username, avatarSvg }),
       });
       if (res.ok) {
+        await update();
         router.push("/");
         router.refresh();
       } else {
