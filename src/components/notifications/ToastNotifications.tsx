@@ -47,7 +47,7 @@ export function ToastNotifications() {
   // Listen for ephemeral friend:online events (separate from notification:new)
   useSocketEvent(socket, "friend:online", (payload: unknown) => {
     const data = payload as { user_id: number; username: string };
-    const toastId = `friend-online-${data.user_id}-${Date.now()}`;
+    const toastId = `friend-online-${data.user_id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const toast: Toast = {
       id: toastId,
       type: "friend_online",
@@ -205,9 +205,8 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
 
   return (
     <div
-      className={`pointer-events-auto w-80 cursor-pointer rounded-lg border p-4 shadow-2xl transition-all duration-300 ${getToastStyle()} ${
-        isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-      }`}
+      className={`pointer-events-auto w-80 cursor-pointer rounded-lg border p-4 shadow-2xl transition-all duration-300 ${getToastStyle()} ${isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+        }`}
       onClick={handleClick}
       role="alert"
       aria-live="polite"

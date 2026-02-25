@@ -22,11 +22,11 @@
  *   https://nextjs.org/docs/pages/building-your-application/configuring/custom-server
  */
 
+
+
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
-import * as serverModule from "./src/lib/socket/server";
-const getSocketServer = (serverModule as any).getSocketServer || (serverModule as any).default?.getSocketServer;
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME ?? "localhost";
@@ -36,6 +36,10 @@ const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 await app.prepare();
+
+// Import server dynamically AFTER Next.js loads .env.local via app.prepare()
+const serverModule = await import("./src/lib/socket/server");
+const getSocketServer = (serverModule as any).getSocketServer || (serverModule as any).default?.getSocketServer;
 
 const httpServer = createServer((req, res) => {
   const parsedUrl = parse(req.url ?? "/", true);

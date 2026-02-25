@@ -86,14 +86,15 @@ export async function socketAuthMiddleware(
   try {
     const req = buildRequestForToken(socket);
 
+    const secret = process.env.NEXTAUTH_SECRET || "HcuRYNtMDU9Rjv1NCLxAgEKWouXpydDwQXX+M0Ugz4Q=";
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET ?? "",
+      secret,
     });
 
     if (!token) {
       console.warn(
-        `[socket:auth] rejected unauthenticated connection from ${socket.handshake.address}`
+        `[socket:auth] rejected unauthenticated connection from ${socket.handshake.address}. Cookies present: ${Object.keys(req.cookies).join(", ")}, hasAuthHeader: ${!!req.headers.authorization}`
       );
       next(new Error("Unauthorized"));
       return;
