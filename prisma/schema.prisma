@@ -4,43 +4,46 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id                      Int                       @id @default(autoincrement())
-  google_id               String                    @unique(map: "sqlite_autoindex_users_1")
+  google_id               String                    @unique
   email                   String
   name                    String
-  username                String                    @unique(map: "sqlite_autoindex_users_2")
+  username                String                    @unique
   avatar_svg              String
-  created_at              String                    @default("datetime('now')")
+  created_at              DateTime                  @default(now())
+  last_opened_problem_id  String?
+  last_active             DateTime?
   contestParticipations   ContestParticipant[]
   contestSubmissions      ContestSubmission[]
   createdContests         Contest[]                 @relation("ContestCreator")
   conversationMemberships ConversationParticipant[]
   receivedFriendRequests  FriendRequest[]           @relation("FriendRequestReceiver")
-  sentFriendRequests      FriendRequest[]           @relation("FriendRequestSender")
+  sentFriendRequests      FriendRequest[]            @relation("FriendRequestSender")
   sentMessages            Message[]                 @relation("MessageSender")
   notifications           Notification[]
   submissions             Submission[]
 
-  @@index([google_id], map: "idx_users_google_id")
+  @@index([google_id])
   @@map("users")
 }
 
 model Submission {
-  id         Int     @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   user_id    Int
   problem_id String
   status     String
   time       String?
   memory     Float?
-  created_at String  @default("datetime('now')")
-  users      User    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at DateTime @default(now())
+  users      User     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@index([problem_id], map: "idx_submissions_problem_id")
-  @@index([user_id], map: "idx_submissions_user_id")
+  @@index([problem_id])
+  @@index([user_id])
   @@map("submissions")
 }
 

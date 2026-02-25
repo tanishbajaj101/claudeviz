@@ -13,8 +13,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const submissions = getSubmissionsByUserId(session.user.dbUserId);
-  const solvedProblems = getSolvedProblemsByUserId(session.user.dbUserId);
+  const [submissions, solvedProblems] = await Promise.all([
+    getSubmissionsByUserId(session.user.dbUserId),
+    getSolvedProblemsByUserId(session.user.dbUserId),
+  ]);
 
   // Convert to UserSubmission format
   const formattedSubmissions = submissions.map((s) => ({
@@ -47,16 +49,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const submission = createSubmission({
-    userId: session.user.dbUserId,
-    problemId,
-    status,
-    time,
-    memory,
-  });
-
-  // Return updated solved problems
-  const solvedProblems = getSolvedProblemsByUserId(session.user.dbUserId);
+  const [submission, solvedProblems] = await Promise.all([
+    createSubmission({
+      userId: session.user.dbUserId,
+      problemId,
+      status,
+      time,
+      memory,
+    }),
+    getSolvedProblemsByUserId(session.user.dbUserId),
+  ]);
 
   return NextResponse.json({
     submission,

@@ -13,7 +13,7 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   _req: NextRequest,
@@ -34,23 +34,21 @@ export async function GET(
   const userId = session.user.dbUserId as number;
 
   try {
-    const db = getDb();
-
     // Find the first accepted submission for this problem
-    const submission = db
-      .prepare(
-        `SELECT created_at
-         FROM submissions
-         WHERE user_id = ? AND problem_id = ? AND status = 'Accepted'
-         ORDER BY created_at ASC
-         LIMIT 1`
-      )
-      .get(userId, problemId) as { created_at: string } | undefined;
+    const submission = await prisma.submission.findFirst({
+      where: {
+        user_id: userId,
+        problem_id: problemId,
+        status: "Accepted",
+      },
+      orderBy: { created_at: "asc" },
+      select: { created_at: true },
+    });
 
     if (submission) {
       return NextResponse.json({
         solved: true,
-        solved_at: new Date(submission.created_at).toISOString(),
+        solved_at: submission.created_at.toISOString(),
       });
     }
 

@@ -84,16 +84,16 @@ interface HeatmapEntry {
 }
 
 function generateActivityHeatmap(
-  acceptedSubmissions: Array<{ created_at: string }>
+  acceptedSubmissions: Array<{ created_at: Date | string }>
 ): HeatmapEntry[] {
   const now = new Date();
 
   // Count accepted submissions per calendar day
   const counts = new Map<string, number>();
   for (const sub of acceptedSubmissions) {
-    // created_at is a SQLite TEXT like "2026-02-24 10:30:00"
-    // Parsing as a Date works because new Date handles ISO-like strings.
-    const dateStr = sub.created_at.split(" ")[0]; // "YYYY-MM-DD"
+    // created_at is a Date from PostgreSQL (or a string from legacy SQLite data)
+    const createdAt = sub.created_at instanceof Date ? sub.created_at : new Date(sub.created_at);
+    const dateStr = createdAt.toISOString().split("T")[0]; // "YYYY-MM-DD"
     counts.set(dateStr, (counts.get(dateStr) ?? 0) + 1);
   }
 
@@ -131,26 +131,19 @@ export async function GET(
 
   // Use the legacy better-sqlite3 helper to fetch the user (includes
   // last_opened_problem_id and last_active after the db.ts migration).
-  const dbUser = getUserById(targetId);
+  const dbUser = await getUserById(targetId);
   if (!dbUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
   try {
-    // Fetch all submissions for the target user (raw TEXT status)
+    // Fetch all submissions for the target user
     const allSubmissions = await prisma.submission.findMany({
       where: { user_id: targetId },
       select: { problem_id: true, status: true, created_at: true },
     });
 
-    // created_at from Prisma on a legacy TEXT column comes back as a string
-    // (Prisma doesn't coerce it to Date for @@ignore-adjacent models).
-    // We cast the Prisma result to the right shape.
-    const submissionsTyped = allSubmissions as Array<{
-      problem_id: string;
-      status: string;
-      created_at: string;
-    }>;
+    const submissionsTyped = allSubmissions;
 
     const totalSubmissions = submissionsTyped.length;
 
@@ -200,7 +193,7 @@ export async function GET(
         id: dbUser.id,
         username: dbUser.username,
         avatar_svg: dbUser.avatar_svg,
-        created_at: dbUser.created_at,
+        created_at: dbUser.created_at instanceof Date ? dbUser.created_at.toISOString() : dbUser.created_at,
         friendship_status: friendshipStatus,
       },
       stats: {

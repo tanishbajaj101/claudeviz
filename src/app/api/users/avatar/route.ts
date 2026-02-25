@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Username is required" }, { status: 400 });
     }
 
-    const user = getUserByUsername(username);
+    const user = await getUserByUsername(username);
     if (!user || !user.avatar_svg) {
         return NextResponse.json({ error: "Avatar not found" }, { status: 404 });
     }

@@ -14,11 +14,10 @@
 
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import type { Prisma } from "@prisma/client";
 
 // Resolve project root relative to this script
 const PROJECT_ROOT = path.resolve(__dirname, "..");
-const DB_PATH = path.join(PROJECT_ROOT, "data", "algoarena.db");
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -68,7 +67,7 @@ function pickProblems(allProblems: ProblemRecord[]): SelectedProblem[] {
       // Fallback: any unused problem regardless of difficulty
       console.warn(
         `[seed] Warning: No ${targetDifficulty} problems available for slot ${order}. ` +
-          `Using any available unused problem.`
+        `Using any available unused problem.`
       );
       candidates = allProblems.filter((p) => !usedIds.has(p.id));
     }
@@ -98,10 +97,8 @@ function pickProblems(allProblems: ProblemRecord[]): SelectedProblem[] {
 }
 
 async function main() {
-  // Set up Prisma with the better-sqlite3 adapter (required for Prisma 7).
-  // PrismaBetterSqlite3 accepts { url } with the file: prefix.
-  const adapter = new PrismaBetterSqlite3({ url: `file:${DB_PATH}` });
-  const prisma = new PrismaClient({ adapter, log: ["warn", "error"] });
+  // Connect to PostgreSQL via DATABASE_URL (set in .env.local or environment)
+  const prisma = new PrismaClient({ log: ["warn", "error"] });
 
   // Import problem data via file:// URL (required on Windows for ESM dynamic import)
   const problemsFilePath = path.join(PROJECT_ROOT, "src", "data", "problems.ts");
@@ -131,7 +128,6 @@ async function main() {
           name: "Seed User",
           username: "seeduser",
           avatar_svg: "<svg></svg>",
-          created_at: new Date().toISOString(),
         },
       });
       console.log(`[seed] Created seed user: id=${seedUser.id}`);
@@ -168,7 +164,7 @@ async function main() {
         continue;
       }
 
-      const contest = await prisma.$transaction(async (tx) => {
+      const contest = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // 1. Create contest
         const newContest = await tx.contest.create({
           data: {

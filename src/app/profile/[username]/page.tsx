@@ -10,7 +10,7 @@ export default async function UserProfilePage({ params }: PageProps) {
   const { username } = await params;
 
   // Look up user by username
-  const user = getUserByUsername(username);
+  const user = await getUserByUsername(username);
 
   if (!user) {
     notFound();

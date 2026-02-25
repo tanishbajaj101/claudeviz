@@ -32,6 +32,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { isUserOnline } from "@/lib/socket/connections";
 import { emitNotification } from "@/lib/socket/notification-helpers";
 import { problems } from "@/data/problems";
@@ -82,7 +83,7 @@ async function hasUnreadMessages(
 // ---------------------------------------------------------------------------
 
 async function getLastProblemActivity(
-  friendDbUser: ReturnType<typeof getUserById>,
+  friendDbUser: Awaited<ReturnType<typeof getUserById>>,
   friendId: number
 ): Promise<{
   problem_id: string;
@@ -159,7 +160,7 @@ export async function GET() {
         const friendId = friend.id;
 
         // Fetch legacy DB row for activity fields (last_opened_problem_id, last_active)
-        const friendDbUser = getUserById(friendId);
+        const friendDbUser = await getUserById(friendId);
 
         const [lastProblemActivity, hasUnread] = await Promise.all([
           getLastProblemActivity(friendDbUser, friendId),
@@ -171,7 +172,7 @@ export async function GET() {
           username: friend.username,
           avatar_svg: friend.avatar_svg,
           is_online: isUserOnline(friendId),
-          last_active: friendDbUser?.last_active ?? null,
+          last_active: friendDbUser?.last_active?.toISOString() ?? null,
           last_problem_activity: lastProblemActivity,
           has_unread: hasUnread,
         };
@@ -290,7 +291,7 @@ export async function POST(req: NextRequest) {
 
     // Create the friend request and the notification in a transaction
     const { friendRequest, notification } = await prisma.$transaction(
-      async (tx) => {
+      async (tx: Prisma.TransactionClient) => {
         const fr = await tx.friendRequest.create({
           data: {
             sender_id: senderId,

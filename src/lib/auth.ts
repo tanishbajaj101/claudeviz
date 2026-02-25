@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account }) {
       // On sign-in (account present), look up user in DB
       if (account) {
-        const dbUser = getUserByGoogleId(account.providerAccountId);
+        const dbUser = await getUserByGoogleId(account.providerAccountId);
         if (dbUser) {
           token.name = dbUser.name;
           token.username = dbUser.username;
@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
       // On subsequent requests when isNewUser is true, re-check DB
       // (handles post-onboarding completion)
       if (token.isNewUser && token.sub) {
-        const dbUser = getUserByGoogleId(token.sub);
+        const dbUser = await getUserByGoogleId(token.sub);
         if (dbUser) {
           token.name = dbUser.name;
           token.username = dbUser.username;

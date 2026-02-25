@@ -85,9 +85,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Use the legacy better-sqlite3 helper for the full-text LIKE search
-    // (max 20 results enforced inside searchUsersByUsername)
-    const matchedUsers = searchUsersByUsername(q.trim(), 20);
+    // Use Prisma user search via db helper (max 20 results enforced inside searchUsersByUsername)
+    const matchedUsers = await searchUsersByUsername(q.trim(), 20);
 
     // Enrich each result with friendship status
     const enriched = await Promise.all(

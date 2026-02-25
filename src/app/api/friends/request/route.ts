@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     sendFriendRequest(session.user.dbUserId, addressee_id);
 
     // Create notification for addressee
-    const requester = getUserById(session.user.dbUserId);
+    const requester = await getUserById(session.user.dbUserId);
     if (requester) {
         createNotification(addressee_id, "friend_request", {
             requester_id: requester.id,
