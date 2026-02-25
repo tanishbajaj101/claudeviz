@@ -15,17 +15,28 @@ function getCategories(problems: Problem[]): string[] {
   return Array.from(cats).sort();
 }
 
+function getTags(problems: Problem[]): string[] {
+  const tags = new Set<string>();
+  problems.forEach((p) => {
+    p.tags.forEach((tag) => tags.add(tag));
+  });
+  return Array.from(tags).sort();
+}
+
 export function ProblemTable({ problems }: { problems: Problem[] }) {
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState<string>("All");
   const [category, setCategory] = useState<string>("All");
+  const [selectedTag, setSelectedTag] = useState<string>("All");
 
   const categories = useMemo(() => getCategories(problems), [problems]);
+  const tags = useMemo(() => getTags(problems), [problems]);
 
   const filtered = useMemo(() => {
     return problems.filter((p) => {
       if (difficulty !== "All" && p.difficulty !== difficulty) return false;
       if (category !== "All" && p.category !== category) return false;
+      if (selectedTag !== "All" && !p.tags.includes(selectedTag)) return false;
       if (
         search &&
         !p.title.toLowerCase().includes(search.toLowerCase()) &&
@@ -34,7 +45,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
         return false;
       return true;
     });
-  }, [problems, search, difficulty, category]);
+  }, [problems, search, difficulty, category, selectedTag]);
 
   return (
     <div className="space-y-4">
@@ -66,6 +77,18 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
           {categories.map((c) => (
             <option key={c} value={c}>
               {c}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedTag}
+          onChange={(e) => setSelectedTag(e.target.value)}
+          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-sm text-zinc-200 outline-none focus:border-emerald-500"
+        >
+          <option value="All">All Tags</option>
+          {tags.map((t) => (
+            <option key={t} value={t}>
+              {t}
             </option>
           ))}
         </select>
@@ -103,12 +126,24 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
                   <div className="h-4 w-4 rounded-full border border-zinc-700" />
                 </td>
                 <td className="px-4 py-3">
-                  <Link
-                    href={`/problems/${problem.id}`}
-                    className="font-mono text-sm text-zinc-200 transition-colors hover:text-emerald-400"
-                  >
-                    {problem.title}
-                  </Link>
+                  <div className="flex flex-col gap-1">
+                    <Link
+                      href={`/problems/${problem.id}`}
+                      className="font-mono text-sm text-zinc-200 transition-colors hover:text-emerald-400"
+                    >
+                      {problem.title}
+                    </Link>
+                    <div className="flex flex-wrap gap-1">
+                      {problem.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -143,3 +178,4 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
     </div>
   );
 }
+
