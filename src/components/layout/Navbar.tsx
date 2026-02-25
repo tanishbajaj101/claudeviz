@@ -2,7 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
-import { Home, Code, User, Trophy, Users, Bell } from "lucide-react";
+import { Home, User, Trophy, Users, Bell } from "lucide-react";
 import { useFriends } from "@/components/friends/FriendsContext";
 import { NotificationsDropdown } from "@/components/notifications/NotificationsDropdown";
 
@@ -32,13 +32,7 @@ export function Navbar() {
                 <Home className="h-4 w-4" />
                 <span>Home</span>
               </Link>
-              <Link
-                href="/problems"
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
-              >
-                <Code className="h-4 w-4" />
-                <span>Problems</span>
-              </Link>
+
               <Link
                 href="/profile"
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"

@@ -7,11 +7,20 @@ import { useFriends, type FriendEntry } from "./FriendsContext";
 
 function formatLastActive(lastActive: string | null): string {
     if (!lastActive) return "long ago";
-    const diff = Date.now() - new Date(lastActive).getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    // SQLite returns "YYYY-MM-DD HH:MM:SS" in UTC.
+    // If we parse it directly, JS might assume local time.
+    // Replace space with "T" and append "Z" to force UTC parsing.
+    const safeDateStr = lastActive.replace(" ", "T") + (lastActive.includes("Z") ? "" : "Z");
+    const diff = Date.now() - new Date(safeDateStr).getTime();
+
+    // Prevent negative diffs due to slight clock skews
+    const safeDiff = Math.max(0, diff);
+
+    const minutes = Math.floor(safeDiff / (1000 * 60));
+    const hours = Math.floor(safeDiff / (1000 * 60 * 60));
+    const days = Math.floor(safeDiff / (1000 * 60 * 60 * 24));
     const weeks = Math.floor(days / 7);
+
     if (minutes < 1) return "just now";
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
