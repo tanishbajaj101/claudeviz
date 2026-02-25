@@ -2,10 +2,12 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { Panel, Group } from "react-resizable-panels";
 import { Problem, ProblemContext, SubmissionResult } from "@/types";
 import { CodeEditor } from "@/components/editor/CodeEditor";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { RecommendModal } from "@/components/problems/RecommendModal";
+import { ResizeHandle } from "@/components/ui/ResizeHandle";
 import { useJudge } from "@/hooks/useJudge";
 import { useSubmissions } from "@/hooks/useSubmissions";
 import { Share2 } from "lucide-react";
@@ -117,49 +119,148 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   }, [judge.loading, judge.results, judge.allPassed, isSubmitting, problem.id, recordSubmission]);
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
-      {/* LEFT PANEL */}
-      <div className="flex w-[45%] min-w-[300px] flex-col border-r border-zinc-800">
-        {/* Tab bar */}
-        <div className="flex border-b border-zinc-800">
-          <button
-            onClick={() => setActiveTab("description")}
-            className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "description"
-                ? "border-b-2 border-emerald-500 text-emerald-400"
-                : "text-zinc-500 hover:text-zinc-300"
-              }`}
-          >
-            Description
-          </button>
-          <button
-            onClick={() => setActiveTab("chat")}
-            className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "chat"
-                ? "border-b-2 border-emerald-500 text-emerald-400"
-                : "text-zinc-500 hover:text-zinc-300"
-              }`}
-          >
-            AI Coach
-          </button>
-        </div>
+    <>
+      <div className="h-[calc(100vh-3.5rem)]">
+        <Group orientation="horizontal">
+          {/* LEFT PANEL - Description / Chat */}
+          <Panel defaultSize="45%" minSize="20%" maxSize="70%">
+            <div className="flex h-full flex-col border-r border-zinc-800">
+              {/* Tab bar */}
+              <div className="flex border-b border-zinc-800">
+                <button
+                  onClick={() => setActiveTab("description")}
+                  className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "description"
+                    ? "border-b-2 border-emerald-500 text-emerald-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                >
+                  Description
+                </button>
+                <button
+                  onClick={() => setActiveTab("chat")}
+                  className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "chat"
+                    ? "border-b-2 border-emerald-500 text-emerald-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                >
+                  AI Coach
+                </button>
+              </div>
 
-        {/* Tab content */}
-        {activeTab === "description" ? (
-          <div className="flex-1 overflow-y-auto p-5">
-            <ProblemDescription
-              problem={problem}
-              solvedStatus={solvedStatus}
-              onRecommend={() => setShowRecommendModal(true)}
-              isAuthenticated={isAuthenticated}
-            />
-          </div>
-        ) : (
-          <div className="flex-1 overflow-hidden">
-            <ChatPanel
-              problemContext={problemContext}
-              isAuthenticated={isAuthenticated}
-            />
-          </div>
-        )}
+              {/* Tab content */}
+              {activeTab === "description" ? (
+                <div className="flex-1 overflow-y-auto p-5">
+                  <ProblemDescription
+                    problem={problem}
+                    solvedStatus={solvedStatus}
+                    onRecommend={() => setShowRecommendModal(true)}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </div>
+              ) : (
+                <div className="flex-1 overflow-hidden">
+                  <ChatPanel
+                    problemContext={problemContext}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </div>
+              )}
+            </div>
+          </Panel>
+
+          <ResizeHandle direction="horizontal" />
+
+          {/* RIGHT PANEL - Code Editor + Test Cases */}
+          <Panel defaultSize="55%" minSize="30%">
+            <Group orientation="vertical">
+              {/* Code editor */}
+              <Panel defaultSize="65%" minSize="20%">
+                <div className="h-full overflow-hidden p-2">
+                  <CodeEditor code={code} onChange={setCode} />
+                </div>
+              </Panel>
+
+              <ResizeHandle direction="vertical" />
+
+              {/* Bottom panel: test results */}
+              <Panel defaultSize="35%" minSize="10%" maxSize="70%">
+                <div className="flex h-full flex-col border-t border-zinc-800">
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 border-b border-zinc-800 px-3 py-2">
+                    <button
+                      onClick={handleRun}
+                      disabled={judge.loading}
+                      className="rounded-md border border-zinc-600 px-4 py-1.5 font-mono text-xs text-zinc-300 transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                    >
+                      {judge.loading ? "Running..." : "Run"}
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={judge.loading || !isAuthenticated}
+                      className="rounded-md bg-emerald-600 px-4 py-1.5 font-mono text-xs font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                      title={!isAuthenticated ? "Sign in to submit" : undefined}
+                    >
+                      {judge.loading ? "Judging..." : "Submit"}
+                    </button>
+                    {judge.allPassed === true && (
+                      <span className="ml-2 font-mono text-xs text-emerald-400">
+                        All test cases passed!
+                      </span>
+                    )}
+                    {judge.allPassed === false && (
+                      <span className="ml-2 font-mono text-xs text-red-400">
+                        Some test cases failed.
+                      </span>
+                    )}
+                    {judge.error && (
+                      <span className="ml-2 font-mono text-xs text-red-400">
+                        {judge.error}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Test case tabs + output */}
+                  <div className="flex-1 overflow-y-auto">
+                    {judge.results.length > 0 ? (
+                      <div>
+                        {/* Test case tabs */}
+                        <div className="flex gap-1 border-b border-zinc-800 px-3 py-1">
+                          {judge.results.map((r, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setSelectedTestCase(i)}
+                              className={`rounded px-2 py-1 font-mono text-xs transition-colors ${selectedTestCase === i
+                                ? "bg-zinc-700 text-zinc-200"
+                                : "text-zinc-500 hover:text-zinc-300"
+                                }`}
+                            >
+                              <span
+                                className={`mr-1 inline-block h-2 w-2 rounded-full ${r.passed ? "bg-emerald-400" : "bg-red-400"
+                                  }`}
+                              />
+                              Case {i + 1}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Selected result */}
+                        {judge.results[selectedTestCase] && (
+                          <TestCaseResult result={judge.results[selectedTestCase]} />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <p className="font-mono text-xs text-zinc-600">
+                          Run or submit to see results.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Panel>
+            </Group>
+          </Panel>
+        </Group>
       </div>
 
       {/* Recommend Modal */}
@@ -170,90 +271,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
           onClose={() => setShowRecommendModal(false)}
         />
       )}
-
-      {/* RIGHT PANEL */}
-      <div className="flex flex-1 flex-col">
-        {/* Code editor */}
-        <div className="flex-1 overflow-hidden p-2">
-          <CodeEditor code={code} onChange={setCode} />
-        </div>
-
-        {/* Bottom panel: test results */}
-        <div className="border-t border-zinc-800">
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 border-b border-zinc-800 px-3 py-2">
-            <button
-              onClick={handleRun}
-              disabled={judge.loading}
-              className="rounded-md border border-zinc-600 px-4 py-1.5 font-mono text-xs text-zinc-300 transition-colors hover:bg-zinc-800 disabled:opacity-50"
-            >
-              {judge.loading ? "Running..." : "Run"}
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={judge.loading || !isAuthenticated}
-              className="rounded-md bg-emerald-600 px-4 py-1.5 font-mono text-xs font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
-              title={!isAuthenticated ? "Sign in to submit" : undefined}
-            >
-              {judge.loading ? "Judging..." : "Submit"}
-            </button>
-            {judge.allPassed === true && (
-              <span className="ml-2 font-mono text-xs text-emerald-400">
-                All test cases passed!
-              </span>
-            )}
-            {judge.allPassed === false && (
-              <span className="ml-2 font-mono text-xs text-red-400">
-                Some test cases failed.
-              </span>
-            )}
-            {judge.error && (
-              <span className="ml-2 font-mono text-xs text-red-400">
-                {judge.error}
-              </span>
-            )}
-          </div>
-
-          {/* Test case tabs + output */}
-          <div className="h-48 overflow-y-auto">
-            {judge.results.length > 0 ? (
-              <div>
-                {/* Test case tabs */}
-                <div className="flex gap-1 border-b border-zinc-800 px-3 py-1">
-                  {judge.results.map((r, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedTestCase(i)}
-                      className={`rounded px-2 py-1 font-mono text-xs transition-colors ${selectedTestCase === i
-                          ? "bg-zinc-700 text-zinc-200"
-                          : "text-zinc-500 hover:text-zinc-300"
-                        }`}
-                    >
-                      <span
-                        className={`mr-1 inline-block h-2 w-2 rounded-full ${r.passed ? "bg-emerald-400" : "bg-red-400"
-                          }`}
-                      />
-                      Case {i + 1}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Selected result */}
-                {judge.results[selectedTestCase] && (
-                  <TestCaseResult result={judge.results[selectedTestCase]} />
-                )}
-              </div>
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <p className="font-mono text-xs text-zinc-600">
-                  Run or submit to see results.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 

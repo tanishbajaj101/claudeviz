@@ -5,12 +5,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { Panel, Group } from "react-resizable-panels";
 import { Problem, ProblemContext, SubmissionResult } from "@/types";
 import { CodeEditor } from "@/components/editor/CodeEditor";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { CountdownTimer } from "@/components/contests/CountdownTimer";
 import { LeaderboardTab } from "@/components/contests/LeaderboardTab";
 import { DiscussionTab } from "@/components/contests/DiscussionTab";
+import { ResizeHandle } from "@/components/ui/ResizeHandle";
 import { getContestStatus, type ContestStatus } from "@/lib/contest-status";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
@@ -151,122 +153,132 @@ export function ContestProblemWorkspace({
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* LEFT PANEL */}
-        <div className="flex w-[45%] min-w-[300px] flex-col border-r border-zinc-800">
-          {/* Tab bar */}
-          <div className="flex border-b border-zinc-800">
-            <button
-              onClick={() => setActiveTab("description")}
-              className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${
-                activeTab === "description"
-                  ? "border-b-2 border-emerald-500 text-emerald-400"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              Description
-            </button>
-            <button
-              onClick={() => setActiveTab("leaderboard")}
-              className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${
-                activeTab === "leaderboard"
-                  ? "border-b-2 border-emerald-500 text-emerald-400"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              Leaderboard
-            </button>
-            <button
-              onClick={() => setActiveTab("discussion")}
-              className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${
-                activeTab === "discussion"
-                  ? "border-b-2 border-emerald-500 text-emerald-400"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              Discussion
-            </button>
-          </div>
-
-          {/* Tab content */}
-          <div className="flex-1 overflow-hidden">
-            {activeTab === "description" && (
-              <div className="h-full overflow-y-auto p-5">
-                <ProblemDescription problem={problem} />
-              </div>
-            )}
-
-            {activeTab === "leaderboard" && (
-              <div className="h-full overflow-y-auto p-4">
-                <LeaderboardTab
-                  contestId={contestId}
-                  currentUserId={session?.user?.dbUserId as number}
-                />
-              </div>
-            )}
-
-            {activeTab === "discussion" && conversationId && (
-              <div className="h-full p-4">
-                <DiscussionTab
-                  contestId={contestId}
-                  conversationId={conversationId}
-                  startsAt={contestStartsAt}
-                  durationMinutes={contestDuration}
-                  currentUserId={session?.user?.dbUserId as number}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT PANEL */}
-        <div className="flex flex-1 flex-col">
-          {/* Code editor */}
-          <div className="flex-1 overflow-hidden p-2">
-            <CodeEditor code={code} onChange={setCode} />
-          </div>
-
-          {/* Bottom panel: actions */}
-          <div className="border-t border-zinc-800 p-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleSubmit}
-                disabled={submitting || status !== "active" || !isAuthenticated}
-                className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
-                title={
-                  status !== "active"
-                    ? "Contest is not active"
-                    : !isAuthenticated
-                      ? "Sign in to submit"
-                      : undefined
-                }
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit"
-                )}
-              </button>
-
-              {submissionStatus && (
-                <span
-                  className={`font-mono text-sm ${
-                    submissionStatus === "Accepted"
-                      ? "text-emerald-400"
-                      : submissionStatus.startsWith("Submission failed")
-                        ? "text-red-400"
-                        : "text-amber-400"
-                  }`}
+      <div className="flex-1 overflow-hidden">
+        <Group orientation="horizontal">
+          {/* LEFT PANEL */}
+          <Panel defaultSize="45%" minSize="20%" maxSize="70%">
+            <div className="flex h-full flex-col border-r border-zinc-800">
+              {/* Tab bar */}
+              <div className="flex border-b border-zinc-800">
+                <button
+                  onClick={() => setActiveTab("description")}
+                  className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "description"
+                    ? "border-b-2 border-emerald-500 text-emerald-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                    }`}
                 >
-                  {submissionStatus}
-                </span>
-              )}
+                  Description
+                </button>
+                <button
+                  onClick={() => setActiveTab("leaderboard")}
+                  className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "leaderboard"
+                    ? "border-b-2 border-emerald-500 text-emerald-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                >
+                  Leaderboard
+                </button>
+                <button
+                  onClick={() => setActiveTab("discussion")}
+                  className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "discussion"
+                    ? "border-b-2 border-emerald-500 text-emerald-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                >
+                  Discussion
+                </button>
+              </div>
+
+              {/* Tab content */}
+              <div className="flex-1 overflow-hidden">
+                {activeTab === "description" && (
+                  <div className="h-full overflow-y-auto p-5">
+                    <ProblemDescription problem={problem} />
+                  </div>
+                )}
+
+                {activeTab === "leaderboard" && (
+                  <div className="h-full overflow-y-auto p-4">
+                    <LeaderboardTab
+                      contestId={contestId}
+                      currentUserId={session?.user?.dbUserId as number}
+                    />
+                  </div>
+                )}
+
+                {activeTab === "discussion" && conversationId && (
+                  <div className="h-full p-4">
+                    <DiscussionTab
+                      contestId={contestId}
+                      conversationId={conversationId}
+                      startsAt={contestStartsAt}
+                      durationMinutes={contestDuration}
+                      currentUserId={session?.user?.dbUserId as number}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
+          </Panel>
+
+          <ResizeHandle direction="horizontal" />
+
+          {/* RIGHT PANEL */}
+          <Panel defaultSize="55%" minSize="30%">
+            <Group orientation="vertical">
+              {/* Code editor */}
+              <Panel defaultSize="75%" minSize="30%">
+                <div className="h-full overflow-hidden p-2">
+                  <CodeEditor code={code} onChange={setCode} />
+                </div>
+              </Panel>
+
+              <ResizeHandle direction="vertical" />
+
+              {/* Bottom panel: actions */}
+              <Panel defaultSize="25%" minSize="10%" maxSize="50%">
+                <div className="flex h-full items-center border-t border-zinc-800 p-4">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitting || status !== "active" || !isAuthenticated}
+                      className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                      title={
+                        status !== "active"
+                          ? "Contest is not active"
+                          : !isAuthenticated
+                            ? "Sign in to submit"
+                            : undefined
+                      }
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        "Submit"
+                      )}
+                    </button>
+
+                    {submissionStatus && (
+                      <span
+                        className={`font-mono text-sm ${submissionStatus === "Accepted"
+                          ? "text-emerald-400"
+                          : submissionStatus.startsWith("Submission failed")
+                            ? "text-red-400"
+                            : "text-amber-400"
+                          }`}
+                      >
+                        {submissionStatus}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Panel>
+            </Group>
+          </Panel>
+        </Group>
       </div>
     </div>
   );
@@ -281,13 +293,12 @@ function ProblemDescription({ problem }: { problem: Problem }) {
         </h1>
         <div className="flex items-center gap-2">
           <span
-            className={`rounded-md px-2 py-1 font-mono text-xs font-medium ${
-              problem.difficulty === "Easy"
-                ? "bg-emerald-500/10 text-emerald-400"
-                : problem.difficulty === "Medium"
-                  ? "bg-yellow-500/10 text-yellow-400"
-                  : "bg-red-500/10 text-red-400"
-            }`}
+            className={`rounded-md px-2 py-1 font-mono text-xs font-medium ${problem.difficulty === "Easy"
+              ? "bg-emerald-500/10 text-emerald-400"
+              : problem.difficulty === "Medium"
+                ? "bg-yellow-500/10 text-yellow-400"
+                : "bg-red-500/10 text-red-400"
+              }`}
           >
             {problem.difficulty}
           </span>

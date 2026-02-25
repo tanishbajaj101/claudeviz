@@ -51,7 +51,7 @@ export function FriendsSearchView() {
     return (
         <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center gap-2 px-3 py-3 border-b border-zinc-800">
+            <div className="flex items-center gap-1 pl-0.5 pr-3 py-3 border-b border-zinc-800">
                 <button
                     onClick={() => setView("list")}
                     className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
