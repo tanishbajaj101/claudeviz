@@ -197,6 +197,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
               ) : (
                 <div className="flex-1 overflow-hidden">
                   <ChatPanel
+                    problemId={problem.id}
                     problemContext={problemContext}
                     isAuthenticated={isAuthenticated}
                   />
@@ -344,7 +345,7 @@ function ProblemDescription({
                 title={`You solved this problem on ${new Date(solvedStatus.solved_at!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
               >
                 <span className="font-mono text-xs font-medium text-emerald-400">
-                  Solved ✓
+                  Solved ✅
                 </span>
               </div>
             )}

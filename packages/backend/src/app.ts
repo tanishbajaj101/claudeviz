@@ -22,6 +22,7 @@ import contestsRouter from './routes/contests.js';
 import judgeRouter from './routes/judge.js';
 import chatRouter from './routes/chat.js';
 import problemsRouter from './routes/problems.js';
+import avatarRouter from './routes/avatar.js';
 
 const app = express();
 
@@ -81,6 +82,7 @@ app.use('/api/contests', contestsRouter);
 app.use('/api/judge', judgeRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/problems', problemsRouter);
+app.use('/api/avatar', avatarRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

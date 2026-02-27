@@ -9,8 +9,6 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import type { StrategyOptions as JwtStrategyOptions } from 'passport-jwt';
 import { getUserByGoogleId, getUserById, createUser } from '../lib/db.js';
-import { createAvatar } from '@dicebear/core';
-import { bottts } from '@dicebear/collection';
 
 interface GoogleProfile {
   id: string;
@@ -49,31 +47,14 @@ export function configurePassport() {
           let user = await getUserByGoogleId(profile.id);
 
           if (!user) {
-            // Generate username from email (before @)
-            let baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
-            let username = baseUsername;
-
-            // Ensure username is unique
-            const { isUsernameAvailable } = await import('../lib/db.js');
-            let counter = 1;
-            while (!(await isUsernameAvailable(username))) {
-              username = `${baseUsername}${counter}`;
-              counter++;
-            }
-
-            // Generate avatar SVG
-            const avatar = createAvatar(bottts, {
-              seed: profile.id,
-            });
-            const avatarSvg = avatar.toString();
-
-            // Create new user
+            // Create a pending user. They will choose their username and avatar during onboarding.
+            // We use a temporary username starting with !pending- to satisfy the unique constraint.
             user = await createUser({
               googleId: profile.id,
               email,
               name: profile.displayName,
-              username,
-              avatarSvg,
+              username: `!pending-${profile.id}`,
+              avatarSvg: '', // Empty until they choose in onboarding
             });
           }
 

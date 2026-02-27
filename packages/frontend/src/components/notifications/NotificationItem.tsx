@@ -120,7 +120,7 @@ export function NotificationItem({
             {type === "friend_request" && (
               <span>
                 <span className="font-semibold text-zinc-100">
-                  {data.username as string}
+                  {data.sender_username as string}
                 </span>{" "}
                 sent you a friend request
               </span>
@@ -147,7 +147,7 @@ export function NotificationItem({
             {type === "contest_invite" && (
               <span>
                 <span className="font-semibold text-zinc-100">
-                  {data.inviter_username as string}
+                  {data.inviter_name as string}
                 </span>{" "}
                 invited you to{" "}
                 <span className="font-semibold text-zinc-100">

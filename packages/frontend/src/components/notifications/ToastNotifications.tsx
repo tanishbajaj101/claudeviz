@@ -69,7 +69,12 @@ export function ToastNotifications() {
     removeToast(toast.id);
 
     // Navigate based on type
-    if (toast.type === "friend_request" || toast.type === "friend_request_accepted") {
+    if (toast.type === "friend_request") {
+      const username = toast.data.sender_username as string;
+      if (username) {
+        navigate(`/profile/${username}`);
+      }
+    } else if (toast.type === "friend_request_accepted") {
       const username = toast.data.username as string;
       if (username) {
         navigate(`/profile/${username}`);
@@ -165,8 +170,9 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
 
   const getMessage = () => {
     const username = toast.data.username as string;
+    const senderUsername = toast.data.sender_username as string;
     const contestName = toast.data.contest_name as string;
-    const inviterUsername = toast.data.inviter_username as string;
+    const inviterName = toast.data.inviter_name as string;
 
     switch (toast.type) {
       case "friend_online":
@@ -179,7 +185,7 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
       case "friend_request":
         return (
           <>
-            <span className="font-semibold text-zinc-100">{username}</span> sent you a
+            <span className="font-semibold text-zinc-100">{senderUsername}</span> sent you a
             friend request!
           </>
         );
@@ -195,7 +201,7 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
           <>
             You've been invited to{" "}
             <span className="font-semibold text-zinc-100">{contestName}</span> by{" "}
-            <span className="font-semibold text-zinc-100">{inviterUsername}</span>!
+            <span className="font-semibold text-zinc-100">{inviterName}</span>!
           </>
         );
       default:

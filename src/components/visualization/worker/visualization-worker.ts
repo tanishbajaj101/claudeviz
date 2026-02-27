@@ -33,6 +33,17 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
       // Initialize command collector
       Commander.init();
 
+      // Inject __className to bypass minification removing actual class names
+      (Array1DTracer as any).prototype.__className = 'Array1DTracer';
+      (Array2DTracer as any).prototype.__className = 'Array2DTracer';
+      (GraphTracer as any).prototype.__className = 'GraphTracer';
+      (LogTracer as any).prototype.__className = 'LogTracer';
+      (ChartTracer as any).prototype.__className = 'ChartTracer';
+      (VerticalLayout as any).prototype.__className = 'VerticalLayout';
+      (HorizontalLayout as any).prototype.__className = 'HorizontalLayout';
+      (Layout as any).prototype.__className = 'Layout';
+      (Tracer as any).prototype.__className = 'Tracer';
+
       // Create execution context with tracer library
       const context = {
         INPUTS: inputs ?? {},
@@ -46,9 +57,9 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
         Layout,
         Tracer,
         console: {
-          log: () => {}, // Silent console in worker
-          error: () => {},
-          warn: () => {},
+          log: () => { }, // Silent console in worker
+          error: () => { },
+          warn: () => { },
         },
       };
 
@@ -77,4 +88,4 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 };
 
 // Export for TypeScript
-export {};
+export { };

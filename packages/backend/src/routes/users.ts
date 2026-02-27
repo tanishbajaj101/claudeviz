@@ -6,7 +6,6 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
 import {
-  createUser,
   getUserByGoogleId,
   getUserById,
   getUserByUsername,
@@ -118,12 +117,14 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await createUser({
-      googleId: req.user!.google_id,
-      email: req.user!.email,
-      name: name.trim(),
-      username,
-      avatarSvg,
+    // Update the existing user with the chosen username, name, and avatar
+    const user = await prisma.user.update({
+      where: { google_id: req.user!.google_id },
+      data: {
+        name: name.trim(),
+        username,
+        avatar_svg: avatarSvg,
+      },
     });
     res.json({ user });
   } catch (error) {

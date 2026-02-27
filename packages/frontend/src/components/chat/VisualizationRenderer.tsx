@@ -26,7 +26,18 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
     setLoading(true);
     setError(null);
 
+    console.log('[Viz] Executing visualization code...');
+    console.log('[Viz] Code length:', data.code.length);
+    console.log('[Viz] Inputs:', inputValues);
+
     const result = await executeVisualizationCode(data.code, inputValues);
+
+    console.log('[Viz] Execution result:', result);
+    console.log('[Viz] Commands received:', result.commands?.length || 0);
+
+    if (result.commands && result.commands.length > 0) {
+      console.log('[Viz] First 10 commands:', result.commands.slice(0, 10));
+    }
 
     if (result.success && result.commands) {
       setCommands(result.commands);

@@ -3,17 +3,34 @@
 import { useState, useRef, useEffect } from "react";
 import { ChatMessage, ProblemContext, VisualizationData } from "../../types";
 import { VisualizationRenderer } from "../../components/chat/VisualizationRenderer";
+import { saveChatHistory, loadChatHistory } from "../../lib/chat-storage";
 
 interface ChatPanelProps {
+  problemId: string;
   problemContext: ProblemContext;
   isAuthenticated: boolean;
 }
 
-export function ChatPanel({ problemContext, isAuthenticated }: ChatPanelProps) {
+export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Hydrate messages from localStorage on mount
+  useEffect(() => {
+    const storedMessages = loadChatHistory(problemId);
+    if (storedMessages) {
+      setMessages(storedMessages);
+    }
+  }, [problemId]);
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveChatHistory(problemId, messages);
+    }
+  }, [messages, problemId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -77,8 +94,27 @@ export function ChatPanel({ problemContext, isAuthenticated }: ChatPanelProps) {
     );
   }
 
+  const handleClearChat = () => {
+    setMessages([]);
+    localStorage.removeItem(`algoarena-chat-${problemId}`);
+  };
+
   return (
     <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
+        <h3 className="font-mono text-sm font-semibold text-zinc-400">AI Coach</h3>
+        {messages.length > 0 && (
+          <button
+            onClick={handleClearChat}
+            className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            title="Clear chat history"
+          >
+            Clear Chat
+          </button>
+        )}
+      </div>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 && (

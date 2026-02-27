@@ -63,7 +63,7 @@ router.get(
       });
 
       // Check if user has username (completed onboarding)
-      if (!user.username) {
+      if (!user.username || user.username.startsWith('!pending-')) {
         res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding?token=${token}`);
         return;
       }

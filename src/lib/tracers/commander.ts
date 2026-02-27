@@ -21,7 +21,7 @@ export abstract class Commander {
 
   protected constructor(iArguments: IArguments) {
     Commander.objectCount++;
-    const className = (this as any).constructor.name;
+    const className = (this as any).__className || (this as any).constructor.name;
     this.key = Commander.randomizeKey();
     this.command(className, iArguments);
   }
