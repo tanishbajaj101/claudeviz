@@ -1,47 +1,22 @@
 {
-  "name": "algoarena",
-  "version": "0.1.0",
+  "name": "algoarena-monorepo",
+  "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "tsx server.mts",
-    "build": "next build",
-    "start": "NODE_ENV=production tsx server.mts",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@dicebear/collection": "^9.3.2",
-    "@dicebear/core": "^9.3.2",
-    "@langchain/core": "^1.1.24",
-    "@langchain/openai": "^1.2.7",
-    "@prisma/client": "^6.4.0",
-    "@types/prismjs": "^1.26.6",
-    "langchain": "^1.2.24",
-    "lucide-react": "^0.575.0",
-    "next": "16.1.6",
-    "next-auth": "^4.24.13",
-    "openai": "^6.22.0",
-    "prismjs": "^1.30.0",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-markdown": "^10.1.0",
-    "react-resizable-panels": "^4.6.5",
-    "react-simple-code-editor": "^0.14.1",
-    "react-split-pane": "^3.0.6",
-    "remark-gfm": "^4.0.1",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3"
+    "dev": "concurrently \"npm run dev -w @algoarena/backend\" \"npm run dev -w @algoarena/frontend\"",
+    "dev:backend": "npm run dev -w @algoarena/backend",
+    "dev:frontend": "npm run dev -w @algoarena/frontend",
+    "build": "npm run build -w @algoarena/shared && npm run build -w @algoarena/backend && npm run build -w @algoarena/frontend",
+    "build:backend": "npm run build -w @algoarena/backend",
+    "build:frontend": "npm run build -w @algoarena/frontend",
+    "start": "npm run start -w @algoarena/backend",
+    "lint": "npm run lint -w @algoarena/backend && npm run lint -w @algoarena/frontend",
+    "typecheck": "npm run typecheck -w @algoarena/backend && npm run typecheck -w @algoarena/frontend"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^10.0.1",
-    "eslint-config-next": "^0.2.4",
-    "prisma": "^6.4.0",
-    "tailwindcss": "^4",
-    "tsx": "^4.19.2",
-    "typescript": "^5"
+    "concurrently": "^8.2.2"
   }
 }

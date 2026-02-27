@@ -4,82 +4,182 @@ LeetCode alternative: problem list → split-pane workspace (editor + Judge0 run
 
 ## Stack
 
-- Next.js 14+ (App Router), TypeScript strict, Tailwind CSS
-- Prisma 7 ORM — SQLite (`data/algoarena.db`) + legacy `better-sqlite3` for `users`/`submissions`
-- Socket.IO 4.8 — 3 namespaces: `/chat`, `/contests`, `/notifications`
-- `react-simple-code-editor` + Prism.js — C++ only (`language_id: 54`, GCC 9.2.0)
-- Judge0 CE API, NextAuth.js (Google OAuth), LangChain (Main + Viz agents)
+**Monorepo Architecture (npm workspaces):**
+- **Frontend:** Vite 7 + React 19 + React Router 6, TypeScript strict, Tailwind CSS (port 5173)
+- **Backend:** Express 4 + Socket.IO 4.8 + Passport.js (Google OAuth + JWT auth) (port 3001)
+- **Shared:** TypeScript type definitions package
+- **Database:** Prisma 7 ORM — PostgreSQL via Supabase + legacy `better-sqlite3` for `users`/`submissions`
+- **Real-time:** Socket.IO 4.8 — 3 namespaces: `/chat`, `/contests`, `/notifications`
+- **Editor:** `react-simple-code-editor` + Prism.js — C++ only (`language_id: 54`, GCC 9.2.0)
+- **External APIs:** Judge0 CE API, OpenAI (LangChain agents)
+
+**Why Monorepo?**
+Migrated from Next.js to Vite + Express for:
+- **10x faster HMR:** 50-200ms (Vite) vs 1-3s (Next.js)
+- **5-6x faster builds:** 5-10s (Vite) vs 30-60s (Next.js)
+- **Cleaner architecture:** Separation of frontend SPA and backend API
+- **Better Socket.IO integration:** Express native support vs custom Next.js server
+- **No unused SSR:** App was 100% client-side despite using Next.js
 
 ## Commands
 
-- `npm run dev` / `npm start` — Dev/prod server with Socket.IO, port 3000
-- `npm run build` — Production build (run after every change set)
-- `npm run lint` / `npm run typecheck` — ESLint / TypeScript strict
-- `npx prisma migrate dev` / `npx prisma generate` / `npx prisma studio`
+**Development:**
+- `npm run dev` — Start both backend (3001) and frontend (5173) concurrently
+- `npm run dev -w @algoarena/backend` — Backend only
+- `npm run dev -w @algoarena/frontend` — Frontend only (with Vite proxy to backend)
+
+**Production:**
+- `npm run build` — Build all packages (shared → backend → frontend)
+- `npm run start -w @algoarena/backend` — Start Express server (Nginx serves frontend)
+
+**Database:**
+- `npm run prisma:generate -w @algoarena/backend` — Generate Prisma client
+- `npm run prisma:migrate -w @algoarena/backend` — Run migrations
+- `npm run prisma:studio -w @algoarena/backend` — Open Prisma Studio
 
 ## Architecture
 
 ```
-server.mts                    # Custom Next.js + Socket.IO server
-src/
-├── app/
-│   ├── page.tsx              # Home: problem list
-│   ├── problems/[id]/        # Problem workspace
-│   ├── profile/[username]/   # Public profile (username-based routes)
-│   ├── contests/             # Contest list + detail + problem workspace
-│   ├── messages/             # Two-panel conversation page
-│   └── api/
-│       ├── auth/[...nextauth]/ chat/ judge/  # Core APIs
-│       ├── contests/         # CRUD, join, submit, leaderboard, timing
-│       ├── conversations/    # List, direct, messages, read, unread-count
-│       ├── notifications/    # List, unread-count, read-all, [id]/read
-│       ├── friends/          # List, send, accept, reject, requests
-│       ├── users/            # Search, profile, activity tracking
-│       └── problems/[id]/status/  # Solved status
-├── components/
-│   ├── ui/ chat/ editor/ visualization/ problems/ layout/
-│   ├── contests/             # CreateContestModal, CountdownTimer, LeaderboardTab, DiscussionTab, ContestProblemWorkspace
-│   ├── friends/              # FriendsContext, FriendsSidebar, SidebarChat, FullScreenChat, ConversationList, MessageRenderer
-│   ├── notifications/        # NotificationsDropdown, NotificationItem, ToastNotifications, NotificationsProvider
-│   └── profile/              # ActivityHeatmap, ProfileClient
-├── lib/
-│   ├── prisma.ts             # Prisma singleton
-│   ├── db.ts                 # Legacy better-sqlite3 (users/submissions)
-│   ├── contest-status.ts     # getContestStatus(), calculateContestScore()
-│   ├── contest-helpers.ts    # selectRandomProblems(), buildContestLeaderboard()
-│   ├── socket/               # server.ts, auth.ts, events.ts, rooms.ts, connections.ts, notification-helpers.ts
-│   ├── judge0.ts chatbot.ts visualization-agent.ts auth.ts problems.ts
-│   └── tracers/              # Client-side algorithm tracers
-├── hooks/useSocket.ts        # useChatSocket(), useContestSocket(), useNotificationSocket()
-├── data/problems.ts          # All problem definitions
-├── types/index.ts
-└── prisma/schema.prisma      # 9 models + 2 legacy mappings
+packages/
+├── frontend/                 # Vite + React SPA (port 5173)
+│   ├── src/
+│   │   ├── pages/           # Route components
+│   │   │   ├── HomePage.tsx
+│   │   │   ├── ProblemPage.tsx
+│   │   │   ├── ContestsPage.tsx
+│   │   │   ├── ContestDetailPage.tsx
+│   │   │   ├── ContestProblemPage.tsx
+│   │   │   ├── MessagesPage.tsx
+│   │   │   ├── UserProfilePage.tsx
+│   │   │   ├── SignInPage.tsx
+│   │   │   └── OnboardingPage.tsx
+│   │   ├── components/
+│   │   │   ├── ui/ chat/ editor/ visualization/ problems/ layout/
+│   │   │   ├── contests/   # CreateContestModal, CountdownTimer, LeaderboardTab, etc.
+│   │   │   ├── friends/    # FriendsContext, FriendsSidebar, SidebarChat, etc.
+│   │   │   ├── notifications/ # NotificationsDropdown, ToastNotifications, etc.
+│   │   │   └── profile/    # ActivityHeatmap, ProfileClient
+│   │   ├── contexts/
+│   │   │   └── AuthContext.tsx  # Custom JWT auth (replaces NextAuth)
+│   │   ├── hooks/
+│   │   │   ├── useSocket.ts     # Socket.IO hooks
+│   │   │   ├── useJudge.ts
+│   │   │   ├── useSubmissions.ts
+│   │   │   └── useOnboardingRedirect.ts
+│   │   ├── lib/
+│   │   │   └── tracers/    # Client-side algorithm tracers
+│   │   ├── data/
+│   │   │   └── problems/   # Problem definitions (shared with backend)
+│   │   ├── router.tsx      # React Router configuration
+│   │   └── main.tsx        # Entry point
+│   └── vite.config.ts      # Vite + proxy config
+│
+├── backend/                  # Express + Socket.IO (port 3001)
+│   ├── src/
+│   │   ├── server.ts        # HTTP server + Socket.IO attach
+│   │   ├── app.ts           # Express app configuration
+│   │   ├── config/
+│   │   │   ├── auth.ts      # Passport Google OAuth + JWT strategies
+│   │   │   └── cors.ts      # CORS configuration
+│   │   ├── middleware/
+│   │   │   └── auth.ts      # JWT verification middleware
+│   │   ├── routes/          # 43 API endpoints (Express routers)
+│   │   │   ├── auth.ts      # Google OAuth + JWT token generation
+│   │   │   ├── users.ts     # 7 user endpoints
+│   │   │   ├── friends.ts   # 6 friend endpoints
+│   │   │   ├── conversations.ts # 5 messaging endpoints
+│   │   │   ├── notifications.ts # 4 notification endpoints
+│   │   │   ├── contests.ts  # 8 contest endpoints
+│   │   │   ├── judge.ts     # Judge0 proxy
+│   │   │   ├── chat.ts      # AI coach
+│   │   │   └── problems.ts  # Problem status + submissions
+│   │   ├── socket/
+│   │   │   ├── index.ts     # Socket.IO server setup
+│   │   │   ├── auth.ts      # Socket JWT authentication
+│   │   │   ├── rooms.ts     # Room management
+│   │   │   ├── connections.ts # User presence tracking
+│   │   │   └── notification-helpers.ts
+│   │   ├── lib/
+│   │   │   ├── prisma.ts    # Prisma client singleton
+│   │   │   ├── db.ts        # Legacy better-sqlite3
+│   │   │   ├── contest-status.ts
+│   │   │   ├── contest-helpers.ts
+│   │   │   ├── judge0.ts
+│   │   │   ├── chatbot.ts   # LangChain main agent
+│   │   │   └── visualization-agent.ts # LangChain viz agent
+│   │   └── data/
+│   │       └── problems/    # Problem definitions
+│   └── package.json
+│
+├── shared/                   # Shared TypeScript types
+│   ├── src/
+│   │   ├── types/
+│   │   │   ├── user.ts
+│   │   │   ├── problem.ts
+│   │   │   ├── contest.ts
+│   │   │   ├── message.ts
+│   │   │   ├── socket.ts
+│   │   │   └── api.ts
+│   │   └── index.ts
+│   └── package.json
+│
+├── prisma/
+│   └── schema.prisma        # 9 models + 2 legacy mappings
+├── nginx.conf               # Production reverse proxy
+└── package.json             # Root workspace config
 ```
 
 ## Code Style
 
 - TypeScript strict, no `any` — named exports only — functional components + hooks
-- `kebab-case.ts` for utils, `PascalCase.tsx` for components — absolute imports `@/*`
-- API routes return typed JSON, never raw strings
+- `kebab-case.ts` for utils, `PascalCase.tsx` for components
+- Absolute imports: `@/*` (frontend/backend), `@algoarena/shared` (types package)
+- React Router patterns:
+  - Use `Link` from `react-router-dom` (not `next/link`)
+  - Use `useNavigate()` for programmatic navigation (not `useRouter().push()`)
+  - Use `useLocation()` for pathname (not `usePathname()`)
+  - Use `useParams()` for route params (same as Next.js)
+- Express API routes return typed JSON, never raw strings
+- No "use client" directives (Vite doesn't need them)
 
-## Env Vars (.env.local — NEVER commit)
+## Env Vars (NEVER commit)
 
+**Backend (`packages/backend/.env`):**
+```bash
+NODE_ENV=development
+PORT=3001
+DATABASE_URL=postgresql://...  # PostgreSQL connection string
+JWT_SECRET=<random-secret>
+SESSION_SECRET=<random-secret>
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/google/callback
+JUDGE0_API_URL=https://judge0-ce.p.rapidapi.com
+JUDGE0_API_KEY=...
+OPENAI_API_KEY=sk-proj-...
+FRONTEND_URL=http://localhost:5173
 ```
-JUDGE0_API_URL, JUDGE0_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-NEXTAUTH_URL=http://localhost:3000, NEXTAUTH_SECRET, OPENAI_API_KEY
+
+**Frontend (`packages/frontend/.env.local`):**
+```bash
+VITE_API_URL=http://localhost:3001
+VITE_SOCKET_URL=http://localhost:3001
 ```
 
 ## Critical Rules
 
-1. Problem data from `src/data/problems.ts` only — never hardcoded in components
-2. Judge0 key never reaches client — all via `/api/judge/route.ts`
-3. Editorial is internal AI context only — never shown to users
-4. All Judge0 payloads use `base64_encoded=true`
-5. Chatbot guides/nudges — never gives full solution
-6. Contest status is NEVER stored — always `getContestStatus(starts_at, duration_minutes)`
-7. Contest scoring: easy=100, medium=200, hard=300 — no time bonuses
-8. Socket.IO calls are best-effort — wrap in try/catch
-9. Use Prisma for new features; legacy `better-sqlite3` for `users`/`submissions` only
+1. **Problem data:** From `packages/frontend/src/data/problems/` or `packages/backend/src/data/problems/` only — never hardcoded in components
+2. **Judge0 security:** API key never reaches client — all proxied via backend `/api/judge`
+3. **Editorial secrecy:** Editorial is internal AI context only — never shown to users
+4. **Judge0 encoding:** All Judge0 payloads use `base64_encoded=true`
+5. **Chatbot coaching:** Guides/nudges only — never gives full solution
+6. **Contest status:** NEVER stored in DB — always computed via `getContestStatus(starts_at, duration_minutes)`
+7. **Contest scoring:** easy=100, medium=200, hard=300 — no time bonuses
+8. **Socket.IO reliability:** Calls are best-effort — wrap in try/catch
+9. **Database access:** Use Prisma for new features; legacy `better-sqlite3` for `users`/`submissions` only
+10. **Authentication:** JWT tokens in httpOnly cookies — frontend reads from `useAuth()` hook only
+11. **Routing:** React Router (not Next.js) — use `Link` from `react-router-dom`, `useNavigate()`, `useLocation()`
+12. **No "use client":** Vite doesn't need this directive — remove from all files
 
 ## Judge0
 
@@ -109,9 +209,10 @@ Statuses: 3=Accepted, 4=WrongAnswer, 5=TLE, 6=CompileError, 7=SIGSEGV, 9=SIGFPE,
 | `/contests` | `contest:<id>` | `contest:started/ending/ended`, `submission:new`, `leaderboard:update` |
 | `/notifications` | `notifications:<userId>` (auto) | `notification:new`, `notification:read`, `friend:online/offline`, `unread_update` |
 
-Auth: NextAuth session validated on connect. Rooms: DB-validated via `joinConversation()`/`joinContest()`.
-Presence: In-memory `Map<userId, Set<socketId>>` — `isUserOnline()`, `broadcastToUser()`.
-Client: `useChatSocket()`, `useContestSocket()`, `useNotificationSocket()`, `useSocketEvent()`.
+**Auth:** JWT token validated on connect (from cookie or handshake.auth.token). Middleware in `packages/backend/src/socket/auth.ts`.
+**Rooms:** DB-validated via `joinConversation()`/`joinContest()` with participant checks.
+**Presence:** In-memory `Map<userId, Set<socketId>>` — `isUserOnline()`, `broadcastToUser()`.
+**Client hooks:** `useChatSocket()`, `useContestSocket()`, `useNotificationSocket()` in `packages/frontend/src/hooks/useSocket.ts`.
 
 ## Key Patterns
 
@@ -121,11 +222,57 @@ Client: `useChatSocket()`, `useContestSocket()`, `useNotificationSocket()`, `use
 - **Friends sidebar:** Global `FriendsContext` → fixed right-side overlay → unread count from Socket.IO `unread_update`
 - **Profile:** Username-based routes `/profile/[username]` → public access → friendship actions → 365-day heatmap → cycling solve stats
 
+## Production Deployment
+
+**Architecture:** Single server with Nginx reverse proxy
+
+```nginx
+# Frontend: Nginx serves static files from packages/frontend/dist
+location / {
+    root /var/www/algoarena/frontend/dist;
+    try_files $uri $uri/ /index.html;
+}
+
+# Backend API: Proxy to Express (port 3001)
+location /api/ {
+    proxy_pass http://localhost:3001;
+}
+
+# Socket.IO: WebSocket proxy
+location /socket.io/ {
+    proxy_pass http://localhost:3001;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+}
+```
+
+**Build steps:**
+1. `npm run build` — Builds shared types, backend, and frontend
+2. Backend runs as PM2/systemd service on port 3001
+3. Nginx serves frontend static files and proxies API/WebSocket to backend
+
 ## Specialized Docs
+
+### Context Management (load only what you need)
+
+| Topic | Doc | When to Load |
+|-------|-----|--------------|
+| **Monorepo structure, deployment, data flow** | `docs/ARCHITECTURE.md` | Starting any new feature, understanding layout |
+| **All 43+ REST endpoints, payloads, auth** | `docs/API_REFERENCE.md` | Adding/modifying API endpoints |
+| **Prisma models, enums, relations** | `docs/DATABASE.md` | Schema changes, queries, migrations |
+| **Socket.IO namespaces, events, hooks** | `docs/SOCKETIO.md` | Real-time features, chat, notifications |
+| **Component hierarchy and file map** | `docs/FRONTEND.md` | UI changes, adding components |
+| **Contest lifecycle, scoring, submission** | `docs/CONTESTS.md` | Contest-related features |
+| **OAuth flow, JWT, middleware, hooks** | `docs/AUTH.md` | Auth-related changes |
+| **Code style, imports, anti-patterns** | `docs/CONVENTIONS.md` | Writing any new code |
+
+### Feature-Specific Docs
 
 | Topic | Doc |
 |-------|-----|
 | Chatbot rules, coaching, anti-gaming | `docs/chatbot-system-prompt.md` |
 | Visualization code gen, tracer API | `docs/visualization-agent-prompt.md` |
 | Problem data schema, test cases, limits | `docs/problem-data-reference.md` |
-| Build steps, setup, phased prompts | `docs/BUILD_GUIDE.md` |
+| Color system + theming | `docs/COLOR_SYSTEM_GUIDE.md` |
+| Logging conventions | `docs/LOGGING_SYSTEM_GUIDE.md` |
