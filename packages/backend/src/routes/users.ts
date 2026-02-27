@@ -5,7 +5,9 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
 import {
+  createUser,
   getUserByGoogleId,
   getUserById,
   getUserByUsername,
@@ -93,8 +95,32 @@ function generateActivityHeatmap(
  * POST /api/users
  * Create new user (during onboarding)
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   const { name, username, avatarSvg } = req.body;
+
+  // Manually verify token to support pending users during onboarding
+  const token = req.cookies['auth-token'] || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.substring(7) : null);
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized: No token provided' });
+    return;
+  }
+
+  let decoded: any;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-change-in-production');
+  } catch (err) {
+    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return;
+  }
+
+  // The payload should have `sub` (Google ID) and `email`
+  const googleId = decoded.sub;
+  const email = decoded.email;
+
+  if (!googleId || !email) {
+    res.status(400).json({ error: "Invalid onboarding token" });
+    return;
+  }
 
   if (!name || !username || !avatarSvg) {
     res.status(400).json({ error: "Name, username, and avatarSvg are required" });
@@ -117,15 +143,50 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
   }
 
   try {
-    // Update the existing user with the chosen username, name, and avatar
-    const user = await prisma.user.update({
-      where: { google_id: req.user!.google_id },
-      data: {
+    let user = await getUserByGoogleId(googleId);
+
+    if (!user) {
+      // Create user if they don't exist
+      user = await createUser({
+        googleId,
+        email,
         name: name.trim(),
         username,
-        avatar_svg: avatarSvg,
+        avatarSvg,
+      });
+    } else {
+      // Update existing user (e.g. they somehow existed but lacked a username)
+      user = await prisma.user.update({
+        where: { google_id: googleId },
+        data: {
+          name: name.trim(),
+          username,
+          avatar_svg: avatarSvg,
+        },
+      });
+    }
+
+    // Generate fully authenticated JWT token
+    const newToken = jwt.sign(
+      {
+        sub: user.google_id,
+        dbUserId: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
       },
+      process.env.JWT_SECRET || 'dev-secret-change-in-production',
+      { expiresIn: '7d' }
+    );
+
+    // Set cookie
+    res.cookie('auth-token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+
     res.json({ user });
   } catch (error) {
     console.error("Error creating user:", error);

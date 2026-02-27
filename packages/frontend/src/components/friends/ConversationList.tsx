@@ -1,7 +1,7 @@
 
 
-import { useState, useEffect, useCallback } from "react";
 import { useNotificationSocket, useSocketEvent } from "../../hooks/useSocket";
+import { api } from "../../lib/api-client";
 
 interface ConversationItem {
     id: string;
@@ -54,10 +54,10 @@ export function ConversationList({ activeConvId, onSelect }: ConversationListPro
 
     const fetchConversations = useCallback(async () => {
         try {
-            const res = await fetch("/api/conversations");
-            if (!res.ok) return;
-            const data = await res.json() as { conversations: ConversationItem[] };
+            const data = await api.get<{ conversations: ConversationItem[] }>("/api/conversations");
             setConversations(data.conversations ?? []);
+        } catch (error) {
+            console.error("Failed to fetch conversations:", error);
         } finally {
             setLoading(false);
         }

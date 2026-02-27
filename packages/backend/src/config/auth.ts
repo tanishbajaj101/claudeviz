@@ -47,15 +47,15 @@ export function configurePassport() {
           let user = await getUserByGoogleId(profile.id);
 
           if (!user) {
-            // Create a pending user. They will choose their username and avatar during onboarding.
-            // We use a temporary username starting with !pending- to satisfy the unique constraint.
-            user = await createUser({
-              googleId: profile.id,
+            // Treat them as a guest/pending user. They will choose their username and avatar during onboarding.
+            // We do not create a database record yet.
+            const pendingUser = {
+              isPending: true,
+              google_id: profile.id,
               email,
               name: profile.displayName,
-              username: `!pending-${profile.id}`,
-              avatarSvg: '', // Empty until they choose in onboarding
-            });
+            };
+            return done(null, pendingUser as any);
           }
 
           done(null, user);

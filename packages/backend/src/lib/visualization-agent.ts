@@ -46,6 +46,11 @@ export async function generateVisualization(
 
   const content = typeof response.content === "string" ? response.content : "";
 
+  console.log('=== VISUALIZATION AGENT RESPONSE ===');
+  console.log('Response length:', content.length);
+  console.log('Preview:', content.substring(0, 800));
+  console.log('Ending:', content.substring(Math.max(0, content.length - 300)));
+
   // Parse response: expect "**Description:** ..." followed by ```javascript code block
   try {
     // Extract description
@@ -66,6 +71,19 @@ export async function generateVisualization(
 
     if (!code) {
       throw new Error("JavaScript code block is empty");
+    }
+
+    const hasLogTracer = code.includes('new LogTracer(');
+    const loggerCallCount = (code.match(/logger\.(println|print|printf)\(/g) || []).length;
+    console.log('✓ Code length:', code.length);
+    console.log('✓ LogTracer instantiation found:', hasLogTracer);
+    console.log('✓ Logger method calls found:', loggerCallCount);
+
+    if (!hasLogTracer) {
+      console.warn('⚠️  WARNING: Generated code does NOT contain LogTracer!');
+    }
+    if (loggerCallCount === 0 && hasLogTracer) {
+      console.warn('⚠️  WARNING: LogTracer exists but no logger calls!');
     }
 
     // Extract inputs (optional)
@@ -94,6 +112,21 @@ export async function generateVisualization(
         }`
       );
     }
+
+    // Validate LogTracer presence
+    if (!code.includes('new LogTracer')) {
+      console.error('❌ Generated code missing LogTracer instantiation');
+      throw new Error(
+        'Visualization code must include LogTracer for step-by-step explanations. ' +
+        'Generated code is incomplete.'
+      );
+    }
+
+    if (loggerCallCount < 2) {
+      console.warn(`⚠️  Only ${loggerCallCount} logger calls found (recommend at least 3 for good explanations)`);
+    }
+
+    console.log('✓ LogTracer validation passed');
 
     return {
       type: "visualization",

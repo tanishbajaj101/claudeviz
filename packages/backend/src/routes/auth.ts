@@ -34,14 +34,38 @@ router.get(
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/signin?error=oauth_failed` }),
   (req: Request, res: Response) => {
     try {
-      const user = req.user as DbUser;
+      const user = req.user as any;
 
       if (!user) {
         res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/signin?error=no_user`);
         return;
       }
 
-      // Generate JWT token
+      if (user.isPending || !user.username || user.username.startsWith('!pending-')) {
+        // Pending users don't have a database record yet
+        const pendingToken = jwt.sign(
+          {
+            sub: user.google_id,
+            isPending: true,
+            email: user.email,
+            name: user.name,
+          },
+          process.env.JWT_SECRET || 'dev-secret-change-in-production',
+          { expiresIn: '1h' }
+        );
+
+        res.cookie('auth-token', pendingToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          maxAge: 60 * 60 * 1000, // 1 hour for onboarding
+        });
+
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding?token=${pendingToken}`);
+        return;
+      }
+
+      // Generate fully authenticated JWT token
       const token = jwt.sign(
         {
           sub: user.google_id,
@@ -61,12 +85,6 @@ router.get(
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
-
-      // Check if user has username (completed onboarding)
-      if (!user.username || user.username.startsWith('!pending-')) {
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding?token=${token}`);
-        return;
-      }
 
       // Redirect to home page
       res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');

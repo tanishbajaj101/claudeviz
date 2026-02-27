@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { ConversationList } from "@/components/friends/ConversationList";
@@ -47,9 +47,9 @@ function MessagesPageInner() {
             .catch(() => { });
     }, [initialConvId]);
 
-    const handleMarkRead = () => {
+    const handleMarkRead = useCallback(() => {
         setRefreshToken((t) => t + 1);
-    };
+    }, []);
 
     // Refresh conversation list on unread updates
     useSocketEvent(socket, "unread_update", () => {

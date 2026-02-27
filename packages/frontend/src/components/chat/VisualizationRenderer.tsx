@@ -28,6 +28,8 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
 
     console.log('[Viz] Executing visualization code...');
     console.log('[Viz] Code length:', data.code.length);
+    console.log('[Viz] Has LogTracer:', data.code.includes('new LogTracer'));
+    console.log('[Viz] Has logger calls:', /logger\.(println|print)/.test(data.code));
     console.log('[Viz] Inputs:', inputValues);
 
     const result = await executeVisualizationCode(data.code, inputValues);
@@ -37,6 +39,17 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
 
     if (result.commands && result.commands.length > 0) {
       console.log('[Viz] First 10 commands:', result.commands.slice(0, 10));
+
+      const commandsByMethod = result.commands.reduce((acc, cmd) => {
+        acc[cmd.method] = (acc[cmd.method] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      console.log('[Viz] Command counts:', commandsByMethod);
+
+      const hasLogTracerCommands = result.commands.some(
+        c => c.method === 'LogTracer' || c.method === 'println' || c.method === 'print'
+      );
+      console.log('[Viz] Has LogTracer commands:', hasLogTracerCommands);
     }
 
     if (result.success && result.commands) {

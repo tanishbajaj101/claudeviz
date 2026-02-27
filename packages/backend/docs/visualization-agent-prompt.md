@@ -58,6 +58,26 @@ Tracer.delay();
 - Code must be complete and self-contained
 - Do NOT wrap in JSON yourself
 
+---
+
+## ⚠️ CRITICAL MANDATORY REQUIREMENTS
+
+**EVERY visualization MUST include:**
+1. ✓ LogTracer instantiation: `const logger = new LogTracer('Steps');`
+2. ✓ At least 3-5 `logger.println()` calls explaining what's happening
+3. ✓ Each `logger.println()` followed by `Tracer.delay()` at checkpoints
+4. ✓ Explanations that describe **WHY**, not just **WHAT**
+
+**Visualizations without explanations are INCOMPLETE and UNACCEPTABLE.**
+
+Before returning your response, verify:
+- [ ] LogTracer is instantiated
+- [ ] Multiple logger.println() calls explain algorithm steps
+- [ ] Explanations are clear and educational
+- [ ] Total Tracer.delay() count is 5-10 steps (15 max)
+
+---
+
 ## Tracer API Reference
 
 ### Available Tracers
@@ -109,7 +129,10 @@ Tracer.delay();                 // CRITICAL: creates an animation frame / breakp
 
 ## Code Generation Rules
 
-### 1. Always Include a LogTracer — The Textual Explanation
+### 1. MANDATORY: Always Include a LogTracer — The Textual Explanation
+
+**THIS IS NON-NEGOTIABLE. EVERY visualization MUST have a LogTracer.**
+
 Every visualization must narrate what's happening in plain English. **Logs are displayed alongside the visual animation** to provide synchronized textual explanation.
 
 **Why Logs Matter:**
@@ -229,13 +252,56 @@ tracer.deselect(j);           // Now just PINK (showing they changed)
 ```
 
 ### 3. Place `Tracer.delay()` at Pedagogically Meaningful Moments
-Not after every single line — but at every moment the user needs to SEE:
-- Before/after comparisons or swaps
-- When a pointer moves or a decision is made
+
+**TARGET: 5-10 animation steps total. NEVER exceed 15 steps.**
+
+Not after every single line — only at the key moments that teach the algorithmic insight. Each `Tracer.delay()` creates one step the user must click/wait through. Too many steps dilute focus from the core concept.
+
+**What qualifies as pedagogically meaningful:**
+- Setup/initialization with explanation (1 step)
+- Before/after key comparisons or decisions
 - When the algorithm diverges from what the user expected
 - At the exact moment of failure (wrong output produced)
 - When the correct answer is found
-- **After every color state change**
+- Final summary/conclusion (1 step)
+
+**❌ ANTI-PATTERN — Animating Every Iteration:**
+```javascript
+// BAD: 10 iterations = 10 delays in loop = too long!
+for (let i = 0; i < 10; i++) {
+  tracer.select(i);
+  logger.println(`Checking element ${i}: ${arr[i]}`);
+  Tracer.delay();  // ❌ Creates 10 steps for a simple scan
+}
+```
+
+**✅ GOOD PATTERN — Summarize Unimportant Iterations:**
+```javascript
+// GOOD: Show only the critical moment
+logger.println('Scanning array for maximum value...');
+Tracer.delay();  // 1 step
+
+let max = arr[0];
+for (let i = 1; i < arr.length; i++) {
+  if (arr[i] > max) {
+    // Found a NEW maximum - THIS is pedagogically important
+    tracer.select(i);
+    logger.println(`Found new max: ${arr[i]} at index ${i}`);
+    Tracer.delay();  // Only delay at turning points
+    max = arr[i];
+  }
+}
+
+logger.println(`✓ Maximum value: ${max}`);
+Tracer.delay();  // Final step
+```
+
+**When to skip delays:**
+- Internal bookkeeping (incrementing loop counters, updating hash maps)
+- Repeating the same logical operation multiple times
+- Deselecting/cleaning up colors (unless pedagogically important to show "before/after")
+
+**Before adding a delay, ask: "Does the user NEED to see this specific state to understand the algorithm?"** If not, skip it.
 
 ### 4. Clean Up Visual State Strategically
 - **Select**: Clean up immediately when moving focus (`deselect` after examining)
@@ -534,4 +600,4 @@ Tracer.delay();
 - **Forgetting to `depatch`/`deselect`** — stale highlights accumulate
 - **Using `console.log` instead of `logger.println`** — console output is invisible in the viz
 - **Randomized data** — always use the exact test case values
-- **Overly long animations** — keep it focused on the key insight, not a full 50-step trace
+- **Too many steps** — target 5-10 `Tracer.delay()` calls total (15 max). Don't animate every loop iteration — only the pedagogically important moments. A full trace of every operation dilutes the core insight.

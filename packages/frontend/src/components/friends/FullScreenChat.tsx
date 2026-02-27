@@ -5,6 +5,7 @@ import { Send } from "lucide-react";
 import { MessageRenderer } from "./MessageRenderer";
 import { useChatSocket, useSocketEvent } from "../../hooks/useSocket";
 import type { MessagePayload, MessageNewPayload } from "../../lib/socket/events";
+import { api } from "../../lib/api-client";
 
 interface ApiMessage {
     id: string;
@@ -51,26 +52,26 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
 
     const markRead = useCallback(async () => {
         try {
-            await fetch(`/api/conversations/${conversationId}/read`, { method: "POST" });
+            await api.post(`/api/conversations/${conversationId}/read`);
             onMarkRead?.();
         } catch { /* best effort */ }
     }, [conversationId, onMarkRead]);
 
     const fetchMessages = useCallback(async () => {
         try {
-            const res = await fetch(`/api/conversations/${conversationId}/messages?limit=50`);
-            if (!res.ok) return;
-            const data = await res.json() as {
+            const data = await api.get<{
                 messages: ApiMessage[];
                 has_more: boolean;
                 cursor: { before?: string };
-            };
+            }>(`/api/conversations/${conversationId}/messages?limit=50`);
             const msgs = data.messages.map(apiToPayload);
             if (mountedRef.current) {
                 setMessages(msgs);
                 setHasMore(data.has_more);
                 setOldestCursor(data.cursor?.before ?? null);
             }
+        } catch (error) {
+            console.error("Failed to fetch messages:", error);
         } finally {
             if (mountedRef.current) setLoading(false);
         }
@@ -125,13 +126,11 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
         setLoadingMore(true);
         const prevHeight = scrollRef.current?.scrollHeight ?? 0;
         try {
-            const res = await fetch(`/api/conversations/${conversationId}/messages?before=${oldestCursor}&limit=30`);
-            if (!res.ok) return;
-            const data = await res.json() as {
+            const data = await api.get<{
                 messages: ApiMessage[];
                 has_more: boolean;
                 cursor: { before?: string };
-            };
+            }>(`/api/conversations/${conversationId}/messages?before=${oldestCursor}&limit=30`);
             setMessages((prev) => [...data.messages.map(apiToPayload), ...prev]);
             setHasMore(data.has_more);
             setOldestCursor(data.cursor?.before ?? null);
@@ -140,6 +139,8 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
                     scrollRef.current.scrollTop = scrollRef.current.scrollHeight - prevHeight;
                 }
             });
+        } catch (error) {
+            console.error("Failed to load more messages:", error);
         } finally {
             setLoadingMore(false);
         }
@@ -151,20 +152,15 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
         setText("");
         setSending(true);
         try {
-            const res = await fetch(`/api/conversations/${conversationId}/messages`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "text", content }),
+            const data = await api.post<{ message: ApiMessage }>(`/api/conversations/${conversationId}/messages`, { type: "text", content });
+            const msg = apiToPayload(data.message);
+            setMessages((prev) => {
+                if (prev.some((m) => m.id === msg.id)) return prev;
+                return [...prev, msg];
             });
-            if (res.ok) {
-                const data = await res.json() as { message: ApiMessage };
-                const msg = apiToPayload(data.message);
-                setMessages((prev) => {
-                    if (prev.some((m) => m.id === msg.id)) return prev;
-                    return [...prev, msg];
-                });
-                setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-            }
+            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+        } catch (error) {
+            console.error("Failed to send message:", error);
         } finally {
             setSending(false);
         }
