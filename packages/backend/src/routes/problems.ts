@@ -101,6 +101,8 @@ router.post('/submissions', authenticate, async (req: Request, res: Response) =>
     return;
   }
 
+  console.log(`[POST /api/submissions] User ${userId} submitted problem ${problemId} with status: ${status}`);
+
   const [submission, solvedProblems] = await Promise.all([
     createSubmission({
       userId,
@@ -111,6 +113,8 @@ router.post('/submissions', authenticate, async (req: Request, res: Response) =>
     }),
     getSolvedProblemsByUserId(userId),
   ]);
+
+  console.log(`[POST /api/submissions] Created submission ${submission.id}. User now has ${solvedProblems.length} solved problems`);
 
   res.json({
     submission,

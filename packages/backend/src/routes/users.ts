@@ -284,12 +284,33 @@ router.post('/activity/problem', authenticate, async (req: Request, res: Respons
 
   try {
     await updateLastProblem(userId, problem_id.trim(), false);
-    console.log(`[POST /api/users/activity/problem] user ${userId} opened problem ${problem_id}`);
+    console.log(`[POST /api/users/activity/problem] User ${userId} opened problem ${problem_id} (${knownProblem.title})`);
     res.json({ success: true });
   } catch (error) {
     console.error("[POST /api/users/activity/problem] Error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+/**
+ * GET /api/users/by-username/:username
+ * Get user ID by username (public endpoint)
+ */
+router.get('/by-username/:username', async (req: Request, res: Response) => {
+  const username = req.params.username;
+
+  if (!username) {
+    res.status(400).json({ error: "Username is required" });
+    return;
+  }
+
+  const user = await getUserByUsername(username);
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  res.json({ id: user.id, username: user.username });
 });
 
 /**

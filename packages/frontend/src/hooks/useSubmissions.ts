@@ -21,13 +21,13 @@ export function useSubmissions(): UseSubmissionsReturn {
   // Load from API on mount / when user changes
   useEffect(() => {
     async function fetchSubmissions() {
-      if (!user?.dbUserId) {
+      if (!user?.id) {
         setLoading(false);
         return;
       }
 
       try {
-        const response = await fetch("/api/submissions");
+        const response = await fetch("/api/problems/submissions");
         if (response.ok) {
           const data = await response.json();
           setProfile({
@@ -43,14 +43,25 @@ export function useSubmissions(): UseSubmissionsReturn {
     }
 
     fetchSubmissions();
-  }, [user?.dbUserId]);
+  }, [user?.id]);
 
   const recordSubmission = useCallback(
     async (problemId: string, submission: UserSubmission) => {
-      if (!user?.dbUserId) return;
+      console.log('[useSubmissions] recordSubmission called', {
+        problemId,
+        status: submission.status,
+        hasUser: !!user,
+        userId: user?.id
+      });
+
+      if (!user?.id) {
+        console.warn('[useSubmissions] No user ID - skipping submission recording');
+        return;
+      }
 
       try {
-        const response = await fetch("/api/submissions", {
+        console.log('[useSubmissions] Sending POST /api/problems/submissions...');
+        const response = await fetch("/api/problems/submissions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -61,18 +72,24 @@ export function useSubmissions(): UseSubmissionsReturn {
           }),
         });
 
+        console.log('[useSubmissions] Response status:', response.status);
+
         if (response.ok) {
           const data = await response.json();
+          console.log('[useSubmissions] Submission saved, solved problems:', data.solvedProblems);
           setProfile((prev) => ({
             solvedProblems: data.solvedProblems,
             submissions: [submission, ...prev.submissions],
           }));
+        } else {
+          const error = await response.text();
+          console.error('[useSubmissions] Failed to save submission:', response.status, error);
         }
       } catch (error) {
-        console.error("Failed to record submission:", error);
+        console.error("[useSubmissions] Failed to record submission:", error);
       }
     },
-    [user?.dbUserId]
+    [user?.id]
   );
 
   return {

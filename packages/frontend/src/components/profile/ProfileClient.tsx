@@ -89,7 +89,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
       const res = await fetch("/api/friends", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiver_id: profile.user.id }),
+        body: JSON.stringify({ receiver_id: targetUserId }),
       });
       if (res.ok) {
         // Refresh profile to update friendship status
@@ -119,7 +119,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
 
       // Find the request from this user
       const request = requestsData.received.find(
-        (req: { sender_id: number }) => req.sender_id === profile.user.id
+        (req: { sender_id: number }) => req.sender_id === targetUserId
       );
 
       if (!request) {
@@ -162,8 +162,8 @@ export function ProfileClient({ userId }: ProfileClientProps) {
     );
   }
 
-  const { user, stats, activity_heatmap } = profile;
-  const isOwnProfile = user.friendship_status === "self";
+  const { user: profileUser, stats, activity_heatmap } = profile;
+  const isOwnProfile = profileUser.friendship_status === "self";
 
   const currentSolvedCount =
     statPeriod === "24h"
@@ -181,16 +181,16 @@ export function ProfileClient({ userId }: ProfileClientProps) {
       <div className="mb-8 flex items-start justify-between rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
         <div className="flex items-center gap-4">
           <img
-            src={`/api/users/avatar?username=${user.username}`}
-            alt={`${user.username}'s avatar`}
+            src={`/api/users/avatar?username=${profileUser.username}`}
+            alt={`${profileUser.username}'s avatar`}
             className="h-20 w-20 rounded-full"
           />
           <div>
             <h1 className="font-mono text-2xl font-bold text-zinc-100">
-              @{user.username}
+              @{profileUser.username}
             </h1>
             <p className="mt-1 font-mono text-sm text-zinc-500">
-              Member since {new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              Member since {new Date(profileUser.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
             </p>
           </div>
         </div>
@@ -198,19 +198,19 @@ export function ProfileClient({ userId }: ProfileClientProps) {
         {/* Friend action button */}
         {!isOwnProfile && (
           <div>
-            {user.friendship_status === "friends" && (
+            {profileUser.friendship_status === "friends" && (
               <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-emerald-400">
                 <Check size={16} />
                 <span className="font-mono text-sm font-medium">Friends</span>
               </div>
             )}
-            {user.friendship_status === "pending_sent" && (
+            {profileUser.friendship_status === "pending_sent" && (
               <div className="flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-zinc-400">
                 <Clock size={16} />
                 <span className="font-mono text-sm">Request Sent</span>
               </div>
             )}
-            {user.friendship_status === "pending_received" && (
+            {profileUser.friendship_status === "pending_received" && (
               <button
                 onClick={handleAcceptFriend}
                 disabled={friendActionLoading}
@@ -224,7 +224,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
                 Accept Request
               </button>
             )}
-            {user.friendship_status === "none" && (
+            {profileUser.friendship_status === "none" && (
               <button
                 onClick={handleAddFriend}
                 disabled={friendActionLoading}

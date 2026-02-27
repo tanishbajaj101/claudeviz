@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Problem } from "../../types";
+import { useSubmissions } from "../../hooks/useSubmissions";
+import { Check } from "lucide-react";
 
 const DIFFICULTY_COLORS: Record<Problem["difficulty"], string> = {
   Easy: "text-emerald-400",
@@ -28,6 +30,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
   const [difficulty, setDifficulty] = useState<string>("All");
   const [category, setCategory] = useState<string>("All");
   const [selectedTag, setSelectedTag] = useState<string>("All");
+  const { solvedProblems } = useSubmissions();
 
   const categories = useMemo(() => getCategories(problems), [problems]);
   const tags = useMemo(() => getTags(problems), [problems]);
@@ -117,14 +120,22 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/50">
-            {filtered.map((problem) => (
-              <tr
-                key={problem.id}
-                className="transition-colors hover:bg-zinc-900/50"
-              >
-                <td className="px-4 py-3">
-                  <div className="h-4 w-4 rounded-full border border-zinc-700" />
-                </td>
+            {filtered.map((problem) => {
+              const isSolved = solvedProblems.includes(problem.id);
+              return (
+                <tr
+                  key={problem.id}
+                  className="transition-colors hover:bg-zinc-900/50"
+                >
+                  <td className="px-4 py-3">
+                    {isSolved ? (
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500" title="Solved">
+                        <Check size={12} className="text-white" />
+                      </div>
+                    ) : (
+                      <div className="h-4 w-4 rounded-full border border-zinc-700" title="Not solved" />
+                    )}
+                  </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     <Link
@@ -161,7 +172,8 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
                     : "—"}
                 </td>
               </tr>
-            ))}
+            );
+            })}
             {filtered.length === 0 && (
               <tr>
                 <td

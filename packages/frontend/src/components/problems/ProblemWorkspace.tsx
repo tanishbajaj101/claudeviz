@@ -10,6 +10,7 @@ import { RecommendModal } from "../../components/problems/RecommendModal";
 import { ResizeHandle } from "../../components/ui/ResizeHandle";
 import { useJudge } from "../../hooks/useJudge";
 import { useSubmissions } from "../../hooks/useSubmissions";
+import { useFriends } from "../friends/FriendsContext";
 import { Share2 } from "lucide-react";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
@@ -32,6 +33,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const [showRecommendModal, setShowRecommendModal] = useState(false);
   const judge = useJudge();
   const { solvedProblems, recordSubmission } = useSubmissions();
+  const { refreshFriends } = useFriends();
 
   const isAuthenticated = !!user;
 
@@ -106,17 +108,52 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   useEffect(() => {
     if (!isSubmitting || judge.loading || judge.results.length === 0) return;
 
-    const bestResult = judge.results[0]; // use first result for time/memory
-    recordSubmission(problem.id, {
-      problemId: problem.id,
-      timestamp: new Date().toISOString(),
-      status: judge.allPassed ? "Accepted" : bestResult.status.description,
-      time: bestResult.time,
-      memory: bestResult.memory,
-    });
+    const submitToBackend = async () => {
+      try {
+        console.log('[ProblemWorkspace] Recording submission...', {
+          problemId: problem.id,
+          allPassed: judge.allPassed,
+          isAuthenticated
+        });
 
-    setIsSubmitting(false);
-  }, [judge.loading, judge.results, judge.allPassed, isSubmitting, problem.id, recordSubmission]);
+        const bestResult = judge.results[0]; // use first result for time/memory
+        await recordSubmission(problem.id, {
+          problemId: problem.id,
+          timestamp: new Date().toISOString(),
+          status: judge.allPassed ? "Accepted" : bestResult.status.description,
+          time: bestResult.time,
+          memory: bestResult.memory,
+        });
+
+        console.log('[ProblemWorkspace] Submission recorded successfully');
+
+        // Refetch solved status to update UI
+        if (judge.allPassed) {
+          console.log('[ProblemWorkspace] Refreshing solved status and friends list...');
+          try {
+            const res = await fetch(`/api/problems/${problem.id}/status`);
+            if (res.ok) {
+              const data = await res.json();
+              setSolvedStatus(data);
+              console.log('[ProblemWorkspace] Solved status updated:', data);
+            }
+
+            // Refresh friends list so sidebar shows "solved" status
+            refreshFriends();
+            console.log('[ProblemWorkspace] Friends list refreshed');
+          } catch (err) {
+            console.error("Failed to refresh solved status:", err);
+          }
+        }
+      } catch (error) {
+        console.error('[ProblemWorkspace] Error recording submission:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    submitToBackend();
+  }, [judge.loading, judge.results, judge.allPassed, isSubmitting, problem.id, recordSubmission, refreshFriends, isAuthenticated]);
 
   return (
     <>
@@ -267,7 +304,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
       {showRecommendModal && user?.id && (
         <RecommendModal
           problem={problem}
-          currentUserId={session.user.dbUserId as number}
+          currentUserId={user.id}
           onClose={() => setShowRecommendModal(false)}
         />
       )}
