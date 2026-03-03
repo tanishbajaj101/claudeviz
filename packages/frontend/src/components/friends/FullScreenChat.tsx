@@ -1,6 +1,7 @@
 
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { Send } from "lucide-react";
 import { MessageRenderer } from "./MessageRenderer";
 import { useChatSocket, useSocketEvent } from "../../hooks/useSocket";
@@ -170,7 +171,12 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
         <div className="flex h-full flex-col">
             {/* Header */}
             <div className="border-b border-zinc-800 px-6 py-3">
-                <h2 className="font-semibold text-zinc-100">{otherUsername}</h2>
+                <Link
+                    to={`/profile/${otherUsername}`}
+                    className="font-semibold text-zinc-100 hover:text-emerald-400 transition-colors inline-block"
+                >
+                    {otherUsername}
+                </Link>
             </div>
 
             {/* Messages */}

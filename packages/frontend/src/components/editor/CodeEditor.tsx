@@ -1,11 +1,4 @@
-
-
-import { useCallback } from "react";
-import Editor from "react-simple-code-editor";
-import Prism from "prismjs";
-import "prismjs/components/prism-c";
-import "prismjs/components/prism-cpp";
-import "prismjs/themes/prism-tomorrow.css";
+import Editor from "@monaco-editor/react";
 
 interface CodeEditorProps {
   code: string;
@@ -13,23 +6,21 @@ interface CodeEditorProps {
 }
 
 export function CodeEditor({ code, onChange }: CodeEditorProps) {
-  const highlight = useCallback((value: string) => {
-    return Prism.highlight(value, Prism.languages.cpp, "cpp");
-  }, []);
-
   return (
-    <div className="code-editor h-full overflow-auto rounded-md border border-zinc-800 bg-[#1d1f21]">
+    <div className="code-editor h-full overflow-hidden rounded-md border border-zinc-800">
       <Editor
+        height="100%"
+        language="cpp"
+        theme="vs-dark"
         value={code}
-        onValueChange={onChange}
-        highlight={highlight}
-        padding={16}
-        style={{
-          fontFamily: "var(--font-mono), ui-monospace, monospace",
+        onChange={(value) => onChange(value || "")}
+        options={{
+          minimap: { enabled: false },
           fontSize: 14,
+          fontFamily: "var(--font-mono), ui-monospace, monospace",
           lineHeight: 1.6,
-          minHeight: "100%",
-          color: "#c5c8c6",
+          scrollBeyondLastLine: false,
+          padding: { top: 16 },
         }}
       />
     </div>

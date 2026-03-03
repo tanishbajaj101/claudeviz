@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ActivityHeatmap } from "./ActivityHeatmap";
-import { UserPlus, Check, Clock, Loader2 } from "lucide-react";
+import { UserPlus, Check, Clock, Loader2, MessageSquare } from "lucide-react";
+import { api } from "../../lib/api-client";
 
 interface UserProfile {
   user: {
@@ -39,6 +40,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [statPeriod, setStatPeriod] = useState<StatPeriod>("7d");
   const [friendActionLoading, setFriendActionLoading] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
 
   // Determine which user ID to fetch
   const targetUserId = userId ?? user?.id;
@@ -146,6 +148,21 @@ export function ProfileClient({ userId }: ProfileClientProps) {
     }
   };
 
+  const handleMessage = async () => {
+    if (!targetUserId) return;
+    setMessageLoading(true);
+    try {
+      const data = await api.get<{ conversation: { id: string } }>(
+        `/api/conversations/direct?user_id=${targetUserId}`
+      );
+      navigate(`/messages?conv=${data.conversation.id}`);
+    } catch (err) {
+      console.error("Failed to open conversation:", err);
+    } finally {
+      setMessageLoading(false);
+    }
+  };
+
   if (authLoading === "loading" || loading) {
     return (
       <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
@@ -199,9 +216,23 @@ export function ProfileClient({ userId }: ProfileClientProps) {
         {!isOwnProfile && (
           <div>
             {profileUser.friendship_status === "friends" && (
-              <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-emerald-400">
-                <Check size={16} />
-                <span className="font-mono text-sm font-medium">Friends</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-emerald-400">
+                  <Check size={16} />
+                  <span className="font-mono text-sm font-medium">Friends</span>
+                </div>
+                <button
+                  onClick={handleMessage}
+                  disabled={messageLoading}
+                  className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+                >
+                  {messageLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <MessageSquare size={16} />
+                  )}
+                  Message
+                </button>
               </div>
             )}
             {profileUser.friendship_status === "pending_sent" && (

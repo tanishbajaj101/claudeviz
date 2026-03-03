@@ -15,7 +15,7 @@ import { Server, Namespace } from 'socket.io';
 import type { Server as HttpServer } from 'http';
 import type { SocketData } from '@algoarena/shared';
 import { socketAuthMiddleware } from './auth.js';
-import { registerConnection, unregisterConnection } from './connections.js';
+import { registerConnection, unregisterConnection, isUserOnline } from './connections.js';
 import { getContestStatus } from '../lib/contest-status.js';
 import {
   joinConversation,
@@ -364,6 +364,9 @@ export function initializeSocketIO(httpServer: HttpServer): Server {
   notificationsNsp.on('connection', async (socket) => {
     const data = socket.data as SocketData;
     const { userId, username } = data;
+
+    // Check if user was offline BEFORE registering this connection
+    const wasOffline = !isUserOnline(userId);
     registerConnection(userId, socket.id);
 
     console.log(
@@ -373,15 +376,17 @@ export function initializeSocketIO(httpServer: HttpServer): Server {
     // Automatically join personal notification room on connect
     await joinNotificationRoom(asSocket(socket), userId);
 
-    // Notify friends this user came online (lazy import avoids circular deps)
-    try {
-      const { broadcastFriendOnline } = await import('./notification-helpers.js');
-      await broadcastFriendOnline(userId, username);
-    } catch (err) {
-      console.error(
-        `[notifications] error broadcasting friend:online for user ${userId}:`,
-        err
-      );
+    // Only broadcast friend:online when user transitions offline → online (first socket)
+    if (wasOffline) {
+      try {
+        const { broadcastFriendOnline } = await import('./notification-helpers.js');
+        await broadcastFriendOnline(userId, username);
+      } catch (err) {
+        console.error(
+          `[notifications] error broadcasting friend:online for user ${userId}:`,
+          err
+        );
+      }
     }
 
     socket.on('disconnect', async (reason) => {

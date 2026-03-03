@@ -2,7 +2,7 @@
 
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { Home, User, Trophy, Users, Bell } from "lucide-react";
+import { Home, User, Trophy, Users, Bell, MessageSquare } from "lucide-react";
 import { useFriends } from "../../components/friends/FriendsContext";
 import { NotificationsDropdown } from "../../components/notifications/NotificationsDropdown";
 
@@ -40,6 +40,20 @@ export function Navbar() {
                 <User className="h-4 w-4" />
                 <span>Profile</span>
               </Link>
+
+              <Link
+                to="/messages"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 relative"
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span>Messages</span>
+                {unreadChatCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadChatCount > 9 ? "9+" : unreadChatCount}
+                  </span>
+                )}
+              </Link>
+
               <Link
                 to="/contests"
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
