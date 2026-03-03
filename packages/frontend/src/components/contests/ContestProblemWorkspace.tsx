@@ -229,7 +229,7 @@ export function ContestProblemWorkspace({
               {/* Code editor */}
               <Panel defaultSize="75%" minSize="30%">
                 <div className="h-full overflow-hidden p-2">
-                  <CodeEditor code={code} onChange={setCode} />
+                  <CodeEditor code={code} onChange={setCode} onSubmit={handleSubmit} />
                 </div>
               </Panel>
 

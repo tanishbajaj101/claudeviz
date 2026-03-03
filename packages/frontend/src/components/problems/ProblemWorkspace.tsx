@@ -214,7 +214,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
               {/* Code editor */}
               <Panel defaultSize="65%" minSize="20%">
                 <div className="h-full overflow-hidden p-2">
-                  <CodeEditor code={code} onChange={setCode} />
+                  <CodeEditor code={code} onChange={setCode} onSubmit={handleRun} />
                 </div>
               </Panel>
 
