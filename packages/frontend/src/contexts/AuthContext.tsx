@@ -17,11 +17,12 @@ import { api, ApiError } from '../lib/api-client';
  */
 
 export interface User {
-  id: number;
+  id?: number;
   email: string;
   name: string;
-  username: string;
+  username?: string;
   avatar?: string;
+  isPending?: boolean;
 }
 
 interface SessionResponse {

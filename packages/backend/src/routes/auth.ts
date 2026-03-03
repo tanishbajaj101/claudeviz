@@ -5,10 +5,9 @@
  */
 
 import { Router } from 'express';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
-import { authenticate } from '../middleware/auth.js';
 import type { DbUser } from '../lib/db.js';
 
 const router = Router();
@@ -97,20 +96,69 @@ router.get(
 
 /**
  * GET /api/auth/session
- * Get current user session
+ * Get current user session — handles both full and pending (onboarding) tokens.
  */
-router.get('/session', authenticate, (req: Request, res: Response) => {
-  const user = req.user as DbUser;
+router.get('/session', async (req: Request, res: Response) => {
+  const token =
+    req.cookies['auth-token'] ||
+    (req.headers.authorization?.startsWith('Bearer ')
+      ? req.headers.authorization.substring(7)
+      : null);
 
-  res.json({
-    user: {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      avatar: user.avatar_svg,
-    },
-  });
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+    const decoded = jwt.verify(token, secret) as any;
+
+    // Pending users haven't completed onboarding yet — no DB record exists
+    if (decoded.isPending) {
+      res.json({
+        user: {
+          isPending: true,
+          email: decoded.email,
+          name: decoded.name,
+        },
+      });
+      return;
+    }
+
+    if (!decoded.dbUserId) {
+      res.status(401).json({ error: 'Unauthorized: Invalid token format' });
+      return;
+    }
+
+    const { getUserById } = await import('../lib/db.js');
+    const user = await getUserById(decoded.dbUserId) as DbUser | null;
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized: User not found' });
+      return;
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar_svg,
+      },
+    });
+  } catch (error) {
+    if ((error as any)?.name === 'TokenExpiredError') {
+      res.status(401).json({ error: 'Unauthorized: Token expired' });
+      return;
+    }
+    if ((error as any)?.name === 'JsonWebTokenError') {
+      res.status(401).json({ error: 'Unauthorized: Invalid token' });
+      return;
+    }
+    console.error('Session error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 /**

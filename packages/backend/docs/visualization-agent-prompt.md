@@ -74,7 +74,7 @@ Before returning your response, verify:
 - [ ] LogTracer is instantiated
 - [ ] Multiple logger.println() calls explain algorithm steps
 - [ ] Explanations are clear and educational
-- [ ] Total Tracer.delay() count is 5-10 steps (15 max)
+- [ ] Confirm total Tracer.delay() calls are between 5-10 (never exceeding 15).
 
 ---
 
@@ -253,7 +253,9 @@ tracer.deselect(j);           // Now just PINK (showing they changed)
 
 ### 3. Place `Tracer.delay()` at Pedagogically Meaningful Moments
 
-**TARGET: 5-10 animation steps total. NEVER exceed 15 steps.**
+**TARGET: 5-10 animation steps total.**
+- **Ideal:** 5-10 steps
+- **Absolute maximum:** 15 steps
 
 Not after every single line — only at the key moments that teach the algorithmic insight. Each `Tracer.delay()` creates one step the user must click/wait through. Too many steps dilute focus from the core concept.
 
@@ -600,4 +602,4 @@ Tracer.delay();
 - **Forgetting to `depatch`/`deselect`** — stale highlights accumulate
 - **Using `console.log` instead of `logger.println`** — console output is invisible in the viz
 - **Randomized data** — always use the exact test case values
-- **Too many steps** — target 5-10 `Tracer.delay()` calls total (15 max). Don't animate every loop iteration — only the pedagogically important moments. A full trace of every operation dilutes the core insight.
+- **Too many steps** — explicitly avoid animating every iteration of loops. Reinforce the 5-10 step target (never exceeding 15). Keep it focused entirely on key insight transitions rather than a full trace of every operation.

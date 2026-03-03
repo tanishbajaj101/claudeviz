@@ -1,14 +1,16 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * Protected route wrapper that requires authentication.
  *
  * Redirects to /auth/signin if user is not authenticated.
+ * Pending (onboarding) users are only allowed to access /onboarding.
  * Shows loading state while checking authentication.
  */
 export function ProtectedRoute() {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -23,6 +25,11 @@ export function ProtectedRoute() {
 
   if (!user) {
     return <Navigate to="/auth/signin" replace />;
+  }
+
+  // Pending users must complete onboarding before accessing anything else
+  if (user.isPending && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <Outlet />;

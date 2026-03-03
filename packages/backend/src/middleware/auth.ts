@@ -56,6 +56,12 @@ export async function authenticate(
     const secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
     const decoded = jwt.verify(token, secret) as TokenPayload;
 
+    // Guard against old tokens that lack dbUserId
+    if (!decoded.dbUserId) {
+      res.status(401).json({ error: 'Unauthorized: Invalid token format' });
+      return;
+    }
+
     // Fetch user from database
     const user = await getUserById(decoded.dbUserId);
 
@@ -104,10 +110,11 @@ export async function optionalAuth(
 
     const secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
     const decoded = jwt.verify(token, secret) as TokenPayload;
-    const user = await getUserById(decoded.dbUserId);
-
-    if (user) {
-      req.user = user;
+    if (decoded.dbUserId) {
+      const user = await getUserById(decoded.dbUserId);
+      if (user) {
+        req.user = user;
+      }
     }
 
     next();
