@@ -2,6 +2,20 @@ import type * as Monaco from 'monaco-editor';
 import { trackVariables } from './variable-tracker';
 import { STL_DEFINITIONS } from './stl-definitions';
 
+const CONTAINER_SNIPPETS = [
+  { label: 'vector', snippet: 'vector<${1:int}>', detail: 'std::vector' },
+  { label: 'map', snippet: 'map<${1:int}, ${2:int}>', detail: 'std::map' },
+  { label: 'unordered_map', snippet: 'unordered_map<${1:int}, ${2:int}>', detail: 'std::unordered_map' },
+  { label: 'set', snippet: 'set<${1:int}>', detail: 'std::set' },
+  { label: 'unordered_set', snippet: 'unordered_set<${1:int}>', detail: 'std::unordered_set' },
+  { label: 'queue', snippet: 'queue<${1:int}>', detail: 'std::queue' },
+  { label: 'priority_queue', snippet: 'priority_queue<${1:int}>', detail: 'std::priority_queue' },
+  { label: 'stack', snippet: 'stack<${1:int}>', detail: 'std::stack' },
+  { label: 'deque', snippet: 'deque<${1:int}>', detail: 'std::deque' },
+  { label: 'list', snippet: 'list<${1:int}>', detail: 'std::list' },
+  { label: 'pair', snippet: 'pair<${1:int}, ${2:int}>', detail: 'std::pair' },
+];
+
 /**
  * Registers the C++ STL autocomplete provider with Monaco editor
  */
@@ -29,6 +43,14 @@ export function registerCompletionProvider(monaco: typeof Monaco): Monaco.IDispo
       const dotMatch = textUntilPosition.match(/(\w+)\.$/);
       const arrowMatch = textUntilPosition.match(/(\w+)->$/);
 
+      const word = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn
+      };
+
       let variableName: string | null = null;
       if (dotMatch) {
         variableName = dotMatch[1];
@@ -37,7 +59,15 @@ export function registerCompletionProvider(monaco: typeof Monaco): Monaco.IDispo
       }
 
       if (!variableName) {
-        return { suggestions: [] };
+        const containerSuggestions: Monaco.languages.CompletionItem[] = CONTAINER_SNIPPETS.map((snippet) => ({
+          label: snippet.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: snippet.snippet,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          detail: snippet.detail,
+          range
+        }));
+        return { suggestions: containerSuggestions };
       }
 
       // Look up the variable type
@@ -64,6 +94,7 @@ export function registerCompletionProvider(monaco: typeof Monaco): Monaco.IDispo
           value: `**${method.signature}**\n\n${method.documentation}`,
         },
         detail: method.signature,
+        range,
       }));
 
       return { suggestions };

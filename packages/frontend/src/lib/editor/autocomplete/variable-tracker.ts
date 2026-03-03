@@ -1,22 +1,3 @@
-import type { VariableDeclaration } from '@/types/editor';
-
-/**
- * Regex patterns to detect variable declarations in C++ code
- */
-const DECLARATION_PATTERNS = [
-  // vector<T> varName, map<K,V> varName, etc.
-  /\b(vector|map|unordered_map|set|unordered_set|stack|queue|priority_queue|deque|list)\s*<[^>]+>\s+(\w+)/g,
-
-  // string varName
-  /\bstring\s+(\w+)\s*[=;,\)]/g,
-
-  // ListNode* varName, TreeNode* varName
-  /\b(ListNode|TreeNode)\s*\*\s*(\w+)/g,
-
-  // auto varName = ...
-  /\bauto\s+(\w+)\s*=/g,
-];
-
 /**
  * Map of auto-inferred types based on common initialization patterns
  */
@@ -36,31 +17,29 @@ export function trackVariables(code: string): Map<string, string> {
   const variables = new Map<string, string>();
   const lines = code.split('\n');
 
-  lines.forEach((line, lineNumber) => {
+  lines.forEach((line) => {
     // Pattern 1: STL containers with explicit types
-    const containerMatch = line.match(/\b(vector|map|unordered_map|set|unordered_set|stack|queue|priority_queue|deque|list)\s*<[^>]+>\s+(\w+)/);
-    if (containerMatch) {
-      const [, containerType, varName] = containerMatch;
-      variables.set(varName, containerType);
+    // Support one level of nested brackets e.g. map<int, vector<int>> using <(?:[^<>]+|<[^<>]*>)+>
+    const containerRegex = /\b(vector|map|unordered_map|set|unordered_set|stack|queue|priority_queue|deque|list)\s*<(?:[^<>]+|<[^<>]*>)+>\s+(\w+)/g;
+    for (const match of line.matchAll(containerRegex)) {
+      variables.set(match[2], match[1]);
     }
 
     // Pattern 2: string variables
-    const stringMatch = line.match(/\bstring\s+(\w+)\s*[=;,\)]/);
-    if (stringMatch) {
-      const [, varName] = stringMatch;
-      variables.set(varName, 'string');
+    const stringRegex = /\bstring\s+(\w+)\s*[=;,\)]/g;
+    for (const match of line.matchAll(stringRegex)) {
+      variables.set(match[1], 'string');
     }
 
     // Pattern 3: Custom types (ListNode*, TreeNode*)
-    const customTypeMatch = line.match(/\b(ListNode|TreeNode)\s*\*\s*(\w+)/);
-    if (customTypeMatch) {
-      const [, typeName, varName] = customTypeMatch;
-      variables.set(varName, typeName);
+    const customTypeRegex = /\b(ListNode|TreeNode)\s*\*\s*(\w+)/g;
+    for (const match of line.matchAll(customTypeRegex)) {
+      variables.set(match[2], match[1]);
     }
 
     // Pattern 4: Auto type inference
-    const autoMatch = line.match(/\bauto\s+(\w+)\s*=\s*(.+)/);
-    if (autoMatch) {
+    const autoRegex = /\bauto\s+(\w+)\s*=\s*(.+?)(?:;|$)/g;
+    for (const autoMatch of line.matchAll(autoRegex)) {
       const [, varName, initialization] = autoMatch;
 
       // Try to infer type from initialization
