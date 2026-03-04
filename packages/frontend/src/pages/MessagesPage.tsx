@@ -58,18 +58,18 @@ function MessagesPageInner() {
 
   if (!user) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center text-zinc-500">
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center text-muted-foreground">
         <p>Please sign in to view messages.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] bg-zinc-950">
+    <div className="flex h-[calc(100vh-3.5rem)] bg-background">
       {/* Left panel — conversation list */}
-      <div className="w-80 shrink-0 border-r border-zinc-800 flex flex-col">
-        <div className="border-b border-zinc-800 px-4 py-3">
-          <h1 className="font-mono font-semibold text-zinc-100">Messages</h1>
+      <div className="w-80 shrink-0 border-r border-border flex flex-col">
+        <div className="border-b border-border px-4 py-3">
+          <h1 className="font-mono font-semibold text-foreground">Messages</h1>
         </div>
         <div className="flex-1 overflow-hidden">
           <ConversationList
@@ -90,7 +90,7 @@ function MessagesPageInner() {
             onMarkRead={handleMarkRead}
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-500">
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
             <MessageSquare className="h-12 w-12 opacity-20" />
             <p className="text-sm">Select a conversation to start chatting</p>
           </div>

@@ -18,13 +18,13 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-lg border border-zinc-800 bg-zinc-900 p-6">
+      <div className="w-full max-w-md rounded-lg border border-border bg-card p-6">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-white">Editor Settings</h2>
           <button
             onClick={onClose}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -34,9 +34,9 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
         <div className="space-y-4">
           {/* Font Size */}
           <div>
-            <label className="mb-2 flex items-center justify-between text-sm text-zinc-300">
+            <label className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
               <span>Font Size</span>
-              <span className="text-zinc-400">{prefs.fontSize}px</span>
+              <span className="text-muted-foreground">{prefs.fontSize}px</span>
             </label>
             <input
               type="range"
@@ -51,11 +51,11 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
 
           {/* Theme */}
           <div>
-            <label className="mb-2 block text-sm text-zinc-300">Theme</label>
+            <label className="mb-2 block text-sm text-muted-foreground">Theme</label>
             <select
               value={prefs.theme}
               onChange={(e) => setPrefs({ ...prefs, theme: e.target.value as 'vs-dark' | 'vs-light' })}
-              className="w-full rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
+              className="w-full rounded border border-border bg-muted px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
             >
               <option value="vs-dark">Dark</option>
               <option value="vs-light">Light</option>
@@ -64,9 +64,9 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
 
           {/* Tab Size */}
           <div>
-            <label className="mb-2 flex items-center justify-between text-sm text-zinc-300">
+            <label className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
               <span>Tab Size</span>
-              <span className="text-zinc-400">{prefs.tabSize} spaces</span>
+              <span className="text-muted-foreground">{prefs.tabSize} spaces</span>
             </label>
             <input
               type="range"
@@ -81,7 +81,7 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
 
           {/* Line Numbers */}
           <div className="flex items-center justify-between">
-            <label className="text-sm text-zinc-300">Line Numbers</label>
+            <label className="text-sm text-muted-foreground">Line Numbers</label>
             <input
               type="checkbox"
               checked={prefs.lineNumbers}
@@ -92,7 +92,7 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
 
           {/* Word Wrap */}
           <div className="flex items-center justify-between">
-            <label className="text-sm text-zinc-300">Word Wrap</label>
+            <label className="text-sm text-muted-foreground">Word Wrap</label>
             <input
               type="checkbox"
               checked={prefs.wordWrap === 'on'}
@@ -103,7 +103,7 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
 
           {/* Minimap */}
           <div className="flex items-center justify-between">
-            <label className="text-sm text-zinc-300">Minimap</label>
+            <label className="text-sm text-muted-foreground">Minimap</label>
             <input
               type="checkbox"
               checked={prefs.minimap}
@@ -117,13 +117,13 @@ export function EditorSettingsModal({ currentPrefs, onSave, onClose }: EditorSet
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="rounded border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-700"
+            className="rounded border border-border bg-muted px-4 py-2 text-sm text-muted-foreground hover:bg-zinc-700"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="rounded border border-emerald-500 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400 hover:bg-emerald-500/20"
+            className="rounded border border-emerald-500 bg-primary/10 px-4 py-2 text-sm text-emerald-400 hover:bg-primary/20"
           >
             Save Settings
           </button>

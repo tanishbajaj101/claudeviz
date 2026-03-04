@@ -12,7 +12,7 @@ export function ProfilePage() {
   if (!user?.username) {
     return (
       <div className="container mx-auto p-6">
-        <p className="text-zinc-400">Loading profile...</p>
+        <p className="text-muted-foreground">Loading profile...</p>
       </div>
     );
   }

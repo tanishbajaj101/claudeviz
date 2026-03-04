@@ -26,8 +26,8 @@ export function SignInPage() {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-700 border-t-blue-500 mx-auto"></div>
-          <p className="mt-4 text-sm text-zinc-400">Loading...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-blue-500 mx-auto"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -35,13 +35,13 @@ export function SignInPage() {
 
   return (
     <div className="flex h-screen items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-      <div className="w-full max-w-md space-y-8 rounded-lg border border-zinc-800 bg-zinc-900/50 p-8 backdrop-blur-sm">
+      <div className="w-full max-w-md space-y-8 rounded-lg border border-border bg-card/50 p-8 backdrop-blur-sm">
         {/* Logo */}
         <div className="text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
             AlgoArena
           </h1>
-          <p className="mt-2 text-zinc-400">
+          <p className="mt-2 text-muted-foreground">
             LeetCode alternative with AI coaching
           </p>
         </div>
@@ -86,13 +86,13 @@ export function SignInPage() {
             Continue with Google
           </button>
 
-          <p className="text-center text-xs text-zinc-500">
+          <p className="text-center text-xs text-muted-foreground">
             By signing in, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>
 
         {/* Features */}
-        <div className="mt-8 space-y-3 border-t border-zinc-800 pt-6">
+        <div className="mt-8 space-y-3 border-t border-border pt-6">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10">
               <svg
@@ -109,7 +109,7 @@ export function SignInPage() {
                 />
               </svg>
             </div>
-            <p className="text-sm text-zinc-400">AI-guided coaching</p>
+            <p className="text-sm text-muted-foreground">AI-guided coaching</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ export function SignInPage() {
                 />
               </svg>
             </div>
-            <p className="text-sm text-zinc-400">Algorithm visualizations</p>
+            <p className="text-sm text-muted-foreground">Algorithm visualizations</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ export function SignInPage() {
                 />
               </svg>
             </div>
-            <p className="text-sm text-zinc-400">Competitive contests</p>
+            <p className="text-sm text-muted-foreground">Competitive contests</p>
           </div>
         </div>
       </div>

@@ -92,8 +92,8 @@ export function NotificationItem({
     <div
       className={`flex cursor-pointer flex-col gap-2 rounded-md p-3 transition-colors ${
         is_read
-          ? "bg-transparent opacity-60 hover:bg-zinc-900/50"
-          : "border-l-2 border-emerald-500 bg-zinc-900 hover:bg-zinc-800"
+          ? "bg-transparent opacity-60 hover:bg-card/50"
+          : "border-l-2 border-emerald-500 bg-card hover:bg-muted"
       }`}
       onClick={handleClick}
     >
@@ -104,7 +104,7 @@ export function NotificationItem({
             <UserPlus size={16} className="text-blue-400" />
           )}
           {type === "friend_online" && (
-            <CircleDot size={16} className="fill-emerald-500 text-emerald-500" />
+            <CircleDot size={16} className="fill-emerald-500 text-primary" />
           )}
           {type === "friend_request_accepted" && (
             <CheckCircle2 size={16} className="text-emerald-400" />
@@ -116,10 +116,10 @@ export function NotificationItem({
 
         {/* Content */}
         <div className="flex-1">
-          <p className="text-sm text-zinc-200">
+          <p className="text-sm text-foreground">
             {type === "friend_request" && (
               <span>
-                <span className="font-semibold text-zinc-100">
+                <span className="font-semibold text-foreground">
                   {data.sender_username as string}
                 </span>{" "}
                 sent you a friend request
@@ -130,7 +130,7 @@ export function NotificationItem({
                 to={`/profile/${data.username as string}`}
                 className="hover:underline"
               >
-                <span className="font-semibold text-zinc-100">
+                <span className="font-semibold text-foreground">
                   {data.username as string}
                 </span>{" "}
                 is now online
@@ -138,7 +138,7 @@ export function NotificationItem({
             )}
             {type === "friend_request_accepted" && (
               <span>
-                <span className="font-semibold text-zinc-100">
+                <span className="font-semibold text-foreground">
                   {data.username as string}
                 </span>{" "}
                 accepted your friend request
@@ -146,18 +146,18 @@ export function NotificationItem({
             )}
             {type === "contest_invite" && (
               <span>
-                <span className="font-semibold text-zinc-100">
+                <span className="font-semibold text-foreground">
                   {data.inviter_name as string}
                 </span>{" "}
                 invited you to{" "}
-                <span className="font-semibold text-zinc-100">
+                <span className="font-semibold text-foreground">
                   {data.contest_name as string}
                 </span>
               </span>
             )}
           </p>
 
-          <span className="mt-1 block text-xs text-zinc-500">
+          <span className="mt-1 block text-xs text-muted-foreground">
             {new Date(notification.created_at).toLocaleDateString(undefined, {
               month: "short",
               day: "numeric",
@@ -179,7 +179,7 @@ export function NotificationItem({
                   e.stopPropagation();
                   handleFriendRespond("accepted");
                 }}
-                className="rounded bg-emerald-600/20 px-3 py-1 text-xs font-semibold text-emerald-500 transition-colors hover:bg-emerald-600/30 disabled:opacity-50"
+                className="rounded bg-primary/20 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/30 disabled:opacity-50"
               >
                 Accept
               </button>
@@ -214,7 +214,7 @@ export function NotificationItem({
                   e.stopPropagation();
                   markRead();
                 }}
-                className="rounded px-3 py-1 text-xs font-semibold text-zinc-400 transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                className="rounded px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
               >
                 Dismiss
               </button>
@@ -224,7 +224,7 @@ export function NotificationItem({
       )}
 
       {actionResult && (
-        <div className="ml-7 font-mono text-xs font-semibold text-zinc-400">
+        <div className="ml-7 font-mono text-xs font-semibold text-muted-foreground">
           {actionResult}
         </div>
       )}

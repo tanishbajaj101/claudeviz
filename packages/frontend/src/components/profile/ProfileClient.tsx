@@ -166,7 +166,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
   if (authLoading === "loading" || loading) {
     return (
       <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <p className="font-mono text-sm text-zinc-500">Loading...</p>
+        <p className="font-mono text-sm text-muted-foreground">Loading...</p>
       </main>
     );
   }
@@ -195,7 +195,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       {/* Profile header */}
-      <div className="mb-8 flex items-start justify-between rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
+      <div className="mb-8 flex items-start justify-between rounded-lg border border-border bg-card/50 p-6">
         <div className="flex items-center gap-4">
           <img
             src={`/api/users/avatar?username=${profileUser.username}`}
@@ -203,10 +203,10 @@ export function ProfileClient({ userId }: ProfileClientProps) {
             className="h-20 w-20 rounded-full"
           />
           <div>
-            <h1 className="font-mono text-2xl font-bold text-zinc-100">
+            <h1 className="font-mono text-2xl font-bold text-foreground">
               @{profileUser.username}
             </h1>
-            <p className="mt-1 font-mono text-sm text-zinc-500">
+            <p className="mt-1 font-mono text-sm text-muted-foreground">
               Member since {new Date(profileUser.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
             </p>
           </div>
@@ -217,7 +217,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
           <div>
             {profileUser.friendship_status === "friends" && (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-emerald-400">
+                <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-primary/10 px-4 py-2 text-emerald-400">
                   <Check size={16} />
                   <span className="font-mono text-sm font-medium">Friends</span>
                 </div>
@@ -236,7 +236,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
               </div>
             )}
             {profileUser.friendship_status === "pending_sent" && (
-              <div className="flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800/50 px-4 py-2 text-zinc-400">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-2 text-muted-foreground">
                 <Clock size={16} />
                 <span className="font-mono text-sm">Request Sent</span>
               </div>
@@ -245,7 +245,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
               <button
                 onClick={handleAcceptFriend}
                 disabled={friendActionLoading}
-                className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-primary disabled:opacity-50"
               >
                 {friendActionLoading ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -259,7 +259,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
               <button
                 onClick={handleAddFriend}
                 disabled={friendActionLoading}
-                className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-primary disabled:opacity-50"
               >
                 {friendActionLoading ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -275,8 +275,8 @@ export function ProfileClient({ userId }: ProfileClientProps) {
 
       {/* Stats grid */}
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-          <p className="font-mono text-xs text-zinc-500">Total Solved</p>
+        <div className="rounded-lg border border-border bg-card/50 p-4">
+          <p className="font-mono text-xs text-muted-foreground">Total Solved</p>
           <p className="font-mono text-3xl font-bold text-emerald-400">
             {stats.total_problems_solved}
           </p>
@@ -284,13 +284,13 @@ export function ProfileClient({ userId }: ProfileClientProps) {
 
         <button
           onClick={cycleStat}
-          className="cursor-pointer rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left transition-all hover:border-emerald-500/30 hover:bg-zinc-800/50"
+          className="cursor-pointer rounded-lg border border-border bg-card/50 p-4 text-left transition-all hover:border-emerald-500/30 hover:bg-muted/50"
           title="Click to cycle through time periods"
         >
-          <p className="font-mono text-xs text-zinc-500">
+          <p className="font-mono text-xs text-muted-foreground">
             Solved ({periodLabel})
           </p>
-          <p className="font-mono text-3xl font-bold text-zinc-300">
+          <p className="font-mono text-3xl font-bold text-muted-foreground">
             {currentSolvedCount}
           </p>
           <p className="mt-1 font-mono text-xs text-zinc-600">
@@ -298,16 +298,16 @@ export function ProfileClient({ userId }: ProfileClientProps) {
           </p>
         </button>
 
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-          <p className="font-mono text-xs text-zinc-500">Submissions</p>
-          <p className="font-mono text-3xl font-bold text-zinc-300">
+        <div className="rounded-lg border border-border bg-card/50 p-4">
+          <p className="font-mono text-xs text-muted-foreground">Submissions</p>
+          <p className="font-mono text-3xl font-bold text-muted-foreground">
             {stats.total_submissions}
           </p>
         </div>
 
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-          <p className="font-mono text-xs text-zinc-500">Accuracy</p>
-          <p className="font-mono text-3xl font-bold text-zinc-300">
+        <div className="rounded-lg border border-border bg-card/50 p-4">
+          <p className="font-mono text-xs text-muted-foreground">Accuracy</p>
+          <p className="font-mono text-3xl font-bold text-muted-foreground">
             {(stats.accuracy * 100).toFixed(1)}%
           </p>
         </div>

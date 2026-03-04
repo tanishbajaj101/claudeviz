@@ -132,7 +132,7 @@ export function NotificationsDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+        className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
@@ -143,15 +143,15 @@ export function NotificationsDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 flex max-h-[400px] w-80 flex-col overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 shadow-xl sm:w-96">
-          <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900/50 p-3">
-            <h3 className="font-mono text-sm font-semibold text-zinc-100">
+        <div className="absolute right-0 z-50 mt-2 flex max-h-[400px] w-80 flex-col overflow-hidden rounded-md border border-border bg-background shadow-xl sm:w-96">
+          <div className="flex items-center justify-between border-b border-border bg-card/50 p-3">
+            <h3 className="font-mono text-sm font-semibold text-foreground">
               Notifications
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="font-mono text-xs text-emerald-500 transition-colors hover:text-emerald-400"
+                className="font-mono text-xs text-primary transition-colors hover:text-emerald-400"
               >
                 Mark all as read
               </button>
@@ -160,7 +160,7 @@ export function NotificationsDropdown() {
 
           <div className="flex-1 overflow-y-auto p-2">
             {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-zinc-500">
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <Bell size={24} className="mb-2 opacity-20" />
                 <p className="text-sm">You&apos;re all caught up!</p>
               </div>

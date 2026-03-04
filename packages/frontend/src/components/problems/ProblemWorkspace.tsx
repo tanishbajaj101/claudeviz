@@ -161,14 +161,14 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
         <Group orientation="horizontal">
           {/* LEFT PANEL - Description / Chat */}
           <Panel defaultSize="45%" minSize="20%" maxSize="70%">
-            <div className="flex h-full flex-col border-r border-zinc-800">
+            <div className="flex h-full flex-col border-r border-border">
               {/* Tab bar */}
-              <div className="flex border-b border-zinc-800">
+              <div className="flex border-b border-border">
                 <button
                   onClick={() => setActiveTab("description")}
                   className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "description"
                     ? "border-b-2 border-emerald-500 text-emerald-400"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    : "text-muted-foreground hover:text-muted-foreground"
                     }`}
                 >
                   Description
@@ -177,7 +177,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
                   onClick={() => setActiveTab("chat")}
                   className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "chat"
                     ? "border-b-2 border-emerald-500 text-emerald-400"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    : "text-muted-foreground hover:text-muted-foreground"
                     }`}
                 >
                   AI Coach
@@ -222,20 +222,20 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
 
               {/* Bottom panel: test results */}
               <Panel defaultSize="35%" minSize="10%" maxSize="70%">
-                <div className="flex h-full flex-col border-t border-zinc-800">
+                <div className="flex h-full flex-col border-t border-border">
                   {/* Action buttons */}
-                  <div className="flex items-center gap-2 border-b border-zinc-800 px-3 py-2">
+                  <div className="flex items-center gap-2 border-b border-border px-3 py-2">
                     <button
                       onClick={handleRun}
                       disabled={judge.loading}
-                      className="rounded-md border border-zinc-600 px-4 py-1.5 font-mono text-xs text-zinc-300 transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                      className="rounded-md border border-zinc-600 px-4 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
                     >
                       {judge.loading ? "Running..." : "Run"}
                     </button>
                     <button
                       onClick={handleSubmit}
                       disabled={judge.loading || !isAuthenticated}
-                      className="rounded-md bg-emerald-600 px-4 py-1.5 font-mono text-xs font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                      className="rounded-md bg-primary px-4 py-1.5 font-mono text-xs font-medium text-white transition-colors hover:bg-primary disabled:opacity-50"
                       title={!isAuthenticated ? "Sign in to submit" : undefined}
                     >
                       {judge.loading ? "Judging..." : "Submit"}
@@ -262,14 +262,14 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
                     {judge.results.length > 0 ? (
                       <div>
                         {/* Test case tabs */}
-                        <div className="flex gap-1 border-b border-zinc-800 px-3 py-1">
+                        <div className="flex gap-1 border-b border-border px-3 py-1">
                           {judge.results.map((r, i) => (
                             <button
                               key={i}
                               onClick={() => setSelectedTestCase(i)}
                               className={`rounded px-2 py-1 font-mono text-xs transition-colors ${selectedTestCase === i
-                                ? "bg-zinc-700 text-zinc-200"
-                                : "text-zinc-500 hover:text-zinc-300"
+                                ? "bg-zinc-700 text-foreground"
+                                : "text-muted-foreground hover:text-muted-foreground"
                                 }`}
                             >
                               <span
@@ -336,12 +336,12 @@ function ProblemDescription({
       <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="font-mono text-xl font-bold text-zinc-100">
+            <h1 className="font-mono text-xl font-bold text-foreground">
               {problem.title}
             </h1>
             {solvedStatus?.solved && (
               <div
-                className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1"
+                className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-primary/10 px-2 py-1"
                 title={`You solved this problem on ${new Date(solvedStatus.solved_at!).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
               >
                 <span className="font-mono text-xs font-medium text-emerald-400">
@@ -353,7 +353,7 @@ function ProblemDescription({
           {isAuthenticated && (
             <button
               onClick={onRecommend}
-              className="flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-800/50 px-3 py-1.5 font-mono text-xs text-zinc-300 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400"
+              className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:border-emerald-500/30 hover:bg-primary/10 hover:text-emerald-400"
               title="Recommend to a friend"
             >
               <Share2 size={14} />
@@ -368,7 +368,7 @@ function ProblemDescription({
           {problem.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-zinc-800 px-2 py-0.5 font-mono text-xs text-zinc-400"
+              className="rounded-full bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
             >
               {tag}
             </span>
@@ -376,17 +376,17 @@ function ProblemDescription({
         </div>
       </div>
 
-      <div className="font-mono text-sm leading-relaxed text-zinc-300 whitespace-pre-wrap">
+      <div className="font-mono text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
         {problem.description}
       </div>
 
       <div>
-        <h3 className="mb-2 font-mono text-sm font-medium text-zinc-200">
+        <h3 className="mb-2 font-mono text-sm font-medium text-foreground">
           Constraints
         </h3>
         <ul className="space-y-1">
           {problem.constraints.map((c, i) => (
-            <li key={i} className="font-mono text-xs text-zinc-400">
+            <li key={i} className="font-mono text-xs text-muted-foreground">
               &bull; {c}
             </li>
           ))}
@@ -394,28 +394,28 @@ function ProblemDescription({
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-mono text-sm font-medium text-zinc-200">
+        <h3 className="font-mono text-sm font-medium text-foreground">
           Examples
         </h3>
         {problem.examples.map((ex, i) => (
           <div
             key={i}
-            className="rounded-md border border-zinc-800 bg-zinc-900/50 p-3"
+            className="rounded-md border border-border bg-card/50 p-3"
           >
-            <div className="mb-1 font-mono text-xs text-zinc-500">
+            <div className="mb-1 font-mono text-xs text-muted-foreground">
               Example {i + 1}
             </div>
             <div className="space-y-1">
-              <p className="font-mono text-xs text-zinc-300">
-                <span className="text-zinc-500">Input: </span>
+              <p className="font-mono text-xs text-muted-foreground">
+                <span className="text-muted-foreground">Input: </span>
                 {ex.input}
               </p>
-              <p className="font-mono text-xs text-zinc-300">
-                <span className="text-zinc-500">Output: </span>
+              <p className="font-mono text-xs text-muted-foreground">
+                <span className="text-muted-foreground">Output: </span>
                 {ex.output}
               </p>
               {ex.explanation && (
-                <p className="font-mono text-xs text-zinc-400">
+                <p className="font-mono text-xs text-muted-foreground">
                   {ex.explanation}
                 </p>
               )}
@@ -430,7 +430,7 @@ function ProblemDescription({
 function TestCaseResult({ result }: { result: SubmissionResult }) {
   const statusInfo = STATUS_LABELS[result.status.id] ?? {
     label: result.status.description,
-    color: "text-zinc-400",
+    color: "text-muted-foreground",
   };
 
   return (
@@ -440,12 +440,12 @@ function TestCaseResult({ result }: { result: SubmissionResult }) {
           {statusInfo.label}
         </span>
         {result.time && (
-          <span className="font-mono text-xs text-zinc-500">
+          <span className="font-mono text-xs text-muted-foreground">
             {result.time}s
           </span>
         )}
         {result.memory && (
-          <span className="font-mono text-xs text-zinc-500">
+          <span className="font-mono text-xs text-muted-foreground">
             {(result.memory / 1024).toFixed(1)} MB
           </span>
         )}
@@ -453,14 +453,14 @@ function TestCaseResult({ result }: { result: SubmissionResult }) {
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <p className="mb-1 font-mono text-xs text-zinc-500">Input</p>
-          <pre className="rounded border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-400">
+          <p className="mb-1 font-mono text-xs text-muted-foreground">Input</p>
+          <pre className="rounded border border-border bg-card p-2 font-mono text-xs text-muted-foreground">
             {result.input}
           </pre>
         </div>
         <div>
-          <p className="mb-1 font-mono text-xs text-zinc-500">Expected</p>
-          <pre className="rounded border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-400">
+          <p className="mb-1 font-mono text-xs text-muted-foreground">Expected</p>
+          <pre className="rounded border border-border bg-card p-2 font-mono text-xs text-muted-foreground">
             {result.expectedOutput}
           </pre>
         </div>
@@ -468,8 +468,8 @@ function TestCaseResult({ result }: { result: SubmissionResult }) {
 
       {result.stdout && (
         <div>
-          <p className="mb-1 font-mono text-xs text-zinc-500">Your Output</p>
-          <pre className="rounded border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-400">
+          <p className="mb-1 font-mono text-xs text-muted-foreground">Your Output</p>
+          <pre className="rounded border border-border bg-card p-2 font-mono text-xs text-muted-foreground">
             {result.stdout.trim()}
           </pre>
         </div>
@@ -477,10 +477,10 @@ function TestCaseResult({ result }: { result: SubmissionResult }) {
 
       {result.compile_output && (
         <div>
-          <p className="mb-1 font-mono text-xs text-zinc-500">
+          <p className="mb-1 font-mono text-xs text-muted-foreground">
             Compiler Output
           </p>
-          <pre className="rounded border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-red-400">
+          <pre className="rounded border border-border bg-card p-2 font-mono text-xs text-red-400">
             {result.compile_output}
           </pre>
         </div>
@@ -488,8 +488,8 @@ function TestCaseResult({ result }: { result: SubmissionResult }) {
 
       {result.stderr && (
         <div>
-          <p className="mb-1 font-mono text-xs text-zinc-500">Stderr</p>
-          <pre className="rounded border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-red-400">
+          <p className="mb-1 font-mono text-xs text-muted-foreground">Stderr</p>
+          <pre className="rounded border border-border bg-card p-2 font-mono text-xs text-red-400">
             {result.stderr}
           </pre>
         </div>

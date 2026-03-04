@@ -50,14 +50,14 @@ export function FriendsSidebar() {
             {/* Panel */}
             <div
                 ref={panelRef}
-                className={`fixed right-0 top-14 z-50 flex h-[calc(100vh-3.5rem)] w-[22rem] flex-col border-l border-zinc-800 bg-zinc-950 shadow-2xl transition-transform duration-200 ease-out ${isSidebarOpen ? "translate-x-0" : "translate-x-full"
+                className={`fixed right-0 top-14 z-50 flex h-[calc(100vh-3.5rem)] w-[22rem] flex-col border-l border-border bg-background shadow-2xl transition-transform duration-200 ease-out ${isSidebarOpen ? "translate-x-0" : "translate-x-full"
                     }`}
                 aria-label="Friends sidebar"
             >
                 {/* Close button */}
                 <button
                     onClick={closeSidebar}
-                    className="absolute right-3 top-2.5 z-10 rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                    className="absolute right-3 top-2.5 z-10 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     aria-label="Close sidebar"
                 >
                     <X className="h-4 w-4" />

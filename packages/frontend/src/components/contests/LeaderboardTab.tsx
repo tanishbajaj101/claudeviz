@@ -55,16 +55,16 @@ export function LeaderboardTab({ contestId, currentUserId }: LeaderboardTabProps
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (leaderboard.length === 0) {
     return (
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+      <div className="rounded-lg border border-border bg-card p-8 text-center">
         <Trophy className="mx-auto h-12 w-12 text-zinc-600" />
-        <p className="mt-4 text-sm text-zinc-400">
+        <p className="mt-4 text-sm text-muted-foreground">
           No submissions yet. Be the first to solve a problem!
         </p>
       </div>
@@ -72,21 +72,21 @@ export function LeaderboardTab({ contestId, currentUserId }: LeaderboardTabProps
   }
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900">
+    <div className="rounded-lg border border-border bg-card">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-zinc-800 bg-zinc-950">
+          <thead className="border-b border-border bg-background">
             <tr>
-              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-zinc-400">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-muted-foreground">
                 Rank
               </th>
-              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-zinc-400">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-muted-foreground">
                 User
               </th>
-              <th className="px-4 py-3 text-right font-mono text-xs font-medium text-zinc-400">
+              <th className="px-4 py-3 text-right font-mono text-xs font-medium text-muted-foreground">
                 Score
               </th>
-              <th className="px-4 py-3 text-right font-mono text-xs font-medium text-zinc-400">
+              <th className="px-4 py-3 text-right font-mono text-xs font-medium text-muted-foreground">
                 Solved
               </th>
             </tr>
@@ -98,16 +98,16 @@ export function LeaderboardTab({ contestId, currentUserId }: LeaderboardTabProps
                 index === 0
                   ? "text-yellow-400"
                   : index === 1
-                    ? "text-zinc-300"
+                    ? "text-muted-foreground"
                     : index === 2
                       ? "text-amber-600"
-                      : "text-zinc-500";
+                      : "text-muted-foreground";
 
               return (
                 <tr
                   key={entry.user_id}
-                  className={`border-b border-zinc-800 transition-colors hover:bg-zinc-800 ${
-                    isCurrentUser ? "bg-emerald-500/5" : ""
+                  className={`border-b border-border transition-colors hover:bg-muted ${
+                    isCurrentUser ? "bg-primary/5" : ""
                   }`}
                 >
                   <td className="px-4 py-3">
@@ -119,13 +119,13 @@ export function LeaderboardTab({ contestId, currentUserId }: LeaderboardTabProps
                     <div className="flex items-center gap-2">
                       <span
                         className={`font-mono text-sm ${
-                          isCurrentUser ? "font-semibold text-emerald-400" : "text-zinc-300"
+                          isCurrentUser ? "font-semibold text-emerald-400" : "text-muted-foreground"
                         }`}
                       >
                         {entry.username}
                       </span>
                       {isCurrentUser && (
-                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-mono text-xs text-emerald-400">
+                        <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-xs text-emerald-400">
                           You
                         </span>
                       )}
@@ -137,7 +137,7 @@ export function LeaderboardTab({ contestId, currentUserId }: LeaderboardTabProps
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="font-mono text-sm text-zinc-400">
+                    <span className="font-mono text-sm text-muted-foreground">
                       {entry.problems_solved}
                     </span>
                   </td>

@@ -101,8 +101,8 @@ export const router = createBrowserRouter([
         element: (
           <div className="flex h-screen items-center justify-center">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-zinc-100">404</h1>
-              <p className="mt-2 text-zinc-400">Page not found</p>
+              <h1 className="text-4xl font-bold text-foreground">404</h1>
+              <p className="mt-2 text-muted-foreground">Page not found</p>
             </div>
           </div>
         ),

@@ -72,38 +72,38 @@ export function InviteFriendsDropdown({ contestId }: InviteFriendsDropdownProps)
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-md bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-700"
+        className="flex items-center gap-2 rounded-md bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-zinc-700"
       >
-        <UserPlus size={16} className="text-zinc-400" />
+        <UserPlus size={16} className="text-muted-foreground" />
         Invite Friends
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 rounded-md border border-zinc-700 bg-zinc-900 py-2 shadow-xl z-50">
-          <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+        <div className="absolute right-0 top-full mt-2 w-64 rounded-md border border-border bg-card py-2 shadow-xl z-50">
+          <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
             Your Friends
           </div>
 
           <div className="max-h-60 overflow-y-auto pt-2">
             {friends.length === 0 ? (
-              <p className="px-4 py-2 text-sm text-zinc-500">No friends to invite.</p>
+              <p className="px-4 py-2 text-sm text-muted-foreground">No friends to invite.</p>
             ) : (
               friends.map(friend => {
                 const isInvited = invitedIds.has(friend.id);
                 const isInviting = invitingIds.has(friend.id);
 
                 return (
-                  <div key={friend.id} className="flex items-center justify-between px-4 py-2 hover:bg-zinc-800/50">
+                  <div key={friend.id} className="flex items-center justify-between px-4 py-2 hover:bg-muted/50">
                     <div className="flex items-center gap-2">
                       <div className="relative">
                         <img
                           src={`/api/users/avatar?username=${friend.username}`}
                           alt={friend.username}
-                          className="h-6 w-6 rounded-full bg-zinc-800"
+                          className="h-6 w-6 rounded-full bg-muted"
                         />
-                        <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-zinc-900 ${friend.is_online ? 'bg-emerald-500' : 'bg-zinc-500'}`} />
+                        <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-zinc-900 ${friend.is_online ? 'bg-primary' : 'bg-zinc-500'}`} />
                       </div>
-                      <span className="text-sm font-medium text-zinc-200 truncate max-w-[100px]">
+                      <span className="text-sm font-medium text-foreground truncate max-w-[100px]">
                         {friend.username}
                       </span>
                     </div>
@@ -112,8 +112,8 @@ export function InviteFriendsDropdown({ contestId }: InviteFriendsDropdownProps)
                       disabled={isInvited || isInviting}
                       onClick={() => void handleInvite(friend.id)}
                       className={`rounded-md px-2 py-1 flex items-center justify-center text-xs font-medium transition-colors min-w-[60px] ${isInvited
-                        ? "bg-zinc-800 text-emerald-500"
-                        : "bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30"
+                        ? "bg-muted text-primary"
+                        : "bg-primary/20 text-emerald-400 hover:bg-primary/30"
                         }`}
                     >
                       {isInviting ? (

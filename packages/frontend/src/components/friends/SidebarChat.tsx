@@ -201,10 +201,10 @@ export function SidebarChat() {
     return (
         <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center gap-2 px-2 py-2.5 border-b border-zinc-800">
+            <div className="flex items-center gap-2 px-2 py-2.5 border-b border-border">
                 <button
                     onClick={handleBack}
-                    className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     aria-label="Back to friends"
                 >
                     <ArrowLeft className="h-4 w-4" />
@@ -216,17 +216,17 @@ export function SidebarChat() {
                         dangerouslySetInnerHTML={{ __html: activeFriend.avatar_svg }}
                     />
                 ) : (
-                    <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300 shrink-0">
+                    <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
                         {activeFriend?.username[0]?.toUpperCase()}
                     </div>
                 )}
 
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <span className="truncate text-sm font-semibold text-zinc-100">
+                    <span className="truncate text-sm font-semibold text-foreground">
                         {activeFriend?.username}
                     </span>
                     {activeFriend?.last_problem_activity && (
-                        <p className="truncate text-xs text-zinc-500">
+                        <p className="truncate text-xs text-muted-foreground">
                             {activeFriend.last_problem_activity.status === "solved" ? "solved" : "solving"}{" "}
                             <a
                                 href={`/problems/${activeFriend.last_problem_activity.problem_id}`}
@@ -241,7 +241,7 @@ export function SidebarChat() {
 
                 <button
                     onClick={handleExpand}
-                    className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     aria-label="Open full screen chat"
                 >
                     <Maximize2 className="h-4 w-4" />
@@ -268,7 +268,7 @@ export function SidebarChat() {
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex h-full items-center justify-center py-8 text-zinc-500">
+                    <div className="flex h-full items-center justify-center py-8 text-muted-foreground">
                         <p className="text-sm">Say hello to {activeFriend?.username}!</p>
                     </div>
                 ) : (
@@ -278,7 +278,7 @@ export function SidebarChat() {
             </div>
 
             {/* Input */}
-            <div className="border-t border-zinc-800 p-2">
+            <div className="border-t border-border p-2">
                 <div className="flex items-end gap-2">
                     <textarea
                         value={text}
@@ -291,12 +291,12 @@ export function SidebarChat() {
                         }}
                         placeholder="Message..."
                         rows={1}
-                        className="flex-1 resize-none rounded-lg bg-zinc-800/70 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-emerald-500/60 transition-colors min-h-[36px] max-h-[100px]"
+                        className="flex-1 resize-none rounded-lg bg-muted/70 border border-border px-3 py-2 text-sm text-foreground placeholder-zinc-500 outline-none focus:border-emerald-500/60 transition-colors min-h-[36px] max-h-[100px]"
                     />
                     <button
                         onClick={() => void sendMessage()}
                         disabled={!text.trim() || sending}
-                        className="h-9 w-9 flex items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                        className="h-9 w-9 flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                         aria-label="Send message"
                     >
                         <Send className="h-4 w-4" />

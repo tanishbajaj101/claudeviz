@@ -81,7 +81,7 @@ export function ConversationList({ activeConvId, onSelect }: ConversationListPro
 
     if (conversations.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-2 p-4">
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2 p-4">
                 <p className="text-sm text-center">No conversations yet. Open a friend chat from the sidebar.</p>
             </div>
         );
@@ -96,7 +96,7 @@ export function ConversationList({ activeConvId, onSelect }: ConversationListPro
                     <button
                         key={conv.id}
                         onClick={() => onSelect(conv)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${isActive ? "bg-zinc-700/60" : "hover:bg-zinc-800/50"
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${isActive ? "bg-zinc-700/60" : "hover:bg-muted/50"
                             }`}
                     >
                         {/* Avatar */}
@@ -106,26 +106,26 @@ export function ConversationList({ activeConvId, onSelect }: ConversationListPro
                                 dangerouslySetInnerHTML={{ __html: other.avatar_svg }}
                             />
                         ) : (
-                            <div className="h-10 w-10 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-zinc-300 shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-muted-foreground shrink-0">
                                 {(other?.username ?? "?")[0]?.toUpperCase()}
                             </div>
                         )}
 
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between">
-                                <span className={`truncate text-sm ${conv.is_unread ? "font-bold text-zinc-100" : "font-medium text-zinc-200"}`}>
+                                <span className={`truncate text-sm ${conv.is_unread ? "font-bold text-foreground" : "font-medium text-foreground"}`}>
                                     {other?.username ?? "Unknown"}
                                 </span>
-                                <span className="ml-1 shrink-0 text-[10px] text-zinc-500">
+                                <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">
                                     {conv.latest_message ? formatTime(conv.latest_message.created_at) : ""}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1">
-                                <p className={`truncate text-xs ${conv.is_unread ? "text-zinc-300" : "text-zinc-500"}`}>
+                                <p className={`truncate text-xs ${conv.is_unread ? "text-muted-foreground" : "text-muted-foreground"}`}>
                                     {truncatePreview(conv)}
                                 </p>
                                 {conv.is_unread && (
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                                    <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                                 )}
                             </div>
                         </div>

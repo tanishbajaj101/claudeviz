@@ -155,20 +155,20 @@ export function DiscussionTab({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[600px] flex-col rounded-lg border border-zinc-800 bg-zinc-900">
+    <div className="flex h-[600px] flex-col rounded-lg border border-border bg-card">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               <MessageSquare className="mx-auto h-12 w-12 text-zinc-600" />
-              <p className="mt-4 text-sm text-zinc-400">
+              <p className="mt-4 text-sm text-muted-foreground">
                 No messages yet. Start the conversation!
               </p>
             </div>
@@ -184,19 +184,19 @@ export function DiscussionTab({
                 <div
                   className={`max-w-[70%] rounded-lg px-4 py-2 ${
                     isCurrentUser
-                      ? "bg-emerald-600 text-white"
-                      : "bg-zinc-800 text-zinc-100"
+                      ? "bg-primary text-white"
+                      : "bg-muted text-foreground"
                   }`}
                 >
                   {!isCurrentUser && (
-                    <p className="mb-1 font-mono text-xs text-zinc-400">
+                    <p className="mb-1 font-mono text-xs text-muted-foreground">
                       {message.senderUsername}
                     </p>
                   )}
                   <p className="break-words text-sm">{message.content}</p>
                   <p
                     className={`mt-1 font-mono text-xs ${
-                      isCurrentUser ? "text-emerald-200" : "text-zinc-500"
+                      isCurrentUser ? "text-emerald-200" : "text-muted-foreground"
                     }`}
                   >
                     {new Date(message.createdAt).toLocaleTimeString()}
@@ -210,14 +210,14 @@ export function DiscussionTab({
       </div>
 
       {/* Input */}
-      <div className="border-t border-zinc-800 p-4">
+      <div className="border-t border-border p-4">
         {status === "upcoming" && (
-          <div className="rounded-md bg-zinc-800 p-3 text-center text-sm text-zinc-400">
+          <div className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             Chat will open when the contest begins
           </div>
         )}
         {status === "completed" && (
-          <div className="rounded-md bg-zinc-800 p-3 text-center text-sm text-zinc-400">
+          <div className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             Contest has ended. Chat is read-only.
           </div>
         )}
@@ -229,12 +229,12 @@ export function DiscussionTab({
               onChange={(e) => setMessageInput(e.target.value)}
               placeholder="Type a message..."
               disabled={!canSendMessages || sendingMessage}
-              className="flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+              className="flex-1 rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder-zinc-500 focus:border-emerald-500 focus:outline-none disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!canSendMessages || !messageInput.trim() || sendingMessage}
-              className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-primary disabled:opacity-50"
             >
               {sendingMessage ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

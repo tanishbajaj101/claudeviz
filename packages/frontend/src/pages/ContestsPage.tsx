@@ -109,7 +109,7 @@ export function ContestsPage() {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </main>
     );
@@ -118,12 +118,12 @@ export function ContestsPage() {
   if (!user) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
           <Trophy className="mx-auto h-12 w-12 text-zinc-600" />
-          <h2 className="mt-4 font-mono text-xl font-bold text-zinc-100">
+          <h2 className="mt-4 font-mono text-xl font-bold text-foreground">
             Sign in to participate in contests
           </h2>
-          <p className="mt-2 text-sm text-zinc-400">Compete with others and track your progress</p>
+          <p className="mt-2 text-sm text-muted-foreground">Compete with others and track your progress</p>
         </div>
       </main>
     );
@@ -137,15 +137,15 @@ export function ContestsPage() {
     <main className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-mono text-3xl font-bold tracking-tight text-zinc-100">Contests</h1>
-          <p className="mt-2 font-mono text-sm text-zinc-500">
+          <h1 className="font-mono text-3xl font-bold tracking-tight text-foreground">Contests</h1>
+          <p className="mt-2 font-mono text-sm text-muted-foreground">
             Compete against others in timed coding challenges
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-primary"
         >
           <Plus className="h-4 w-4" />
           Create Contest
@@ -155,7 +155,7 @@ export function ContestsPage() {
       {/* My Contests */}
       {myContests.length > 0 && (
         <section className="mb-12">
-          <h2 className="mb-4 font-mono text-xl font-bold text-zinc-100">My Contests</h2>
+          <h2 className="mb-4 font-mono text-xl font-bold text-foreground">My Contests</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {myContests.map((contest) => (
               <ContestCard
@@ -171,10 +171,10 @@ export function ContestsPage() {
 
       {/* Public Contests */}
       <section>
-        <h2 className="mb-4 font-mono text-xl font-bold text-zinc-100">Public Contests</h2>
+        <h2 className="mb-4 font-mono text-xl font-bold text-foreground">Public Contests</h2>
         {publicContests.length === 0 ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-            <p className="text-sm text-zinc-400">No public contests available</p>
+          <div className="rounded-lg border border-border bg-card p-8 text-center">
+            <p className="text-sm text-muted-foreground">No public contests available</p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -221,14 +221,14 @@ function ContestCard({
   return (
     <Link
       to={`/contests/${contest.id}`}
-      className="block rounded-lg border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
+      className="block rounded-lg border border-border bg-card p-5 transition-colors hover:border-border hover:bg-muted"
     >
       <div className="mb-3 flex items-start justify-between">
-        <h3 className="font-mono text-lg font-semibold text-zinc-100">{contest.title}</h3>
+        <h3 className="font-mono text-lg font-semibold text-foreground">{contest.title}</h3>
         <StatusBadge status={status} />
       </div>
 
-      <div className="space-y-2 text-sm text-zinc-400">
+      <div className="space-y-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4" />
           <span>{contest.participant_count} participants</span>
@@ -261,7 +261,7 @@ function ContestCard({
             e.preventDefault();
             onJoin?.();
           }}
-          className="mt-4 w-full rounded-md bg-emerald-600 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+          className="mt-4 w-full rounded-md bg-primary py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-primary"
         >
           Join Contest
         </button>
@@ -273,8 +273,8 @@ function ContestCard({
 function StatusBadge({ status }: { status: ContestStatus }) {
   const styles = {
     upcoming: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    active: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    completed: 'bg-zinc-700/10 text-zinc-400 border-zinc-700/20',
+    active: 'bg-primary/10 text-emerald-400 border-emerald-500/20',
+    completed: 'bg-zinc-700/10 text-muted-foreground border-border/20',
   };
 
   const labels = {

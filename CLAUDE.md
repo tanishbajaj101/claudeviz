@@ -2,6 +2,11 @@
 
 LeetCode alternative: problem list → split-pane workspace (editor + Judge0 runner + AI coach) → algorithm visualizations.
 
+### Token-Saving: Gemini CLI for Large Analysis
+
+When a task requires analyzing many files or entire directories (100KB+), use `gemini -p` with `@path` syntax instead of reading files one by one. This saves Claude tokens and leverages Gemini's massive context window. See `docs/GEMINI_CLI_GUIDE.md` for syntax and AlgoArena-specific examples. Use for: architecture reviews, cross-codebase pattern checks, implementation verification, security audits, and coverage analysis.
+
+
 ## Stack
 
 **Monorepo Architecture (npm workspaces):**
@@ -276,3 +281,4 @@ location /socket.io/ {
 | Problem data schema, test cases, limits | `docs/problem-data-reference.md` |
 | Color system + theming | `docs/COLOR_SYSTEM_GUIDE.md` |
 | Logging conventions | `docs/LOGGING_SYSTEM_GUIDE.md` |
+| Gemini CLI for large codebase analysis | `docs/GEMINI_CLI_GUIDE.md` |

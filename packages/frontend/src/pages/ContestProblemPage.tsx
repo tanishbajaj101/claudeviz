@@ -13,9 +13,22 @@ interface ContestProblemEntry {
   problem: {
     id: string;
     title: string;
+    difficulty: string;
+    category: string;
+    tags: string[];
     description: string;
     constraints: string[];
+    examples: Array<{ input: string; output: string; explanation?: string }>;
     testCases: Array<{ input: string; expectedOutput: string }>;
+    judge0Limits: {
+      cpu_time_limit: number;
+      wall_time_limit: number;
+      memory_limit: number;
+      stack_limit: number;
+    };
+    languageId: number;
+    starterCode: string;
+    editorial: string;
   };
 }
 
@@ -82,24 +95,9 @@ export function ContestProblemPage() {
 
       // Build a Problem shape compatible with ContestProblemWorkspace
       const builtProblem: Problem = {
-        id: entry.problem.id,
-        title: entry.problem.title,
+        ...entry.problem,
+        languageId: entry.problem.languageId as Problem['languageId'],
         difficulty: capitalize(entry.difficulty) as Problem['difficulty'],
-        category: '',
-        description: entry.problem.description,
-        examples: [],
-        constraints: entry.problem.constraints,
-        testCases: entry.problem.testCases,
-        languageId: 54,
-        starterCode: '// Write your C++ solution here\n#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}\n',
-        editorial: '',
-        tags: [],
-        judge0Limits: {
-          cpu_time_limit: 2,
-          wall_time_limit: 5,
-          memory_limit: 128000,
-          stack_limit: 64000,
-        },
       };
 
       setProblem(builtProblem);
@@ -118,8 +116,8 @@ export function ContestProblemPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -128,12 +126,12 @@ export function ContestProblemPage() {
 
   if (errorMsg || !contest || !problem) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-zinc-950">
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
         <Lock className="h-12 w-12 text-zinc-600" />
-        <p className="font-mono text-lg text-zinc-300">{errorMsg ?? 'Problem not available'}</p>
+        <p className="font-mono text-lg text-muted-foreground">{errorMsg ?? 'Problem not available'}</p>
         <Link
           to={`/contests/${contestId}`}
-          className="flex items-center gap-2 rounded-md bg-zinc-800 px-4 py-2 font-mono text-sm text-zinc-300 hover:bg-zinc-700"
+          className="flex items-center gap-2 rounded-md bg-muted px-4 py-2 font-mono text-sm text-muted-foreground hover:bg-zinc-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Contest

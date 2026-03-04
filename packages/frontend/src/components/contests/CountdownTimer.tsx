@@ -28,7 +28,7 @@ export function CountdownTimer({ targetTime, label, onComplete }: CountdownTimer
 
   if (timeLeft <= 0) {
     return (
-      <div className="flex items-center gap-2 font-mono text-sm text-zinc-400">
+      <div className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
         <Clock className="h-4 w-4" />
         <span>{label || "Time's up!"}</span>
       </div>
@@ -49,7 +49,7 @@ export function CountdownTimer({ targetTime, label, onComplete }: CountdownTimer
           isUrgent ? "text-red-400" : "text-emerald-400"
         }`}
       >
-        {label && <span className="text-zinc-400">{label}: </span>}
+        {label && <span className="text-muted-foreground">{label}: </span>}
         {hours > 0 && `${hours}h `}
         {minutes}m {seconds}s
       </span>
@@ -82,9 +82,9 @@ export function LargeCountdown({ targetTime, label, onComplete }: LargeCountdown
 
   if (timeLeft <= 0) {
     return (
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+      <div className="rounded-lg border border-border bg-card p-8 text-center">
         <Clock className="mx-auto h-12 w-12 text-zinc-600" />
-        <p className="mt-4 font-mono text-lg text-zinc-400">Contest has started!</p>
+        <p className="mt-4 font-mono text-lg text-muted-foreground">Contest has started!</p>
       </div>
     );
   }
@@ -95,36 +95,36 @@ export function LargeCountdown({ targetTime, label, onComplete }: LargeCountdown
   const seconds = Math.floor((timeLeft % 60000) / 1000);
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-      <p className="mb-6 font-mono text-sm text-zinc-400">{label}</p>
+    <div className="rounded-lg border border-border bg-card p-8 text-center">
+      <p className="mb-6 font-mono text-sm text-muted-foreground">{label}</p>
       <div className="flex items-center justify-center gap-4">
         {days > 0 && (
           <div className="flex flex-col items-center">
             <span className="font-mono text-4xl font-bold text-emerald-400">
               {days}
             </span>
-            <span className="mt-1 font-mono text-xs text-zinc-500">DAYS</span>
+            <span className="mt-1 font-mono text-xs text-muted-foreground">DAYS</span>
           </div>
         )}
         <div className="flex flex-col items-center">
           <span className="font-mono text-4xl font-bold text-emerald-400">
             {String(hours).padStart(2, "0")}
           </span>
-          <span className="mt-1 font-mono text-xs text-zinc-500">HOURS</span>
+          <span className="mt-1 font-mono text-xs text-muted-foreground">HOURS</span>
         </div>
         <span className="font-mono text-4xl font-bold text-zinc-600">:</span>
         <div className="flex flex-col items-center">
           <span className="font-mono text-4xl font-bold text-emerald-400">
             {String(minutes).padStart(2, "0")}
           </span>
-          <span className="mt-1 font-mono text-xs text-zinc-500">MINUTES</span>
+          <span className="mt-1 font-mono text-xs text-muted-foreground">MINUTES</span>
         </div>
         <span className="font-mono text-4xl font-bold text-zinc-600">:</span>
         <div className="flex flex-col items-center">
           <span className="font-mono text-4xl font-bold text-emerald-400">
             {String(seconds).padStart(2, "0")}
           </span>
-          <span className="mt-1 font-mono text-xs text-zinc-500">SECONDS</span>
+          <span className="mt-1 font-mono text-xs text-muted-foreground">SECONDS</span>
         </div>
       </div>
     </div>

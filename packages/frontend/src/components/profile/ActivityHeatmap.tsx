@@ -12,7 +12,7 @@ interface ActivityHeatmapProps {
 }
 
 const COLOR_SCALE = {
-  0: "bg-zinc-800/30",
+  0: "bg-muted/30",
   1: "bg-emerald-400/20",
   2: "bg-emerald-400/40",
   3: "bg-emerald-400/60",
@@ -121,10 +121,10 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
   return (
     <div className="relative">
       <div className="mb-2 flex items-center gap-4">
-        <h3 className="font-mono text-sm font-medium text-zinc-300">
+        <h3 className="font-mono text-sm font-medium text-muted-foreground">
           Activity
         </h3>
-        <div className="flex items-center gap-1 text-xs text-zinc-500">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <span>Less</span>
           <div className="flex gap-1">
             {[0, 1, 2, 3, 4, 5].map((level) => (
@@ -138,13 +138,13 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
         </div>
       </div>
 
-      <div className="relative overflow-x-auto rounded-md border border-zinc-800 bg-zinc-900/50 p-4">
+      <div className="relative overflow-x-auto rounded-md border border-border bg-card/50 p-4">
         {/* Month labels */}
         <div className="mb-1 flex" style={{ marginLeft: "20px" }}>
           {monthLabels.map((label, i) => (
             <div
               key={i}
-              className="font-mono text-xs text-zinc-500"
+              className="font-mono text-xs text-muted-foreground"
               style={{
                 position: "absolute",
                 left: `${20 + label.weekIndex * 13}px`,
@@ -195,13 +195,13 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
       {/* Tooltip */}
       {hoveredDay && (
         <div
-          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 shadow-lg"
+          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-md border border-border bg-card px-3 py-1.5 shadow-lg"
           style={{
             left: `${tooltipPos.x}px`,
             top: `${tooltipPos.y}px`,
           }}
         >
-          <div className="whitespace-nowrap font-mono text-xs text-zinc-200">
+          <div className="whitespace-nowrap font-mono text-xs text-foreground">
             <span className="font-semibold text-emerald-400">
               {hoveredDay.count}
             </span>{" "}

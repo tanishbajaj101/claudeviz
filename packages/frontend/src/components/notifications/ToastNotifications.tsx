@@ -141,22 +141,22 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
   const getToastStyle = () => {
     switch (toast.type) {
       case "friend_online":
-        return "border-emerald-500/30 bg-emerald-500/10";
+        return "border-emerald-500/30 bg-primary/10";
       case "friend_request":
         return "border-blue-500/30 bg-blue-500/10";
       case "friend_request_accepted":
-        return "border-emerald-500/30 bg-emerald-500/10";
+        return "border-emerald-500/30 bg-primary/10";
       case "contest_invite":
         return "border-purple-500/30 bg-purple-500/10";
       default:
-        return "border-zinc-700 bg-zinc-900";
+        return "border-border bg-card";
     }
   };
 
   const getIcon = () => {
     switch (toast.type) {
       case "friend_online":
-        return <CircleDot size={18} className="fill-emerald-500 text-emerald-500" />;
+        return <CircleDot size={18} className="fill-emerald-500 text-primary" />;
       case "friend_request":
         return <UserPlus size={18} className="text-blue-400" />;
       case "friend_request_accepted":
@@ -178,21 +178,21 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
       case "friend_online":
         return (
           <>
-            <span className="font-semibold text-zinc-100">{username}</span> just came
+            <span className="font-semibold text-foreground">{username}</span> just came
             online!
           </>
         );
       case "friend_request":
         return (
           <>
-            <span className="font-semibold text-zinc-100">{senderUsername}</span> sent you a
+            <span className="font-semibold text-foreground">{senderUsername}</span> sent you a
             friend request!
           </>
         );
       case "friend_request_accepted":
         return (
           <>
-            <span className="font-semibold text-zinc-100">{username}</span> accepted
+            <span className="font-semibold text-foreground">{username}</span> accepted
             your friend request!
           </>
         );
@@ -200,8 +200,8 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
         return (
           <>
             You've been invited to{" "}
-            <span className="font-semibold text-zinc-100">{contestName}</span> by{" "}
-            <span className="font-semibold text-zinc-100">{inviterName}</span>!
+            <span className="font-semibold text-foreground">{contestName}</span> by{" "}
+            <span className="font-semibold text-foreground">{inviterName}</span>!
           </>
         );
       default:
@@ -220,11 +220,11 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex-shrink-0">{getIcon()}</div>
         <div className="flex-1">
-          <p className="font-mono text-sm text-zinc-200">{getMessage()}</p>
+          <p className="font-mono text-sm text-foreground">{getMessage()}</p>
         </div>
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 rounded-md p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+          className="flex-shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label="Dismiss notification"
         >
           <X size={14} />

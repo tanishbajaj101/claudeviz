@@ -14,7 +14,7 @@ import { FriendsSidebar } from '../components/friends/FriendsSidebar';
  */
 export function RootLayout() {
   return (
-    <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased">
+    <div className="min-h-screen bg-background font-sans text-foreground antialiased">
       <Providers>
         <Navbar />
         <FriendsSidebar />

@@ -470,9 +470,22 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
       problem: {
         id: string;
         title: string;
+        difficulty: string;
+        category: string;
+        tags: string[];
         description: string;
         constraints: string[];
+        examples: Array<{ input: string; output: string; explanation?: string }>;
         testCases: Array<{ input: string; expectedOutput: string }>;
+        judge0Limits: {
+          cpu_time_limit: number;
+          wall_time_limit: number;
+          memory_limit: number;
+          stack_limit: number;
+        };
+        languageId: number;
+        starterCode: string;
+        editorial: string;
       };
     }> | undefined = undefined;
 
@@ -486,16 +499,37 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
             ? {
                 id: problemDetail.id,
                 title: problemDetail.title,
+                difficulty: problemDetail.difficulty,
+                category: problemDetail.category,
+                tags: problemDetail.tags,
                 description: problemDetail.description,
                 constraints: problemDetail.constraints,
+                examples: problemDetail.examples,
                 testCases: problemDetail.testCases,
+                judge0Limits: problemDetail.judge0Limits,
+                languageId: problemDetail.languageId,
+                starterCode: problemDetail.starterCode,
+                editorial: problemDetail.editorial,
               }
             : {
                 id: cp.problem_id,
                 title: "Unknown Problem",
+                difficulty: "Medium",
+                category: "",
+                tags: [],
                 description: "",
                 constraints: [],
+                examples: [],
                 testCases: [],
+                judge0Limits: {
+                  cpu_time_limit: 2,
+                  wall_time_limit: 5,
+                  memory_limit: 128000,
+                  stack_limit: 64000,
+                },
+                languageId: 54,
+                starterCode: "// Problem not found",
+                editorial: "",
               },
         };
       });

@@ -170,10 +170,10 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
     return (
         <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="border-b border-zinc-800 px-6 py-3">
+            <div className="border-b border-border px-6 py-3">
                 <Link
                     to={`/profile/${otherUsername}`}
-                    className="font-semibold text-zinc-100 hover:text-emerald-400 transition-colors inline-block"
+                    className="font-semibold text-foreground hover:text-emerald-400 transition-colors inline-block"
                 >
                     {otherUsername}
                 </Link>
@@ -199,7 +199,7 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
                         <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex h-full items-center justify-center text-zinc-500">
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
                         <p className="text-sm">Say hello to {otherUsername}!</p>
                     </div>
                 ) : (
@@ -209,7 +209,7 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
             </div>
 
             {/* Input */}
-            <div className="border-t border-zinc-800 px-6 py-4">
+            <div className="border-t border-border px-6 py-4">
                 <div className="flex items-end gap-3">
                     <textarea
                         value={text}
@@ -222,12 +222,12 @@ export function FullScreenChat({ conversationId, otherUsername, onMarkRead }: Fu
                         }}
                         placeholder={`Message ${otherUsername}...`}
                         rows={1}
-                        className="flex-1 resize-none rounded-xl bg-zinc-800/70 border border-zinc-700 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-emerald-500/60 transition-colors min-h-[44px] max-h-[120px]"
+                        className="flex-1 resize-none rounded-xl bg-muted/70 border border-border px-4 py-2.5 text-sm text-foreground placeholder-zinc-500 outline-none focus:border-emerald-500/60 transition-colors min-h-[44px] max-h-[120px]"
                     />
                     <button
                         onClick={() => void sendMessage()}
                         disabled={!text.trim() || sending}
-                        className="h-11 w-11 flex items-center justify-center rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                        className="h-11 w-11 flex items-center justify-center rounded-xl bg-primary text-white hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                         aria-label="Send message"
                     >
                         <Send className="h-5 w-5" />

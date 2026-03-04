@@ -5,20 +5,21 @@ import { Link } from "react-router-dom";
 import { Home, User, Trophy, Users, Bell, MessageSquare } from "lucide-react";
 import { useFriends } from "../../components/friends/FriendsContext";
 import { NotificationsDropdown } from "../../components/notifications/NotificationsDropdown";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 export function Navbar() {
   const { user, signIn, signOut } = useAuth();
   const { toggleSidebar, unreadChatCount } = useFriends();
 
   return (
-    <nav className="border-b border-zinc-800 bg-zinc-950">
+    <nav className="border-b border-border bg-background">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 font-mono text-sm font-bold text-zinc-950">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary font-mono text-sm font-bold text-zinc-950">
               AA
             </div>
-            <span className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+            <span className="font-mono text-lg font-semibold tracking-tight text-foreground">
               AlgoArena
             </span>
           </Link>
@@ -27,7 +28,7 @@ export function Navbar() {
             <div className="flex items-center gap-1">
               <Link
                 to="/"
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <Home className="h-4 w-4" />
                 <span>Home</span>
@@ -35,7 +36,7 @@ export function Navbar() {
 
               <Link
                 to="/profile"
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <User className="h-4 w-4" />
                 <span>Profile</span>
@@ -43,7 +44,7 @@ export function Navbar() {
 
               <Link
                 to="/messages"
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 relative"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground relative"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Messages</span>
@@ -56,7 +57,7 @@ export function Navbar() {
 
               <Link
                 to="/contests"
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <Trophy className="h-4 w-4" />
                 <span>Contests</span>
@@ -71,7 +72,7 @@ export function Navbar() {
               {/* Friends icon with real-time unread badge */}
               <button
                 onClick={toggleSidebar}
-                className="relative rounded-md p-2 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label="Friends and messages"
               >
                 <Users className="h-5 w-5" />
@@ -85,10 +86,13 @@ export function Navbar() {
               {/* Notifications dropdown */}
               <NotificationsDropdown />
 
+              {/* Theme Switcher */}
+              <ThemeSwitcher />
+
               {/* User menu */}
               <Link
                 to="/profile"
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 {user.username && (
                   <img
@@ -101,7 +105,7 @@ export function Navbar() {
               </Link>
               <button
                 onClick={() => signOut()}
-                className="rounded-md border border-zinc-700 px-3 py-1.5 font-mono text-xs text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+                className="rounded-md border border-border px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:border-zinc-500 hover:text-foreground"
               >
                 Sign Out
               </button>
@@ -109,7 +113,7 @@ export function Navbar() {
           ) : (
             <button
               onClick={signIn}
-              className="rounded-md bg-emerald-600 px-4 py-1.5 font-mono text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+              className="rounded-md bg-primary px-4 py-1.5 font-mono text-sm font-medium text-white transition-colors hover:bg-primary"
             >
               Sign In
             </button>

@@ -59,12 +59,12 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
           placeholder="Search problems..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-sm text-zinc-200 placeholder-zinc-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+          className="rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground placeholder-zinc-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
         />
         <select
           value={difficulty}
           onChange={(e) => setDifficulty(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-sm text-zinc-200 outline-none focus:border-emerald-500"
+          className="rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-emerald-500"
         >
           <option value="All">All Difficulties</option>
           <option value="Easy">Easy</option>
@@ -74,7 +74,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-sm text-zinc-200 outline-none focus:border-emerald-500"
+          className="rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-emerald-500"
         >
           <option value="All">All Categories</option>
           {categories.map((c) => (
@@ -86,7 +86,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
         <select
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-sm text-zinc-200 outline-none focus:border-emerald-500"
+          className="rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-emerald-500"
         >
           <option value="All">All Tags</option>
           {tags.map((t) => (
@@ -98,23 +98,23 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg border border-zinc-800">
+      <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <tr className="border-b border-border bg-card/50">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Status
               </th>
-              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Title
               </th>
-              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Difficulty
               </th>
-              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Category
               </th>
-              <th className="px-4 py-3 text-right font-mono text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-right font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Acceptance
               </th>
             </tr>
@@ -125,22 +125,22 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
               return (
                 <tr
                   key={problem.id}
-                  className="transition-colors hover:bg-zinc-900/50"
+                  className="transition-colors hover:bg-card/50"
                 >
                   <td className="px-4 py-3">
                     {isSolved ? (
-                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500" title="Solved">
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary" title="Solved">
                         <Check size={12} className="text-white" />
                       </div>
                     ) : (
-                      <div className="h-4 w-4 rounded-full border border-zinc-700" title="Not solved" />
+                      <div className="h-4 w-4 rounded-full border border-border" title="Not solved" />
                     )}
                   </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     <Link
                       to={`/problems/${problem.id}`}
-                      className="font-mono text-sm text-zinc-200 transition-colors hover:text-emerald-400"
+                      className="font-mono text-sm text-foreground transition-colors hover:text-emerald-400"
                     >
                       {problem.title}
                     </Link>
@@ -148,7 +148,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
                       {problem.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                          className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
                         >
                           {tag}
                         </span>
@@ -163,10 +163,10 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
                     {problem.difficulty}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-mono text-sm text-zinc-400">
+                <td className="px-4 py-3 font-mono text-sm text-muted-foreground">
                   {problem.category}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-sm text-zinc-400">
+                <td className="px-4 py-3 text-right font-mono text-sm text-muted-foreground">
                   {problem.acceptanceRate
                     ? `${(problem.acceptanceRate * 100).toFixed(0)}%`
                     : "—"}
@@ -178,7 +178,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
               <tr>
                 <td
                   colSpan={5}
-                  className="px-4 py-12 text-center font-mono text-sm text-zinc-500"
+                  className="px-4 py-12 text-center font-mono text-sm text-muted-foreground"
                 >
                   No problems match your filters.
                 </td>

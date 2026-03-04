@@ -92,14 +92,14 @@ export function VisualizationInputEditor({
   const hasErrors = Object.values(errors).some((err) => err !== "");
 
   return (
-    <div className="rounded-md border border-zinc-700 bg-zinc-900 p-3 mb-3">
+    <div className="rounded-md border border-border bg-card p-3 mb-3">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="font-mono text-xs font-semibold text-zinc-300">
+        <h4 className="font-mono text-xs font-semibold text-muted-foreground">
           Input Parameters
         </h4>
         <button
           onClick={handleReset}
-          className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="font-mono text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
         >
           Reset
         </button>
@@ -112,7 +112,7 @@ export function VisualizationInputEditor({
 
           return (
             <div key={input.name}>
-              <label className="block font-mono text-xs text-zinc-400 mb-1">
+              <label className="block font-mono text-xs text-muted-foreground mb-1">
                 {input.label}
               </label>
               {input.type === "number" ? (
@@ -120,10 +120,10 @@ export function VisualizationInputEditor({
                   type="number"
                   value={value}
                   onChange={(e) => handleChange(input.name, e.target.value, input.type)}
-                  className={`w-full rounded border bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-200 focus:outline-none focus:ring-1 ${
+                  className={`w-full rounded border bg-muted px-2 py-1 font-mono text-xs text-foreground focus:outline-none focus:ring-1 ${
                     error
                       ? "border-red-500 focus:ring-red-500"
-                      : "border-zinc-700 focus:ring-blue-500"
+                      : "border-border focus:ring-blue-500"
                   }`}
                 />
               ) : (
@@ -136,10 +136,10 @@ export function VisualizationInputEditor({
                       ? "e.g., [1, 2, 3]"
                       : "Enter value"
                   }
-                  className={`w-full rounded border bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-200 focus:outline-none focus:ring-1 ${
+                  className={`w-full rounded border bg-muted px-2 py-1 font-mono text-xs text-foreground focus:outline-none focus:ring-1 ${
                     error
                       ? "border-red-500 focus:ring-red-500"
-                      : "border-zinc-700 focus:ring-blue-500"
+                      : "border-border focus:ring-blue-500"
                   }`}
                 />
               )}
@@ -156,7 +156,7 @@ export function VisualizationInputEditor({
         disabled={hasErrors}
         className={`w-full rounded px-3 py-1.5 font-mono text-xs font-medium transition-colors ${
           hasErrors
-            ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+            ? "bg-muted text-zinc-600 cursor-not-allowed"
             : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
       >

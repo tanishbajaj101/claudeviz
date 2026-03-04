@@ -14,7 +14,7 @@ function difficultyColor(diff: string) {
         case "easy": return "text-emerald-400";
         case "medium": return "text-yellow-400";
         case "hard": return "text-red-400";
-        default: return "text-zinc-400";
+        default: return "text-muted-foreground";
     }
 }
 
@@ -27,8 +27,8 @@ export function MessageRenderer({ message }: MessageRendererProps) {
             <div className={`flex ${isSelf ? "justify-end" : "justify-start"} mb-2`}>
                 <div
                     className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${isSelf
-                        ? "bg-emerald-600 text-white rounded-br-sm"
-                        : "bg-zinc-800 text-zinc-100 rounded-bl-sm"
+                        ? "bg-primary text-white rounded-br-sm"
+                        : "bg-muted text-foreground rounded-bl-sm"
                         }`}
                 >
                     {!isSelf && (
@@ -37,7 +37,7 @@ export function MessageRenderer({ message }: MessageRendererProps) {
                         </p>
                     )}
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                    <p className={`mt-1 text-right text-[10px] ${isSelf ? "text-emerald-200/70" : "text-zinc-500"}`}>
+                    <p className={`mt-1 text-right text-[10px] ${isSelf ? "text-emerald-200/70" : "text-muted-foreground"}`}>
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                 </div>
@@ -54,29 +54,29 @@ export function MessageRenderer({ message }: MessageRendererProps) {
         };
         return (
             <div className="mb-2 flex justify-start">
-                <div className="max-w-[80%] rounded-xl border border-zinc-700 bg-zinc-900 p-3 text-sm">
+                <div className="max-w-[80%] rounded-xl border border-border bg-card p-3 text-sm">
                     <p className="mb-1 text-xs font-semibold text-emerald-400">{message.senderUsername}</p>
                     <div className="mb-2 flex items-center gap-2">
-                        <ExternalLink className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                        <span className="text-xs text-zinc-400 uppercase tracking-wide font-mono">Problem Recommendation</span>
+                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide font-mono">Problem Recommendation</span>
                     </div>
                     {meta.problem_id ? (
                         <Link
                             to={`/problems/${meta.problem_id}`}
-                            className="font-semibold text-zinc-100 hover:text-emerald-400 transition-colors"
+                            className="font-semibold text-foreground hover:text-emerald-400 transition-colors"
                         >
                             {meta.problem_name ?? meta.problem_id}
                         </Link>
                     ) : (
-                        <p className="font-semibold text-zinc-100">{meta.problem_name}</p>
+                        <p className="font-semibold text-foreground">{meta.problem_name}</p>
                     )}
                     {meta.difficulty && (
                         <span className={`mt-1 inline-block text-xs font-mono ${difficultyColor(meta.difficulty)}`}>
                             {meta.difficulty}
                         </span>
                     )}
-                    {meta.note && <p className="mt-2 text-xs text-zinc-400">{meta.note}</p>}
-                    <p className="mt-2 text-right text-[10px] text-zinc-500">
+                    {meta.note && <p className="mt-2 text-xs text-muted-foreground">{meta.note}</p>}
+                    <p className="mt-2 text-right text-[10px] text-muted-foreground">
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                 </div>
@@ -91,20 +91,20 @@ export function MessageRenderer({ message }: MessageRendererProps) {
         };
         return (
             <div className="mb-2 flex justify-start">
-                <div className="max-w-[90%] rounded-xl border border-zinc-700 bg-zinc-900 p-3 text-sm w-full">
+                <div className="max-w-[90%] rounded-xl border border-border bg-card p-3 text-sm w-full">
                     <p className="mb-1 text-xs font-semibold text-emerald-400">{message.senderUsername}</p>
                     <div className="mb-2 flex items-center gap-2">
-                        <Code className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-                        <span className="text-xs text-zinc-400 uppercase tracking-wide font-mono">
+                        <Code className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide font-mono">
                             {meta.language ?? "Code"}
                         </span>
                     </div>
                     {meta.code && (
-                        <pre className="overflow-x-auto rounded-lg bg-zinc-950 border border-zinc-700/50 p-3 text-xs font-mono text-zinc-200 whitespace-pre leading-relaxed">
+                        <pre className="overflow-x-auto rounded-lg bg-background border border-border/50 p-3 text-xs font-mono text-foreground whitespace-pre leading-relaxed">
                             <code>{meta.code}</code>
                         </pre>
                     )}
-                    <p className="mt-2 text-right text-[10px] text-zinc-500">
+                    <p className="mt-2 text-right text-[10px] text-muted-foreground">
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                 </div>
@@ -120,27 +120,27 @@ export function MessageRenderer({ message }: MessageRendererProps) {
         };
         return (
             <div className="mb-2 flex justify-start">
-                <div className="max-w-[80%] rounded-xl border border-zinc-700 bg-zinc-900 p-3 text-sm">
+                <div className="max-w-[80%] rounded-xl border border-border bg-card p-3 text-sm">
                     <p className="mb-1 text-xs font-semibold text-emerald-400">{message.senderUsername}</p>
                     <div className="mb-2 flex items-center gap-2">
                         <Trophy className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
-                        <span className="text-xs text-zinc-400 uppercase tracking-wide font-mono">Contest Invite</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide font-mono">Contest Invite</span>
                     </div>
-                    <p className="font-semibold text-zinc-100">{meta.contest_name ?? "Contest"}</p>
+                    <p className="font-semibold text-foreground">{meta.contest_name ?? "Contest"}</p>
                     {meta.start_time && (
-                        <p className="mt-1 text-xs text-zinc-400">
+                        <p className="mt-1 text-xs text-muted-foreground">
                             Starts: {new Date(meta.start_time).toLocaleString()}
                         </p>
                     )}
                     {meta.contest_id && (
                         <Link
                             to={`/contests/${meta.contest_id}`}
-                            className="mt-3 inline-block rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors"
+                            className="mt-3 inline-block rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary transition-colors"
                         >
                             Join Contest
                         </Link>
                     )}
-                    <p className="mt-2 text-right text-[10px] text-zinc-500">
+                    <p className="mt-2 text-right text-[10px] text-muted-foreground">
                         {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                 </div>

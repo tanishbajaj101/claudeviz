@@ -13,7 +13,7 @@ export function ResizeHandle({ direction = "horizontal", className = "" }: Resiz
     return (
         <Separator
             className={`group relative flex items-center justify-center transition-colors
-        ${isHorizontal ? "w-1.5 cursor-col-resize hover:bg-emerald-500/20" : "h-1.5 cursor-row-resize hover:bg-emerald-500/20"}
+        ${isHorizontal ? "w-1.5 cursor-col-resize hover:bg-primary/20" : "h-1.5 cursor-row-resize hover:bg-primary/20"}
         ${className}
       `}
         >

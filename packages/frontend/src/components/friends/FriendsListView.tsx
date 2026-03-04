@@ -37,7 +37,7 @@ function FriendItem({ friend, onClick }: FriendItemProps) {
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-zinc-800/60 ${friend.has_unread ? "bg-zinc-800/40" : ""
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-muted/60 ${friend.has_unread ? "bg-muted/40" : ""
                 }`}
         >
             {/* Avatar */}
@@ -48,30 +48,30 @@ function FriendItem({ friend, onClick }: FriendItemProps) {
                         dangerouslySetInnerHTML={{ __html: friend.avatar_svg }}
                     />
                 ) : (
-                    <div className="h-9 w-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-zinc-300">
+                    <div className="h-9 w-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-muted-foreground">
                         {friend.username[0]?.toUpperCase()}
                     </div>
                 )}
                 {friend.is_online && (
-                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-900 bg-emerald-500" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-zinc-900 bg-primary" />
                 )}
             </div>
 
             {/* Info */}
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                    <span className={`truncate text-sm ${friend.has_unread ? "font-bold text-zinc-100" : "font-medium text-zinc-200"}`}>
+                    <span className={`truncate text-sm ${friend.has_unread ? "font-bold text-foreground" : "font-medium text-foreground"}`}>
                         {friend.username}
                     </span>
                     {friend.has_unread && (
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                     )}
                 </div>
                 {!friend.is_online && friend.last_active && (
-                    <p className="text-xs text-zinc-500">Active {formatLastActive(friend.last_active)} ago</p>
+                    <p className="text-xs text-muted-foreground">Active {formatLastActive(friend.last_active)} ago</p>
                 )}
                 {friend.last_problem_activity && (
-                    <p className="truncate text-xs text-zinc-500">
+                    <p className="truncate text-xs text-muted-foreground">
                         {friend.last_problem_activity.status === "solved" ? "solved" : "solving"}{" "}
                         <Link
                             to={`/problems/${friend.last_problem_activity.problem_id}`}
@@ -130,11 +130,11 @@ export function FriendsListView() {
     return (
         <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-                <h2 className="font-semibold text-zinc-100 font-mono">Friends</h2>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <h2 className="font-semibold text-foreground font-mono">Friends</h2>
                 <button
                     onClick={() => setView("search")}
-                    className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     aria-label="Search users"
                 >
                     <Search className="h-4 w-4" />
@@ -148,7 +148,7 @@ export function FriendsListView() {
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
                     </div>
                 ) : friends.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-2">
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
                         <p className="text-sm">No friends yet</p>
                         <p className="text-xs text-center">Search for users to add friends</p>
                     </div>

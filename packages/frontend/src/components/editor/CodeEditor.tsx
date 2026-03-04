@@ -80,7 +80,7 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
 
   return (
     <div className="relative h-full">
-      <div className="code-editor h-full overflow-hidden rounded-md border border-zinc-800">
+      <div className="code-editor h-full overflow-hidden rounded-md border border-border">
         <Editor
           height="100%"
           language="cpp"
@@ -108,7 +108,7 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
       {/* Settings Button */}
       <button
         onClick={() => setShowSettings(true)}
-        className="absolute right-4 top-4 rounded border border-zinc-700 bg-zinc-900/90 p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+        className="absolute right-4 top-4 rounded border border-border bg-card/90 p-2 text-muted-foreground hover:bg-muted hover:text-white"
         title="Editor Settings"
       >
         <Settings className="h-4 w-4" />

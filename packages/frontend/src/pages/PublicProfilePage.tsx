@@ -50,7 +50,7 @@ export function PublicProfilePage() {
   if (loading) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <p className="font-mono text-sm text-zinc-500">Loading profile...</p>
+        <p className="font-mono text-sm text-muted-foreground">Loading profile...</p>
       </div>
     );
   }
@@ -59,8 +59,8 @@ export function PublicProfilePage() {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-zinc-100">404</h1>
-          <p className="mt-2 text-zinc-400">{error || 'User not found'}</p>
+          <h1 className="text-4xl font-bold text-foreground">404</h1>
+          <p className="mt-2 text-muted-foreground">{error || 'User not found'}</p>
         </div>
       </div>
     );

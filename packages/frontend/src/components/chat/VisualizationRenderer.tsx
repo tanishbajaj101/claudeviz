@@ -72,8 +72,8 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
 
   if (loading) {
     return (
-      <div className="rounded-md border border-zinc-700 bg-zinc-900 p-4 text-center">
-        <p className="font-mono text-xs text-zinc-500">Loading visualization...</p>
+      <div className="rounded-md border border-border bg-card p-4 text-center">
+        <p className="font-mono text-xs text-muted-foreground">Loading visualization...</p>
       </div>
     );
   }
@@ -92,8 +92,8 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
       {data.inputs && data.inputs.length > 0 && (
         <VisualizationInputEditor inputs={data.inputs} onRerun={handleRerun} />
       )}
-      <div className="rounded-md border border-zinc-700 bg-zinc-900 p-3">
-        <p className="mb-3 font-mono text-xs text-zinc-400">{data.description}</p>
+      <div className="rounded-md border border-border bg-card p-3">
+        <p className="mb-3 font-mono text-xs text-muted-foreground">{data.description}</p>
         <VisualizationPlayer commands={commands} />
       </div>
     </div>

@@ -285,11 +285,11 @@ export function OnboardingPage() {
   const isValid = usernameStatus === 'available' && name.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 font-mono">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-lg p-8 shadow-xl">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 font-mono">
+      <div className="w-full max-w-md bg-card border border-border rounded-lg p-8 shadow-xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-emerald-400 mb-2">Welcome to AlgoArena</h1>
-          <p className="text-zinc-400">Set up your profile to get started</p>
+          <p className="text-muted-foreground">Set up your profile to get started</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -297,13 +297,13 @@ export function OnboardingPage() {
           <div className="flex flex-col items-center space-y-4">
             {/* Avatar */}
             <div
-              className="w-28 h-28 rounded-full overflow-hidden border-2 border-emerald-500/30 bg-zinc-800"
+              className="w-28 h-28 rounded-full overflow-hidden border-2 border-emerald-500/30 bg-muted"
               dangerouslySetInnerHTML={{ __html: avatarSvg }}
             />
 
             {/* Randomise buttons */}
             <div className="w-full">
-              <p className="text-xs text-zinc-500 text-center mb-2 uppercase tracking-widest">
+              <p className="text-xs text-muted-foreground text-center mb-2 uppercase tracking-widest">
                 Customize your bot
               </p>
               <div className="grid grid-cols-4 gap-2">
@@ -314,12 +314,12 @@ export function OnboardingPage() {
                     type="button"
                     onClick={btn.action}
                     title={btn.desc}
-                    className="flex flex-col items-center gap-1 py-2 px-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-emerald-500/50 rounded transition-all group"
+                    className="flex flex-col items-center gap-1 py-2 px-1 bg-muted hover:bg-zinc-700 border border-border hover:border-emerald-500/50 rounded transition-all group"
                   >
                     <span className="text-emerald-400 group-hover:scale-110 transition-transform">
                       {btn.icon}
                     </span>
-                    <span className="text-zinc-400 text-[10px] leading-none">{btn.label}</span>
+                    <span className="text-muted-foreground text-[10px] leading-none">{btn.label}</span>
                   </button>
                 ))}
               </div>
@@ -328,7 +328,7 @@ export function OnboardingPage() {
 
           {/* Name Field */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-2">
               Name
             </label>
             <input
@@ -336,14 +336,14 @@ export function OnboardingPage() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-4 py-2 bg-muted border border-border rounded text-foreground focus:outline-none focus:border-emerald-500 transition-colors"
               required
             />
           </div>
 
           {/* Username Field */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="username" className="block text-sm font-medium text-muted-foreground mb-2">
               Username
             </label>
             <div className="relative">
@@ -352,15 +352,15 @@ export function OnboardingPage() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 pr-10 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full px-4 py-2 pr-10 bg-muted border border-border rounded text-foreground focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="3-20 characters, alphanumeric and _"
                 required
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 {usernameStatus === 'checking' && (
-                  <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
+                  <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
                 )}
-                {usernameStatus === 'available' && <Check className="w-5 h-5 text-emerald-500" />}
+                {usernameStatus === 'available' && <Check className="w-5 h-5 text-primary" />}
                 {usernameStatus === 'taken' && <X className="w-5 h-5 text-red-500" />}
               </div>
             </div>
@@ -368,7 +368,7 @@ export function OnboardingPage() {
               <p className="text-sm text-red-400 mt-1">Username is already taken</p>
             )}
             {username && !/^[a-zA-Z0-9_]{3,20}$/.test(username) && (
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Must be 3-20 characters, alphanumeric and underscore only
               </p>
             )}
@@ -379,7 +379,7 @@ export function OnboardingPage() {
             id="btn-complete-setup"
             type="submit"
             disabled={!isValid || submitting}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-700 disabled:text-zinc-500 text-white font-semibold rounded transition-colors disabled:cursor-not-allowed"
+            className="w-full py-3 bg-primary hover:bg-emerald-700 disabled:bg-zinc-700 disabled:text-muted-foreground text-white font-semibold rounded transition-colors disabled:cursor-not-allowed"
           >
             {submitting ? 'Setting up...' : 'Complete Setup'}
           </button>
