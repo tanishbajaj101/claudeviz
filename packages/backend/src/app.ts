@@ -4,6 +4,9 @@
  * Sets up middleware, routes, and error handling.
  */
 
+import { config } from 'dotenv';
+config();
+
 import express, { type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';

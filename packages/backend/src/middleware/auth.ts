@@ -12,8 +12,9 @@ import type { DbUser } from '../lib/db.js';
 // Extend Express Request type to include user
 declare global {
   namespace Express {
+    interface User extends DbUser {}
     interface Request {
-      user?: DbUser;
+      user?: User;
     }
   }
 }

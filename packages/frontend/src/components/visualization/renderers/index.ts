@@ -1,11 +1,8 @@
-/**
- * Visualization renderers for algorithm animations
- */
-
-export { Array1DRenderer } from './array-1d-renderer';
-export { Array2DRenderer } from './array-2d-renderer';
-export { GraphRenderer } from './graph-renderer';
-export { LogRenderer } from './log-renderer';
-export { ChartRenderer } from './chart-renderer';
-export { BaseRenderer } from './base-renderer';
+export { default as LinearRenderer } from './LinearRenderer';
+export { default as GridRenderer } from './GridRenderer';
+export { default as TreeRenderer } from './TreeRenderer';
+export { default as GraphRenderer } from './GraphRenderer';
+export { default as LinkedListRenderer } from './LinkedListRenderer';
+export { default as DSURenderer } from './DSURenderer';
+export { default as RecursiveLinearRenderer } from './RecursiveLinearRenderer';
 export * from './types';

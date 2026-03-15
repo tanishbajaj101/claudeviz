@@ -186,6 +186,144 @@
     --ring: 350 70% 55%;
   }
 
+  /* MINT THEME */
+  .theme-mint {
+    --background: 150 60% 97%;
+    --foreground: 150 40% 15%;
+    --card: 150 40% 95%;
+    --card-foreground: 150 40% 15%;
+    --popover: 150 40% 95%;
+    --popover-foreground: 150 40% 15%;
+    --primary: 150 65% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 30% 88%;
+    --secondary-foreground: 150 40% 15%;
+    --muted: 150 30% 91%;
+    --muted-foreground: 150 25% 40%;
+    --accent: 150 40% 85%;
+    --accent-foreground: 150 40% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 25% 82%;
+    --input: 150 25% 82%;
+    --ring: 150 65% 38%;
+  }
+
+  /* BUBBLEGUM THEME */
+  .theme-bubblegum {
+    --background: 340 70% 97%;
+    --foreground: 340 40% 18%;
+    --card: 340 50% 95%;
+    --card-foreground: 340 40% 18%;
+    --popover: 340 50% 95%;
+    --popover-foreground: 340 40% 18%;
+    --primary: 340 72% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 340 40% 88%;
+    --secondary-foreground: 340 40% 18%;
+    --muted: 340 40% 91%;
+    --muted-foreground: 340 25% 45%;
+    --accent: 340 50% 85%;
+    --accent-foreground: 340 40% 18%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 340 35% 82%;
+    --input: 340 35% 82%;
+    --ring: 340 72% 58%;
+  }
+
+  /* LAVENDER THEME */
+  .theme-lavender {
+    --background: 270 55% 97%;
+    --foreground: 270 40% 18%;
+    --card: 270 40% 95%;
+    --card-foreground: 270 40% 18%;
+    --popover: 270 40% 95%;
+    --popover-foreground: 270 40% 18%;
+    --primary: 270 68% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 35% 88%;
+    --secondary-foreground: 270 40% 18%;
+    --muted: 270 35% 91%;
+    --muted-foreground: 270 20% 45%;
+    --accent: 270 40% 85%;
+    --accent-foreground: 270 40% 18%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 270 28% 82%;
+    --input: 270 28% 82%;
+    --ring: 270 68% 60%;
+  }
+
+  /* PEACH THEME */
+  .theme-peach {
+    --background: 25 80% 97%;
+    --foreground: 25 50% 15%;
+    --card: 25 60% 95%;
+    --card-foreground: 25 50% 15%;
+    --popover: 25 60% 95%;
+    --popover-foreground: 25 50% 15%;
+    --primary: 25 88% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 25 50% 88%;
+    --secondary-foreground: 25 50% 15%;
+    --muted: 25 50% 91%;
+    --muted-foreground: 25 30% 45%;
+    --accent: 25 55% 85%;
+    --accent-foreground: 25 50% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 25 40% 82%;
+    --input: 25 40% 82%;
+    --ring: 25 88% 54%;
+  }
+
+  /* SKY THEME */
+  .theme-sky {
+    --background: 200 70% 97%;
+    --foreground: 200 60% 12%;
+    --card: 200 55% 95%;
+    --card-foreground: 200 60% 12%;
+    --popover: 200 55% 95%;
+    --popover-foreground: 200 60% 12%;
+    --primary: 200 90% 46%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 45% 88%;
+    --secondary-foreground: 200 60% 12%;
+    --muted: 200 45% 91%;
+    --muted-foreground: 200 30% 42%;
+    --accent: 200 50% 85%;
+    --accent-foreground: 200 60% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 35% 82%;
+    --input: 200 35% 82%;
+    --ring: 200 90% 46%;
+  }
+
+  /* LEMON THEME */
+  .theme-lemon {
+    --background: 54 90% 97%;
+    --foreground: 54 60% 12%;
+    --card: 54 70% 94%;
+    --card-foreground: 54 60% 12%;
+    --popover: 54 70% 94%;
+    --popover-foreground: 54 60% 12%;
+    --primary: 46 95% 46%;
+    --primary-foreground: 46 90% 8%;
+    --secondary: 54 55% 86%;
+    --secondary-foreground: 54 60% 12%;
+    --muted: 54 55% 89%;
+    --muted-foreground: 54 35% 40%;
+    --accent: 54 60% 83%;
+    --accent-foreground: 54 60% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 54 45% 80%;
+    --input: 54 45% 80%;
+    --ring: 46 95% 46%;
+  }
+
   /* SOLAR THEME */
   .theme-solar {
     --background: 40 50% 8%;

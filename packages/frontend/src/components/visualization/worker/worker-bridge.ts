@@ -2,17 +2,16 @@
  * Bridge to communicate with the visualization web worker
  */
 
-import type { Command } from '@/lib/tracers';
-
 export interface ExecutionResult {
   success: boolean;
-  commands?: Command[];
+  config?: any;
+  steps?: any[];
   error?: string;
 }
 
 /**
  * Execute visualization code in a web worker
- * Returns the captured tracer commands
+ * Returns the captured tracer steps
  */
 export async function executeVisualizationCode(
   code: string,
@@ -27,10 +26,10 @@ export async function executeVisualizationCode(
 
     // Set up response handler
     worker.onmessage = (event) => {
-      const { type, commands, error } = event.data;
+      const { type, config, steps, error } = event.data;
 
       if (type === 'success') {
-        resolve({ success: true, commands });
+        resolve({ success: true, config, steps });
       } else {
         resolve({ success: false, error });
       }

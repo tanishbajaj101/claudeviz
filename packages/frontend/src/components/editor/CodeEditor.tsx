@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import { Settings } from 'lucide-react';
@@ -8,6 +9,7 @@ import { registerCompletionProvider } from '@/lib/editor/autocomplete/completion
 import { registerLinting } from '@/lib/editor/linting/diagnostic-provider';
 import { registerKeyboardShortcuts } from '@/lib/editor/shortcuts/keyboard-actions';
 import type { EditorPreferences } from '@/types/editor';
+import { registerMonacoThemes, MONACO_THEME_ID, type AppTheme } from '@/lib/editor/monaco-themes';
 
 interface CodeEditorProps {
   code: string;
@@ -23,11 +25,17 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
 
   const [preferences, setPreferences] = useState<EditorPreferences>(() => loadPreferences());
   const [showSettings, setShowSettings] = useState(false);
+  const { theme: appTheme } = useTheme();
+  const monacoTheme = MONACO_THEME_ID[appTheme as AppTheme] ?? 'app-dark';
 
   // Handle editor mount
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+
+    // Register all custom themes, then apply the current one
+    registerMonacoThemes(monaco);
+    monaco.editor.setTheme(MONACO_THEME_ID[appTheme as AppTheme] ?? 'app-dark');
 
     // Register autocomplete provider
     completionProviderRef.current = registerCompletionProvider(monaco);
@@ -42,9 +50,16 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
     editor.focus();
   };
 
+  // Sync Monaco theme with app theme
+  useEffect(() => {
+    if (monacoRef.current) {
+      monacoRef.current.editor.setTheme(monacoTheme);
+    }
+  }, [monacoTheme]);
+
   // Update editor options when preferences change
   useEffect(() => {
-    if (editorRef.current && monacoRef.current) {
+    if (editorRef.current) {
       editorRef.current.updateOptions({
         fontSize: preferences.fontSize,
         lineNumbers: preferences.lineNumbers ? 'on' : 'off',
@@ -52,9 +67,6 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
         minimap: { enabled: preferences.minimap },
         tabSize: preferences.tabSize,
       });
-
-      // Update theme
-      monacoRef.current.editor.setTheme(preferences.theme);
     }
   }, [preferences]);
 
@@ -84,7 +96,7 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
         <Editor
           height="100%"
           language="cpp"
-          theme={preferences.theme}
+          theme={monacoTheme}
           value={code}
           onChange={(value) => onChange(value || '')}
           onMount={handleEditorDidMount}

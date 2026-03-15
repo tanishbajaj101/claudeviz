@@ -1,4 +1,4 @@
-import { Problem } from "@/types";
+import type { Problem } from "@algoarena/shared";
 
 export const hard1Problems: Problem[] = [
     {

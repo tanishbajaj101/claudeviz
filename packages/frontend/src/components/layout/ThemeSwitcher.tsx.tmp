@@ -3,21 +3,15 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useState, useRef, useEffect } from "react";
 
 const THEMES = [
-    { id: "dark",      label: "Dark",      dot: "bg-zinc-900" },
-    { id: "light",     label: "Light",     dot: "bg-zinc-200" },
-    { id: "ocean",     label: "Ocean",     dot: "bg-cyan-600" },
-    { id: "sunset",    label: "Sunset",    dot: "bg-orange-500" },
-    { id: "cyberpunk", label: "Cyberpunk", dot: "bg-pink-500" },
-    { id: "forest",    label: "Forest",    dot: "bg-green-600" },
-    { id: "midnight",  label: "Midnight",  dot: "bg-indigo-900" },
-    { id: "rose",      label: "Rose",      dot: "bg-rose-500" },
-    { id: "solar",     label: "Solar",     dot: "bg-yellow-500" },
-    { id: "mint",      label: "Mint",      dot: "bg-emerald-300" },
-    { id: "bubblegum", label: "Bubblegum", dot: "bg-pink-300" },
-    { id: "lavender",  label: "Lavender",  dot: "bg-purple-300" },
-    { id: "peach",     label: "Peach",     dot: "bg-orange-200" },
-    { id: "sky",       label: "Sky",       dot: "bg-sky-300" },
-    { id: "lemon",     label: "Lemon",     dot: "bg-yellow-200" },
+    { id: "dark", label: "Dark" },
+    { id: "light", label: "Light" },
+    { id: "ocean", label: "Ocean" },
+    { id: "sunset", label: "Sunset" },
+    { id: "cyberpunk", label: "Cyberpunk" },
+    { id: "forest", label: "Forest" },
+    { id: "midnight", label: "Midnight" },
+    { id: "rose", label: "Rose" },
+    { id: "solar", label: "Solar" },
 ] as const;
 
 export function ThemeSwitcher() {
@@ -58,7 +52,18 @@ export function ThemeSwitcher() {
                                 }`}
                         >
                             <div className="flex items-center gap-2">
-                                <div className={`h-3 w-3 rounded-full border border-zinc-700 ${t.dot}`} />
+                                <div
+                                    className={`h-3 w-3 rounded-full border border-zinc-700 ${t.id === 'dark' ? 'bg-zinc-900' :
+                                            t.id === 'light' ? 'bg-zinc-200' :
+                                                t.id === 'ocean' ? 'bg-cyan-600' :
+                                                    t.id === 'sunset' ? 'bg-orange-500' :
+                                                        t.id === 'cyberpunk' ? 'bg-pink-500' :
+                                                            t.id === 'forest' ? 'bg-green-600' :
+                                                                t.id === 'midnight' ? 'bg-indigo-900' :
+                                                                    t.id === 'rose' ? 'bg-rose-500' :
+                                                                        'bg-yellow-500'
+                                        }`}
+                                />
                                 {t.label}
                             </div>
                         </button>

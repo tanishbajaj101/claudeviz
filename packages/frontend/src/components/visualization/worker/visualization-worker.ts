@@ -1,31 +1,20 @@
 /**
  * Web Worker for executing visualization code in isolation
- * Runs user's visualization JavaScript and captures tracer commands
- *
- * IMPORTANT: Commander is imported from the same direct path that the tracers
- * use internally (via tracer.ts → ./commander). Using the barrel import
- * (@/lib/tracers) can cause module duplication in Vite's worker bundling,
- * resulting in Commander.getCommands() returning an empty array.
+ * Runs user's visualization JavaScript and captures tracer steps
  */
 
-import { Commander } from '@/lib/tracers/commander';
-import { Array1DTracer } from '@/lib/tracers/array-1d-tracer';
-import { Array2DTracer } from '@/lib/tracers/array-2d-tracer';
-import { GraphTracer } from '@/lib/tracers/graph-tracer';
-import { LogTracer } from '@/lib/tracers/log-tracer';
-import { ChartTracer } from '@/lib/tracers/chart-tracer';
-import { VerticalLayout, HorizontalLayout, Layout } from '@/lib/tracers/layout';
-import { Tracer } from '@/lib/tracers/tracer';
+import Tracer from './Tracer';
 
 export interface WorkerMessage {
   type: 'execute';
   code: string;
-  inputs?: Record<string, unknown>;
+  inputs?: Record<string, any>;
 }
 
 export interface WorkerResponse {
   type: 'success' | 'error';
-  commands?: any[];
+  config?: any;
+  steps?: any[];
   error?: string;
 }
 
@@ -34,49 +23,41 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const { type, code, inputs } = event.data;
 
   if (type === 'execute') {
+    const tracer = new Tracer();
+
+    const timeout = setTimeout(() => {
+      self.postMessage({ type: 'error', error: "Execution timed out after 5 seconds." });
+    }, 5000);
+
     try {
-      // Initialize command collector
-      Commander.init();
+      // Define context for the function
+      // Inject inputs as the INPUTS object
+      const fn = new Function("tracer", "INPUTS", code);
+      fn(tracer, inputs || {});
+      
+      clearTimeout(timeout);
 
-      // Create execution context with tracer library
-      const context = {
-        INPUTS: inputs ?? {},
-        Array1DTracer,
-        Array2DTracer,
-        GraphTracer,
-        LogTracer,
-        ChartTracer,
-        VerticalLayout,
-        HorizontalLayout,
-        Layout,
-        Tracer,
-        console: {
-          log: () => {}, // Silent console in worker
-          error: () => {},
-          warn: () => {},
-        },
-      };
+      const steps = (tracer as any).getSteps();
+      if (steps.length === 0) {
+        self.postMessage({ type: 'error', error: "No tracer calls found. Make sure to call tracer.init()." });
+        return;
+      }
+      if (steps[0].type !== "init") {
+        self.postMessage({ type: 'error', error: "First tracer call must be tracer.init(config)." });
+        return;
+      }
 
-      // Execute the code with tracer context
-      const func = new Function(...Object.keys(context), code);
-      func(...Object.values(context));
-
-      // Get captured commands
-      const commands = Commander.getCommands();
-
-      // Send success response
-      const response: WorkerResponse = {
-        type: 'success',
-        commands,
-      };
-      self.postMessage(response);
-    } catch (error) {
-      // Send error response
-      const response: WorkerResponse = {
-        type: 'error',
-        error: error instanceof Error ? error.message : String(error),
-      };
-      self.postMessage(response);
+      self.postMessage({ 
+        type: 'success', 
+        config: steps[0].config, 
+        steps: steps.slice(1) 
+      });
+    } catch (err) {
+      clearTimeout(timeout);
+      self.postMessage({ 
+        type: 'error', 
+        error: err instanceof Error ? err.message : String(err) 
+      });
     }
   }
 };

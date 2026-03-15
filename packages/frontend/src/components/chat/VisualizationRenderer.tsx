@@ -1,13 +1,11 @@
-
-
 import { useState, useEffect, useCallback } from "react";
 import { VisualizationData } from "../../types";
 import { VisualizationPlayer, VisualizationInputEditor } from "../../components/visualization";
 import { executeVisualizationCode } from "../../components/visualization";
-import type { Command } from "../../lib/tracers";
 
 export function VisualizationRenderer({ data }: { data: VisualizationData }) {
-  const [commands, setCommands] = useState<Command[]>([]);
+  const [steps, setSteps] = useState<any[]>([]);
+  const [config, setConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,33 +25,13 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
     setError(null);
 
     console.log('[Viz] Executing visualization code...');
-    console.log('[Viz] Code length:', data.code.length);
-    console.log('[Viz] Has LogTracer:', data.code.includes('new LogTracer'));
-    console.log('[Viz] Has logger calls:', /logger\.(println|print)/.test(data.code));
-    console.log('[Viz] Inputs:', inputValues);
-
     const result = await executeVisualizationCode(data.code, inputValues);
 
     console.log('[Viz] Execution result:', result);
-    console.log('[Viz] Commands received:', result.commands?.length || 0);
 
-    if (result.commands && result.commands.length > 0) {
-      console.log('[Viz] First 10 commands:', result.commands.slice(0, 10));
-
-      const commandsByMethod = result.commands.reduce((acc, cmd) => {
-        acc[cmd.method] = (acc[cmd.method] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      console.log('[Viz] Command counts:', commandsByMethod);
-
-      const hasLogTracerCommands = result.commands.some(
-        c => c.method === 'LogTracer' || c.method === 'println' || c.method === 'print'
-      );
-      console.log('[Viz] Has LogTracer commands:', hasLogTracerCommands);
-    }
-
-    if (result.success && result.commands) {
-      setCommands(result.commands);
+    if (result.success && result.steps && result.config) {
+      setSteps(result.steps);
+      setConfig(result.config);
     } else {
       setError(result.error || 'Visualization failed');
     }
@@ -94,7 +72,7 @@ export function VisualizationRenderer({ data }: { data: VisualizationData }) {
       )}
       <div className="rounded-md border border-border bg-card p-3">
         <p className="mb-3 font-mono text-xs text-muted-foreground">{data.description}</p>
-        <VisualizationPlayer commands={commands} />
+        <VisualizationPlayer config={config} steps={steps} />
       </div>
     </div>
   );

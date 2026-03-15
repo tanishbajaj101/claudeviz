@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "ocean" | "sunset" | "cyberpunk" | "forest" | "midnight" | "rose" | "solar";
+type Theme = "dark" | "light" | "ocean" | "sunset" | "cyberpunk" | "forest" | "midnight" | "rose" | "solar" | "mint" | "bubblegum" | "lavender" | "peach" | "sky" | "lemon";
 
 interface ThemeContextType {
     theme: Theme;
@@ -28,7 +28,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             "theme-forest",
             "theme-midnight",
             "theme-rose",
-            "theme-solar"
+            "theme-solar",
+            "theme-mint",
+            "theme-bubblegum",
+            "theme-lavender",
+            "theme-peach",
+            "theme-sky",
+            "theme-lemon"
         );
 
         // Apply the active theme
