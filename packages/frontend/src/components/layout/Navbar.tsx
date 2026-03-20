@@ -2,7 +2,7 @@
 
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { Home, User, Trophy, Users, Bell, MessageSquare } from "lucide-react";
+import { Home, User, Trophy, Users, Bell, MessageSquare, Code2 } from "lucide-react";
 import { useFriends } from "../../components/friends/FriendsContext";
 import { NotificationsDropdown } from "../../components/notifications/NotificationsDropdown";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -32,6 +32,14 @@ export function Navbar() {
               >
                 <Home className="h-4 w-4" />
                 <span>Home</span>
+              </Link>
+
+              <Link
+                to="/problems"
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <Code2 className="h-4 w-4" />
+                <span>Problems</span>
               </Link>
 
               <Link
