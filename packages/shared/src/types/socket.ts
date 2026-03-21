@@ -216,12 +216,22 @@ export interface UnreadUpdatePayload {
   unread_chat_count: number;
 }
 
+export interface BountyInfo {
+  problemId: string;
+  problemTitle: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  startsAt: string;   // ISO-8601
+  expiresAt: string;  // ISO-8601
+  bonusXp: number;
+}
+
 export interface NotificationServerToClientEvents {
   "notification:new": (payload: NotificationNewPayload) => void;
   "notification:read": (payload: NotificationReadPayload) => void;
   "friend:online": (payload: FriendOnlinePayload) => void;
   "friend:offline": (payload: FriendOfflinePayload) => void;
   "unread_update": (payload: UnreadUpdatePayload) => void;
+  "bounty:new": (payload: BountyInfo) => void;
 }
 
 export type NotificationClientToServerEvents = Record<string, never>;

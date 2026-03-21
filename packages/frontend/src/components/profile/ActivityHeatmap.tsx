@@ -45,9 +45,9 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
     const endDate = new Date(today);
     endDate.setHours(0, 0, 0, 0);
 
-    // Start from 365 days ago
+    // Start from 100 days ago
     const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - 364);
+    startDate.setDate(startDate.getDate() - 99);
 
     // Find the Sunday before start date to align weeks properly
     const dayOfWeek = startDate.getDay();
@@ -58,8 +58,8 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
     let currentWeek: HeatmapDay[] = [];
     const current = new Date(alignedStart);
 
-    // Generate 53 weeks worth of data
-    for (let i = 0; i < 371; i++) {
+    // Generate 16 weeks worth of data (covers 100 days + alignment padding)
+    for (let i = 0; i < 112; i++) {
       const dateStr = current.toISOString().split("T")[0];
       const count = heatmapMap.get(dateStr) ?? 0;
       const isPastEnd = current > endDate;
@@ -138,7 +138,7 @@ export function ActivityHeatmap({ heatmap }: ActivityHeatmapProps) {
         </div>
       </div>
 
-      <div className="relative overflow-x-auto rounded-md border border-border bg-card/50 p-4">
+      <div className="relative inline-block rounded-md border border-border bg-card/50 p-4">
         {/* Month labels */}
         <div className="mb-1 flex" style={{ marginLeft: "20px" }}>
           {monthLabels.map((label, i) => (

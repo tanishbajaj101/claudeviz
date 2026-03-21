@@ -395,6 +395,12 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   }
 
   try {
+    // Fetch xp from Prisma user record
+    const prismaUser = await prisma.user.findUnique({
+      where: { id: targetId },
+      select: { xp: true },
+    });
+
     // Fetch all submissions
     const allSubmissions = await prisma.submission.findMany({
       where: { user_id: targetId },
@@ -408,6 +414,16 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     // Count distinct problems solved
     const solvedProblemIds = new Set(accepted.map((s) => s.problem_id));
     const totalProblemsSolved = solvedProblemIds.size;
+
+    // Difficulty breakdown
+    const difficultyMap = new Map(problems.map((p) => [p.id, p.difficulty]));
+    let easySolved = 0, mediumSolved = 0, hardSolved = 0;
+    for (const pid of solvedProblemIds) {
+      const diff = difficultyMap.get(pid);
+      if (diff === 'Easy') easySolved++;
+      else if (diff === 'Medium') mediumSolved++;
+      else if (diff === 'Hard') hardSolved++;
+    }
 
     // Time-windowed counts
     const now = new Date();
@@ -446,11 +462,14 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
       },
       stats: {
         total_problems_solved: totalProblemsSolved,
-        problems_solved_24h: solved24hIds.size,
         problems_solved_7d: solved7dIds.size,
         problems_solved_30d: solved30dIds.size,
         total_submissions: totalSubmissions,
         accuracy: Math.round(accuracy * 10000) / 10000,
+        xp: prismaUser?.xp ?? 0,
+        easy_solved: easySolved,
+        medium_solved: mediumSolved,
+        hard_solved: hardSolved,
       },
       activity_heatmap: activityHeatmap,
     });

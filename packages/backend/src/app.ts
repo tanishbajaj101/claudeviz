@@ -26,6 +26,7 @@ import judgeRouter from './routes/judge.js';
 import chatRouter from './routes/chat.js';
 import problemsRouter from './routes/problems.js';
 import avatarRouter from './routes/avatar.js';
+import bountyRouter from './routes/bounty.js';
 
 const app = express();
 
@@ -86,6 +87,7 @@ app.use('/api/judge', judgeRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/problems', problemsRouter);
 app.use('/api/avatar', avatarRouter);
+app.use('/api/bounty', bountyRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

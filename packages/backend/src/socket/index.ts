@@ -27,6 +27,7 @@ import {
   roomNames,
 } from './rooms.js';
 import { prisma } from '../lib/prisma.js';
+import { getNextBountyStart } from '../lib/bounty.js';
 
 // ---------------------------------------------------------------------------
 // Singleton guard — one Server per process
@@ -417,6 +418,31 @@ export function initializeSocketIO(httpServer: HttpServer): Server {
       );
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Bounty broadcaster — fires at exact start time, then schedules next day
+  // -------------------------------------------------------------------------
+
+  function scheduleBountyNotification(nsp: Namespace): void {
+    const next = getNextBountyStart();
+    if (!next) return;
+
+    const msUntilStart = next.startsAt.getTime() - Date.now();
+    const minUntilStart = Math.round(msUntilStart / 60000);
+    console.log(`[bounty] Next bounty (${next.bounty.problemId}) scheduled in ${minUntilStart}min`);
+
+    setTimeout(() => {
+      try {
+        nsp.emit('bounty:new', next.bounty);
+        console.log(`[bounty] Bounty started: ${next.bounty.problemId}`);
+      } catch (err) {
+        console.error('[bounty] Failed to emit bounty:new:', err);
+      }
+      scheduleBountyNotification(nsp);
+    }, msUntilStart);
+  }
+
+  scheduleBountyNotification(notificationsNsp);
 
   // -------------------------------------------------------------------------
   // Store singleton

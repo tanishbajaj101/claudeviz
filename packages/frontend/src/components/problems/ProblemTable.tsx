@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Problem } from "../../types";
 import { useSubmissions } from "../../hooks/useSubmissions";
-import { Check } from "lucide-react";
+import { Check, Flame } from "lucide-react";
+import { useBounty, formatTimeRemaining } from "../../hooks/useBounty";
 
 const DIFFICULTY_COLORS: Record<Problem["difficulty"], string> = {
   Easy: "text-emerald-400",
@@ -31,6 +32,7 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
   const [category, setCategory] = useState<string>("All");
   const [selectedTag, setSelectedTag] = useState<string>("All");
   const { solvedProblems } = useSubmissions();
+  const { bounty, timeRemaining } = useBounty();
 
   const categories = useMemo(() => getCategories(problems), [problems]);
   const tags = useMemo(() => getTags(problems), [problems]);
@@ -122,10 +124,11 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
           <tbody className="divide-y divide-zinc-800/50">
             {filtered.map((problem) => {
               const isSolved = solvedProblems.includes(problem.id);
+              const isBounty = bounty?.problemId === problem.id;
               return (
                 <tr
                   key={problem.id}
-                  className="transition-colors hover:bg-card/50"
+                  className={`transition-colors hover:bg-card/50 ${isBounty ? "ring-1 ring-inset ring-amber-500/30 bg-amber-500/5" : ""}`}
                 >
                   <td className="px-4 py-3">
                     {isSolved ? (
@@ -138,12 +141,23 @@ export function ProblemTable({ problems }: { problems: Problem[] }) {
                   </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
-                    <Link
-                      to={`/problems/${problem.id}`}
-                      className="font-mono text-sm text-foreground transition-colors hover:text-emerald-400"
-                    >
-                      {problem.title}
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/problems/${problem.id}`}
+                        className="font-mono text-sm text-foreground transition-colors hover:text-emerald-400"
+                      >
+                        {problem.title}
+                      </Link>
+                      {isBounty && (
+                        <span
+                          className="flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-400"
+                          title={`+${bounty!.bonusXp} bonus XP · Bounty active for ${formatTimeRemaining(timeRemaining)}`}
+                        >
+                          <Flame size={10} />
+                          {formatTimeRemaining(timeRemaining)} left
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-1">
                       {problem.tags.map((tag) => (
                         <span

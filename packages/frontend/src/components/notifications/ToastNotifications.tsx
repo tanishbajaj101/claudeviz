@@ -1,13 +1,14 @@
 
 
 import { useEffect, useState } from "react";
-import { X, UserPlus, CircleDot, Trophy } from "lucide-react";
+import { X, UserPlus, CircleDot, Trophy, Flame } from "lucide-react";
 import { useNotificationSocket, useSocketEvent } from "../../hooks/useSocket";
 import { useNavigate } from "react-router-dom";
+import type { BountyInfo } from "@shared/types/socket";
 
 interface Toast {
   id: string;
-  type: "friend_online" | "friend_request" | "contest_invite" | "friend_request_accepted";
+  type: "friend_online" | "friend_request" | "contest_invite" | "friend_request_accepted" | "bounty";
   data: Record<string, unknown>;
   created_at: string;
 }
@@ -44,6 +45,26 @@ export function ToastNotifications() {
     }
   });
 
+  // Listen for bounty:new events
+  useSocketEvent(socket, "bounty:new", (payload: unknown) => {
+    const bounty = payload as BountyInfo;
+    const toastId = `bounty-${bounty.problemId}-${Date.now()}`;
+    const toast: Toast = {
+      id: toastId,
+      type: "bounty",
+      data: {
+        problemId: bounty.problemId,
+        problemTitle: bounty.problemTitle,
+        bonusXp: bounty.bonusXp,
+      },
+      created_at: new Date().toISOString(),
+    };
+    setToasts((prev) => {
+      if (prev.some((t) => t.type === "bounty")) return prev; // deduplicate
+      return [...prev, toast];
+    });
+  });
+
   // Listen for ephemeral friend:online events (separate from notification:new)
   useSocketEvent(socket, "friend:online", (payload: unknown) => {
     const data = payload as { user_id: number; username: string };
@@ -69,6 +90,11 @@ export function ToastNotifications() {
     removeToast(toast.id);
 
     // Navigate based on type
+    if (toast.type === "bounty") {
+      const problemId = toast.data.problemId as string;
+      if (problemId) navigate(`/problems/${problemId}`);
+      return;
+    }
     if (toast.type === "friend_request") {
       const username = toast.data.sender_username as string;
       if (username) {
@@ -148,6 +174,8 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
         return "border-emerald-500/30 bg-primary/10";
       case "contest_invite":
         return "border-purple-500/30 bg-purple-500/10";
+      case "bounty":
+        return "border-amber-500/50 bg-amber-500/10";
       default:
         return "border-border bg-card";
     }
@@ -163,6 +191,8 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
         return <UserPlus size={18} className="text-emerald-400" />;
       case "contest_invite":
         return <Trophy size={18} className="text-purple-400" />;
+      case "bounty":
+        return <Flame size={18} className="text-amber-400" />;
       default:
         return null;
     }
@@ -204,6 +234,17 @@ function ToastItem({ toast, onDismiss, onClick }: ToastItemProps) {
             <span className="font-semibold text-foreground">{inviterName}</span>!
           </>
         );
+      case "bounty": {
+        const title = toast.data.problemTitle as string;
+        const bonusXp = toast.data.bonusXp as number;
+        return (
+          <>
+            <span className="font-semibold text-amber-400">Bounty Active!</span> Solve{" "}
+            <span className="font-semibold text-foreground">{title}</span> for{" "}
+            <span className="font-semibold text-amber-400">+{bonusXp} XP</span>
+          </>
+        );
+      }
       default:
         return null;
     }

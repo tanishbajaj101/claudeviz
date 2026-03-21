@@ -11,6 +11,9 @@ import {
   createSubmission,
 } from '../lib/db.js';
 import { prisma } from '../lib/prisma.js';
+import { importedProblems } from '../data/problems/all_problems.js';
+import { calculateXP, awardXP } from '../lib/xp.js';
+import { isProblemBounty } from '../lib/bounty.js';
 
 const router = Router();
 
@@ -104,21 +107,47 @@ router.post('/submissions', authenticate, async (req: Request, res: Response) =>
   console.log(`[POST /api/submissions] User ${userId} submitted problem ${problemId} with status: ${status}`);
 
   const [submission, solvedProblems] = await Promise.all([
-    createSubmission({
-      userId,
-      problemId,
-      status,
-      time,
-      memory,
-    }),
+    createSubmission({ userId, problemId, status, time, memory }),
     getSolvedProblemsByUserId(userId),
   ]);
+
+  // Award XP on first accepted solve
+  let xp_awarded: number | null = null;
+  if (status === 'Accepted') {
+    const priorAccepted = await prisma.submission.findFirst({
+      where: { user_id: userId, problem_id: problemId, status: 'Accepted' },
+      orderBy: { created_at: 'asc' },
+      select: { id: true, created_at: true },
+    });
+    // priorAccepted will be the submission we just created, so check count > 1
+    const acceptedCount = await prisma.submission.count({
+      where: { user_id: userId, problem_id: problemId, status: 'Accepted' },
+    });
+    const isFirstSolve = acceptedCount === 1;
+
+    if (isFirstSolve) {
+      const problem = importedProblems.find((p) => p.id === problemId);
+      if (problem) {
+        const difficulty = problem.difficulty as 'Easy' | 'Medium' | 'Hard';
+        const isBounty = isProblemBounty(problemId);
+        const xp = calculateXP(difficulty, isBounty);
+        try {
+          await awardXP(userId, xp);
+          xp_awarded = xp;
+          console.log(`[POST /api/submissions] Awarded ${xp} XP to user ${userId} for ${problemId}${isBounty ? ' (bounty)' : ''}`);
+        } catch (err) {
+          console.error(`[POST /api/submissions] Failed to award XP:`, err);
+        }
+      }
+    }
+  }
 
   console.log(`[POST /api/submissions] Created submission ${submission.id}. User now has ${solvedProblems.length} solved problems`);
 
   res.json({
     submission,
     solvedProblems,
+    xp_awarded,
   });
 });
 

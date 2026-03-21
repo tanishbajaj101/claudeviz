@@ -17,19 +17,124 @@ interface UserProfile {
   };
   stats: {
     total_problems_solved: number;
-    problems_solved_24h: number;
     problems_solved_7d: number;
     problems_solved_30d: number;
     total_submissions: number;
     accuracy: number;
+    xp: number;
+    easy_solved: number;
+    medium_solved: number;
+    hard_solved: number;
   };
   activity_heatmap: Array<{ date: string; count: number }>;
 }
 
-type StatPeriod = "24h" | "7d" | "30d";
+type StatPeriod = "7d" | "30d" | "all";
 
 interface ProfileClientProps {
   userId?: number;
+}
+
+function DifficultyRing({
+  easy,
+  medium,
+  hard,
+  total,
+  currentCount,
+  period,
+  onPeriodChange,
+}: {
+  easy: number;
+  medium: number;
+  hard: number;
+  total: number;
+  currentCount: number;
+  period: StatPeriod;
+  onPeriodChange: (p: StatPeriod) => void;
+}) {
+  const r = 38;
+  const circumference = 2 * Math.PI * r;
+
+  const easyFrac = total > 0 ? easy / total : 0;
+  const mediumFrac = total > 0 ? medium / total : 0;
+  const hardFrac = total > 0 ? hard / total : 0;
+
+  const easyLen = easyFrac * circumference;
+  const mediumLen = mediumFrac * circumference;
+  const hardLen = hardFrac * circumference;
+
+  const easyOffset = 0;
+  const mediumOffset = easyLen;
+  const hardOffset = easyLen + mediumLen;
+
+  const gap = total > 0 ? 1 : 0;
+
+  const cyclePeriod = () => {
+    if (period === "7d") onPeriodChange("30d");
+    else if (period === "30d") onPeriodChange("all");
+    else onPeriodChange("7d");
+  };
+
+  const periodLabel = period === "7d" ? "7 days" : period === "30d" ? "30 days" : "all time";
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <div className="relative flex-shrink-0 cursor-pointer" onClick={cyclePeriod} title="Click to cycle through time periods">
+        <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
+          <circle
+            cx="50"
+            cy="50"
+            r={r}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="8"
+            className="text-border"
+          />
+          {total > 0 && (
+            <>
+              <circle
+                cx="50"
+                cy="50"
+                r={r}
+                fill="none"
+                stroke="#22c55e"
+                strokeWidth="8"
+                strokeDasharray={`${Math.max(0, easyLen - gap)} ${circumference - Math.max(0, easyLen - gap)}`}
+                strokeDashoffset={-easyOffset}
+                strokeLinecap="butt"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r={r}
+                fill="none"
+                stroke="#eab308"
+                strokeWidth="8"
+                strokeDasharray={`${Math.max(0, mediumLen - gap)} ${circumference - Math.max(0, mediumLen - gap)}`}
+                strokeDashoffset={-mediumOffset}
+                strokeLinecap="butt"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r={r}
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="8"
+                strokeDasharray={`${Math.max(0, hardLen - gap)} ${circumference - Math.max(0, hardLen - gap)}`}
+                strokeDashoffset={-hardOffset}
+                strokeLinecap="butt"
+              />
+            </>
+          )}
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="font-mono text-xl font-bold text-foreground">{currentCount}</span>
+        </div>
+      </div>
+      <span className="mt-1 font-mono text-[10px] text-emerald-400">{periodLabel} ↻</span>
+    </div>
+  );
 }
 
 export function ProfileClient({ userId }: ProfileClientProps) {
@@ -75,14 +180,6 @@ export function ProfileClient({ userId }: ProfileClientProps) {
 
     fetchProfile();
   }, [targetUserId, userId, authLoading, navigate]);
-
-  const cycleStat = () => {
-    setStatPeriod((prev) => {
-      if (prev === "7d") return "30d";
-      if (prev === "30d") return "24h";
-      return "7d";
-    });
-  };
 
   const handleAddFriend = async () => {
     if (!profile) return;
@@ -183,14 +280,11 @@ export function ProfileClient({ userId }: ProfileClientProps) {
   const isOwnProfile = profileUser.friendship_status === "self";
 
   const currentSolvedCount =
-    statPeriod === "24h"
-      ? stats.problems_solved_24h
+    statPeriod === "all"
+      ? stats.total_problems_solved
       : statPeriod === "7d"
         ? stats.problems_solved_7d
         : stats.problems_solved_30d;
-
-  const periodLabel =
-    statPeriod === "24h" ? "24 hours" : statPeriod === "7d" ? "7 days" : "30 days";
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -274,41 +368,24 @@ export function ProfileClient({ userId }: ProfileClientProps) {
       </div>
 
       {/* Stats grid */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Difficulty ring + period toggle merged */}
         <div className="rounded-lg border border-border bg-card/50 p-4">
-          <p className="font-mono text-xs text-muted-foreground">Total Solved</p>
-          <p className="font-mono text-3xl font-bold text-emerald-400">
-            {stats.total_problems_solved}
-          </p>
+          <DifficultyRing
+            easy={stats.easy_solved}
+            medium={stats.medium_solved}
+            hard={stats.hard_solved}
+            total={stats.total_problems_solved}
+            currentCount={currentSolvedCount}
+            period={statPeriod}
+            onPeriodChange={setStatPeriod}
+          />
         </div>
 
-        <button
-          onClick={cycleStat}
-          className="cursor-pointer rounded-lg border border-border bg-card/50 p-4 text-left transition-all hover:border-emerald-500/30 hover:bg-muted/50"
-          title="Click to cycle through time periods"
-        >
-          <p className="font-mono text-xs text-muted-foreground">
-            Solved ({periodLabel})
-          </p>
-          <p className="font-mono text-3xl font-bold text-muted-foreground">
-            {currentSolvedCount}
-          </p>
-          <p className="mt-1 font-mono text-xs text-zinc-600">
-            Click to change period ↻
-          </p>
-        </button>
-
-        <div className="rounded-lg border border-border bg-card/50 p-4">
-          <p className="font-mono text-xs text-muted-foreground">Submissions</p>
-          <p className="font-mono text-3xl font-bold text-muted-foreground">
-            {stats.total_submissions}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card/50 p-4">
-          <p className="font-mono text-xs text-muted-foreground">Accuracy</p>
-          <p className="font-mono text-3xl font-bold text-muted-foreground">
-            {(stats.accuracy * 100).toFixed(1)}%
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+          <p className="font-mono text-xs text-amber-400/70">Total XP</p>
+          <p className="font-mono text-3xl font-bold text-amber-400">
+            {stats.xp.toLocaleString()}
           </p>
         </div>
       </div>

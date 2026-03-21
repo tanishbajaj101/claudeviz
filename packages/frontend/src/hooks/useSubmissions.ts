@@ -5,8 +5,10 @@ import { UserProfile, UserSubmission } from "@/types";
 interface UseSubmissionsReturn {
   profile: UserProfile;
   solvedProblems: string[];
-  recordSubmission: (problemId: string, submission: UserSubmission) => Promise<void>;
+  recordSubmission: (problemId: string, submission: UserSubmission) => Promise<{ xp_awarded: number | null }>;
   loading: boolean;
+  lastXpAward: number | null;
+  clearLastXpAward: () => void;
 }
 
 export function useSubmissions(): UseSubmissionsReturn {
@@ -17,6 +19,7 @@ export function useSubmissions(): UseSubmissionsReturn {
     submissions: [],
   });
   const [loading, setLoading] = useState(true);
+  const [lastXpAward, setLastXpAward] = useState<number | null>(null);
 
   // Load from API on mount / when user changes
   useEffect(() => {
@@ -46,7 +49,7 @@ export function useSubmissions(): UseSubmissionsReturn {
   }, [user?.id]);
 
   const recordSubmission = useCallback(
-    async (problemId: string, submission: UserSubmission) => {
+    async (problemId: string, submission: UserSubmission): Promise<{ xp_awarded: number | null }> => {
       console.log('[useSubmissions] recordSubmission called', {
         problemId,
         status: submission.status,
@@ -56,7 +59,7 @@ export function useSubmissions(): UseSubmissionsReturn {
 
       if (!user?.id) {
         console.warn('[useSubmissions] No user ID - skipping submission recording');
-        return;
+        return { xp_awarded: null };
       }
 
       try {
@@ -81,6 +84,10 @@ export function useSubmissions(): UseSubmissionsReturn {
             solvedProblems: data.solvedProblems,
             submissions: [submission, ...prev.submissions],
           }));
+          if (data.xp_awarded) {
+            setLastXpAward(data.xp_awarded);
+          }
+          return { xp_awarded: data.xp_awarded ?? null };
         } else {
           const error = await response.text();
           console.error('[useSubmissions] Failed to save submission:', response.status, error);
@@ -88,6 +95,7 @@ export function useSubmissions(): UseSubmissionsReturn {
       } catch (error) {
         console.error("[useSubmissions] Failed to record submission:", error);
       }
+      return { xp_awarded: null };
     },
     [user?.id]
   );
@@ -97,5 +105,7 @@ export function useSubmissions(): UseSubmissionsReturn {
     solvedProblems: profile.solvedProblems,
     recordSubmission,
     loading,
+    lastXpAward,
+    clearLastXpAward: () => setLastXpAward(null),
   };
 }

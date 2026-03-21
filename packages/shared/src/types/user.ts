@@ -19,6 +19,7 @@ export interface User {
 export interface UserProfile {
   solvedProblems: string[];
   submissions: UserSubmission[];
+  xp?: number;
 }
 
 export interface UserSubmission {
