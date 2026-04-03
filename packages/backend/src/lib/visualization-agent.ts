@@ -15,11 +15,6 @@ const SYSTEM_PROMPT = fs.readFileSync(PROMPT_PATH, "utf-8");
 
 export interface VisualizationRequest {
   algorithm: string;
-  correctAlgorithm?: string;
-  testCase: {
-    input: string;
-    expectedOutput: string;
-  };
   highlight: string;
 }
 
@@ -31,7 +26,7 @@ export async function generateVisualization(
   request: VisualizationRequest
 ): Promise<VisualizationData> {
   const model = new ChatOpenAI({
-    modelName: "gpt-4o",
+    model: "gpt-5.2",
     temperature: 0.3,
     openAIApiKey: process.env.OPENAI_API_KEY,
   });

@@ -41,6 +41,9 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      fontFamily: {
+        mono: ["Monaspace Xenon", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -55,10 +58,26 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 30px -5px hsl(var(--primary) / 0.1)" },
+          "50%": { boxShadow: "0 0 50px -5px hsl(var(--primary) / 0.25)" },
+        },
+        "color-cycle": {
+          "0%, 100%": { backgroundColor: "hsl(var(--muted))" },
+          "33%": { backgroundColor: "hsl(217 91% 85%)" },
+          "66%": { backgroundColor: "hsl(152 76% 85%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-up": "fade-up 0.6s ease-out both",
+        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+        "color-cycle": "color-cycle 4s ease-in-out infinite",
       },
     },
   },

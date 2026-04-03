@@ -1,7 +1,7 @@
 
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "./FriendsContext";
 
@@ -23,7 +23,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export function FriendsSearchView() {
-    const { setView } = useFriends();
+    const { setView, closeSidebar } = useFriends();
     const navigate = useNavigate();
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<SearchUser[]>([]);
@@ -51,10 +51,10 @@ export function FriendsSearchView() {
     return (
         <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center gap-1 pl-0.5 pr-10 py-3 border-b border-border">
+            <div className="flex items-center gap-1 pl-0.5 pr-1 py-3 border-b border-border">
                 <button
                     onClick={() => setView("list")}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
                     aria-label="Back to friends list"
                 >
                     <ArrowLeft className="h-4 w-4" />
@@ -64,8 +64,15 @@ export function FriendsSearchView() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search users..."
-                    className="flex-1 bg-muted/60 border border-border rounded-md px-3 py-1.5 text-sm text-foreground placeholder-zinc-500 outline-none focus:border-emerald-500/60 transition-colors"
+                    className="flex-1 min-w-0 bg-muted/60 border border-border rounded-md px-3 py-1.5 text-sm text-foreground placeholder-zinc-500 outline-none focus:border-emerald-500/60 transition-colors"
                 />
+                <button
+                    onClick={closeSidebar}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+                    aria-label="Close sidebar"
+                >
+                    <X className="h-4 w-4" />
+                </button>
             </div>
 
             {/* Results */}

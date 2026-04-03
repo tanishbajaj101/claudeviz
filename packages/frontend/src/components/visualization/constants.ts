@@ -1,31 +1,31 @@
 export const STATE_COLORS = {
-  default:   { bg: '#F3F4F6', text: '#1F2937' },
-  current:   { bg: '#FEF3C7', text: '#92400E' },
-  exploring: { bg: '#DBEAFE', text: '#1E40AF' },
-  visited:   { bg: '#E5E7EB', text: '#6B7280' },
-  active:    { bg: '#D1FAE5', text: '#065F46' },
+  default:   { bg: 'hsl(var(--muted))',          text: 'hsl(var(--foreground))' },
+  current:   { bg: 'hsl(var(--primary) / 0.2)',  text: 'hsl(var(--primary))' },
+  exploring: { bg: 'hsl(var(--accent))',          text: 'hsl(var(--accent-foreground))' },
+  visited:   { bg: 'hsl(var(--secondary))',       text: 'hsl(var(--secondary-foreground))' },
+  active:    { bg: 'hsl(var(--viz-active-bg))',   text: 'hsl(var(--viz-active-text))' },
 };
 
 export const EDGE_COLORS = {
-  default:   '#9CA3AF',
-  exploring: '#F59E0B',
-  accepted:  '#10B981',
-  rejected:  '#D1D5DB',
+  default:   'hsl(var(--muted-foreground))',
+  exploring: 'hsl(var(--primary))',
+  accepted:  'hsl(var(--viz-active-text))',
+  rejected:  'hsl(var(--border))',
 };
 
-export const POINTER_PALETTE = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6'];
+export const POINTER_PALETTE = ['hsl(var(--primary))','#EF4444','#10B981','#F59E0B','#8B5CF6'];
 
 export const COMPARE_COLORS = {
-  neutral: '#FEF3C7',
-  pass:    '#D1FAE5',
-  fail:    '#FEE2E2',
+  neutral: 'hsl(var(--muted))',
+  pass:    'hsl(var(--viz-active-bg))',
+  fail:    'hsl(var(--destructive) / 0.25)',
 };
 
-export const VALUE_UPDATE_COLOR = '#EDE9FE';
+export const VALUE_UPDATE_COLOR = 'hsl(var(--primary) / 0.15)';
 
 
 export const GROUP_COLORS = ['#EF4444','#3B82F6','#10B981','#8B5CF6','#F59E0B','#EC4899'];
-export const HIGHLIGHT_RANGE_COLOR = { border: '#3B82F6', bg: 'rgba(219,234,254,0.35)' };
+export const HIGHLIGHT_RANGE_COLOR = { border: 'hsl(var(--primary))', bg: 'hsl(var(--primary) / 0.12)' };
 
 export const DURATIONS = {
   move: 300,

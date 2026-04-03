@@ -29,11 +29,11 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
     width: 32,
     height: 32,
     borderRadius: 6,
-    border: '1px solid #D1D5DB',
-    background: '#fff',
+    border: '1px solid hsl(var(--border))',
+    background: 'hsl(var(--card))',
     cursor: 'pointer',
     fontSize: 14,
-    color: '#374151',
+    color: 'hsl(var(--foreground))',
     userSelect: 'none',
     flexShrink: 0,
   };
@@ -53,9 +53,9 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
         alignItems: 'center',
         gap: 8,
         padding: '8px 12px',
-        background: '#fff',
+        background: 'hsl(var(--card))',
         borderRadius: 8,
-        border: '1px solid #E5E7EB',
+        border: '1px solid hsl(var(--border))',
         flexShrink: 0,
         flexWrap: 'wrap',
       }}
@@ -72,7 +72,7 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
 
       {/* Play / Pause */}
       <button
-        style={{ ...btnStyle, background: '#3B82F6', color: '#fff', border: 'none', width: 38, height: 38, borderRadius: 8 }}
+        style={{ ...btnStyle, background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))', border: 'none', width: 38, height: 38, borderRadius: 8 }}
         onClick={isPlaying ? pause : play}
         title={isPlaying ? 'Pause' : 'Play'}
       >
@@ -95,7 +95,7 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
           flex: 1,
           minWidth: 80,
           height: 8,
-          background: '#E5E7EB',
+          background: 'hsl(var(--muted))',
           borderRadius: 4,
           cursor: 'pointer',
           position: 'relative',
@@ -111,7 +111,7 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
             top: 0,
             height: '100%',
             width: `${progress * 100}%`,
-            background: '#3B82F6',
+            background: 'hsl(var(--primary))',
             borderRadius: 4,
             transition: 'width 100ms ease',
           }}
@@ -122,7 +122,7 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
       <span
         style={{
           fontSize: 12,
-          color: '#6B7280',
+          color: 'hsl(var(--muted-foreground))',
           fontFamily: 'monospace',
           whiteSpace: 'nowrap',
           flexShrink: 0,
@@ -139,9 +139,9 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
           fontSize: 12,
           padding: '3px 6px',
           borderRadius: 6,
-          border: '1px solid #D1D5DB',
-          background: '#fff',
-          color: '#374151',
+          border: '1px solid hsl(var(--border))',
+          background: 'hsl(var(--card))',
+          color: 'hsl(var(--foreground))',
           cursor: 'pointer',
           flexShrink: 0,
         }}

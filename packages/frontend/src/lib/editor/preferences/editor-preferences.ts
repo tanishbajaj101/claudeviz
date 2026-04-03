@@ -8,7 +8,7 @@ export const DEFAULT_PREFERENCES: EditorPreferences = {
   lineNumbers: true,
   wordWrap: 'off',
   minimap: false,
-  tabSize: 2,
+  tabSize: 4,
 };
 
 export function loadPreferences(): EditorPreferences {

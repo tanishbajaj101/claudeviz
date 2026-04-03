@@ -49,8 +49,7 @@ using namespace std;
 class Solution {
 public:
     int minDistance(string word1, string word2) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -128,8 +127,7 @@ using namespace std;
 class Solution {
 public:
     bool isMatch(string s, string p) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -187,8 +185,7 @@ using namespace std;
 class Solution {
 public:
     vector<int> maxSlidingWindow(vector<int>& nums, int k) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -260,13 +257,11 @@ class Codec {
 public:
     // Encodes a tree to a single string.
     string serialize(TreeNode* root) {
-        // Write your code here
-    }
+            }
 
     // Decodes your encoded data to tree.
     TreeNode* deserialize(string data) {
-        // Write your code here
-    }
+            }
 };
 
 TreeNode* buildTree(const vector<string>& tokens) {
@@ -383,12 +378,10 @@ public:
     }
     
     void addNum(int num) {
-        // Write your code here
-    }
+            }
     
     double findMedian() {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -467,8 +460,7 @@ struct TreeNode {
 class Solution {
 public:
     int maxPathSum(TreeNode* root) {
-        // Write your code here
-    }
+            }
 };
 
 TreeNode* buildTree(const vector<string>& tokens) {
@@ -557,8 +549,7 @@ using namespace std;
 class Solution {
 public:
     double mincostToHireWorkers(vector<int>& quality, vector<int>& wage, int k) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {

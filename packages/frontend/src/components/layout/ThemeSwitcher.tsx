@@ -3,18 +3,11 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useState, useRef, useEffect } from "react";
 
 const THEMES = [
-    { id: "dark",      label: "Dark",      dot: "bg-zinc-900" },
     { id: "light",     label: "Light",     dot: "bg-zinc-200" },
-    { id: "ocean",     label: "Ocean",     dot: "bg-cyan-600" },
-    { id: "sunset",    label: "Sunset",    dot: "bg-orange-500" },
     { id: "cyberpunk", label: "Cyberpunk", dot: "bg-pink-500" },
     { id: "forest",    label: "Forest",    dot: "bg-green-600" },
     { id: "midnight",  label: "Midnight",  dot: "bg-indigo-900" },
-    { id: "rose",      label: "Rose",      dot: "bg-rose-500" },
-    { id: "solar",     label: "Solar",     dot: "bg-yellow-500" },
-    { id: "mint",      label: "Mint",      dot: "bg-emerald-300" },
     { id: "bubblegum", label: "Bubblegum", dot: "bg-pink-300" },
-    { id: "lavender",  label: "Lavender",  dot: "bg-purple-300" },
     { id: "peach",     label: "Peach",     dot: "bg-orange-200" },
     { id: "sky",       label: "Sky",       dot: "bg-sky-300" },
     { id: "lemon",     label: "Lemon",     dot: "bg-yellow-200" },
@@ -46,7 +39,7 @@ export function ThemeSwitcher() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-\[200\]">
+                <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-md border border-zinc-800 bg-zinc-950 py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-[200]">
                     {THEMES.map((t) => (
                         <button
                             key={t.id}

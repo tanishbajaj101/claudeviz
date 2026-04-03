@@ -74,6 +74,8 @@ export interface ChatMessage {
     role: "user" | "assistant";
     content: string;
     visualization?: VisualizationData;
+    streaming?: boolean;
+    loadingViz?: boolean;
 }
 
 export interface VisualizationInput {
@@ -102,6 +104,7 @@ export interface ProblemContext {
 export interface ChatRequest {
     message: string;
     problemContext: ProblemContext;
+    history?: { role: "user" | "assistant"; content: string }[];
 }
 
 export interface ChatResponse {

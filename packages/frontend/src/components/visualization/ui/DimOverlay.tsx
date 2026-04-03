@@ -30,7 +30,7 @@ export default function DimOverlay({
     position: 'absolute',
     top: 0,
     height: totalHeight,
-    backgroundColor: 'rgba(156,163,175,0.35)',
+    backgroundColor: 'hsl(var(--foreground) / 0.12)',
     borderRadius: 4,
     pointerEvents: 'none',
     transition: instant ? 'none' : `left ${DURATIONS.move}ms ease, width ${DURATIONS.move}ms ease`,

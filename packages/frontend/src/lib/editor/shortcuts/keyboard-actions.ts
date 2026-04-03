@@ -1,4 +1,14 @@
 import type * as Monaco from 'monaco-editor';
+import { findReadOnlyRegions, isLineReadOnly } from '@/lib/editor/readonly-region';
+
+/** Check if the cursor's current line is in a read-only region. */
+function isCursorInReadOnly(ed: Monaco.editor.ICodeEditor): boolean {
+  const sel = ed.getSelection();
+  const model = ed.getModel();
+  if (!sel || !model) return false;
+  const regions = findReadOnlyRegions(model.getValue());
+  return isLineReadOnly(sel.startLineNumber, regions);
+}
 
 /**
  * Registers keyboard shortcuts for the Monaco editor
@@ -14,6 +24,7 @@ export function registerKeyboardShortcuts(
     label: 'Toggle Line Comment',
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash],
     run: (ed) => {
+      if (isCursorInReadOnly(ed)) return;
       ed.trigger('keyboard', 'editor.action.commentLine', null);
     },
   });
@@ -31,6 +42,9 @@ export function registerKeyboardShortcuts(
       if (!model) return;
 
       const lineNumber = selection.startLineNumber;
+      const regions = findReadOnlyRegions(model.getValue());
+      if (isLineReadOnly(lineNumber, regions)) return;
+
       const lineContent = model.getLineContent(lineNumber);
       const lineEndColumn = model.getLineMaxColumn(lineNumber);
 
@@ -80,6 +94,7 @@ export function registerKeyboardShortcuts(
     label: 'Delete Line',
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyK],
     run: (ed) => {
+      if (isCursorInReadOnly(ed)) return;
       ed.trigger('keyboard', 'editor.action.deleteLines', null);
     },
   });
@@ -90,6 +105,13 @@ export function registerKeyboardShortcuts(
     label: 'Move Line Up',
     keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.UpArrow],
     run: (ed) => {
+      const sel = ed.getSelection();
+      const model = ed.getModel();
+      if (!sel || !model) return;
+      const regions = findReadOnlyRegions(model.getValue());
+      // Block if current line is read-only or if moving up into the header region
+      if (isLineReadOnly(sel.startLineNumber, regions)) return;
+      if (regions.headerEndLine !== null && sel.startLineNumber === regions.headerEndLine + 1) return;
       ed.trigger('keyboard', 'editor.action.moveLinesUpAction', null);
     },
   });
@@ -99,6 +121,13 @@ export function registerKeyboardShortcuts(
     label: 'Move Line Down',
     keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.DownArrow],
     run: (ed) => {
+      const sel = ed.getSelection();
+      const model = ed.getModel();
+      if (!sel || !model) return;
+      const regions = findReadOnlyRegions(model.getValue());
+      // Block if current line is read-only or if moving down into the main region
+      if (isLineReadOnly(sel.startLineNumber, regions)) return;
+      if (regions.mainStartLine !== null && sel.endLineNumber + 1 >= regions.mainStartLine) return;
       ed.trigger('keyboard', 'editor.action.moveLinesDownAction', null);
     },
   });

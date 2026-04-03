@@ -15,12 +15,12 @@ From the Main Agent:
 
 ```json
 {
-  "algorithm": "User's approach (description or code)",
-  "correctAlgorithm": "Correct approach (optional, for comparison)",
-  "testCase": { "input": "4\n2 7 11 15\n9", "expectedOutput": "0 1" },
-  "highlight": "What to emphasize — e.g. 'show that two pointers fails on unsorted'"
+  "algorithm": "The single algorithm to visualize — description including the input to run",
+  "highlight": "Teaching intent — e.g. 'show where the greedy fails at index 2' or 'show how right-to-left traversal builds the correct running max'"
 }
 ```
+
+The Main Agent has already decided *which* algorithm to show (either the user's wrong approach or the correct one). Your job is to bring that algorithm to life as an educational visualization. Use `highlight` to understand what the "aha!" moment should be and emphasize it through annotations and pointer transitions.
 
 ## What You Return
 
@@ -78,6 +78,7 @@ Before returning your response, verify:
 - [ ] Pointers (`tracer.pointer`) are used for major indices (i, j, left, mid, etc.)
 - [ ] Transitions are educational and clear
 - [ ] Total steps (transitions) are between 5-15 (never exceeding 25).
+- [ ] Annotations are cleaned up: no more than 1-2 visible at once; stale annotations removed with `tracer.annotate(target, null)`
 
 ---
 
@@ -100,7 +101,7 @@ Every visualization must start with `tracer.init()`.
 - **`tracer.pointer(label, target, rendererId?)`**: Places a labeled arrow pointing at an element. Use `null` target to remove.
 - **`tracer.valueUpdate(target, value, rendererId?)`**: Updates element value with a flash.
 - **`tracer.compare(targets, result, rendererId?)`**: Highlights elements for comparison (`result`: `'pass'`, `'fail'`, or `null`).
-- **`tracer.annotate(target, text, rendererId?)`**: Adds small text label next to element.
+- **`tracer.annotate(target, text, rendererId?)`**: Adds small text label next to element. Pass `text` as `null` to **remove** the annotation (e.g., `tracer.annotate(i, null)`).
 - **`tracer.fadeIn(target, options, rendererId?)`**: Animates element appearing.
 - **`tracer.fadeOut(target, rendererId?)`**: Animates element disappearing.
 - **`tracer.group(targets, color, rendererId?)`**: Colors a group of elements with a specific hex color (e.g., partitions).
@@ -128,8 +129,12 @@ Don't just trace every single operation. Show the "aha!" moments.
 ### 2. Use Pointers for Pedagogy
 Always show the user where the pointers are. If you have `left`, `right`, and `mid` in Binary Search, use `tracer.pointer('left', left)`, etc. This is the most effective way to help users visualize the flow.
 
-### 3. Narrate the Failure/Success
-When showing a wrong approach, use `tracer.annotate` or clear visual signals at the point where the logic diverges from correctness.
+### 3. Keep Annotations Minimal and Clean
+Annotations clutter the display quickly. Follow these rules:
+- **Use annotations sparingly** — only at key "aha!" moments, not every step. Prefer pointers and visit states for routine tracking.
+- **Always clean up stale annotations** before adding new ones. Call `tracer.annotate(target, null)` to remove an annotation when it is no longer relevant (e.g., at the start of each loop iteration, remove the previous iteration's annotations).
+- **Limit to 1–2 active annotations at a time.** If you need to annotate a new element, remove the old one first.
+- When showing a wrong approach, use `tracer.annotate` at the specific point where the logic diverges — then remove it before moving on.
 
 ### 4. Input Handling
 Refer to inputs via the global `INPUTS` object. **CRITICAL: You MUST extract inputs from the `INPUTS` object.** 
@@ -279,14 +284,18 @@ const n = INPUTS.n;
 tracer.init({ type: 'grid', data: [] });
 
 const dp = [];
+let prevAnnotation = null;
 for (let r = 0; r < n; r++) {
   dp[r] = [];
   for (let c = 0; c <= r; c++) {
     if (c === 0 || c === r) { dp[r][c] = 1; }
     else { dp[r][c] = dp[r-1][c-1] + dp[r-1][c]; }
+    // Clean up previous annotation before adding new one
+    if (prevAnnotation) tracer.annotate(prevAnnotation, null);
     tracer.fadeIn([r, c], { value: dp[r][c] });
     tracer.visit([r, c], 'current');
     tracer.annotate([r, c], `C(${r},${c})`);
+    prevAnnotation = [r, c];
     tracer.visit([r, c], 'active');
   }
 }

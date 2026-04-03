@@ -20,6 +20,7 @@ export interface ProblemContext {
 export interface ChatRequest {
   message: string;
   problemContext: ProblemContext;
+  history?: { role: "user" | "assistant"; content: string }[];
 }
 
 export interface ChatResponse {

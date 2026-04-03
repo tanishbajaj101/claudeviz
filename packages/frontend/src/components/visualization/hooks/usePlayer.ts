@@ -13,7 +13,7 @@ export interface PlayerState {
   setSpeed: (speed: number) => void;
 }
 
-export function usePlayer(steps: any[] | null, onStep: (step: any, index: number, seek?: boolean) => void): PlayerState {
+export function usePlayer(steps: any[] | null, onStep: (step: any, index: number, seek?: boolean) => void, initialStep?: number): PlayerState {
   const [currentStep, setCurrentStep] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -107,12 +107,18 @@ export function usePlayer(steps: any[] | null, onStep: (step: any, index: number
     }
   }, [stopInterval]);
 
-  // Reset when steps change
+  // Reset when steps change — seek to initialStep if provided
   useEffect(() => {
     stopInterval();
     setIsPlaying(false);
-    setCurrentStep(-1);
-  }, [steps, stopInterval]);
+    if (initialStep != null && initialStep >= 0 && steps && steps.length > 0) {
+      const idx = Math.min(initialStep, steps.length - 1);
+      setCurrentStep(idx);
+      onStepRef.current?.(steps[idx], idx, true);
+    } else {
+      setCurrentStep(-1);
+    }
+  }, [steps, stopInterval, initialStep]);
 
   // Cleanup on unmount
   useEffect(() => () => stopInterval(), [stopInterval]);

@@ -44,8 +44,7 @@ using namespace std;
 class Solution {
 public:
     int trap(vector<int>& height) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -112,8 +111,7 @@ using namespace std;
 class Solution {
 public:
     double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -187,8 +185,7 @@ struct ListNode {
 class Solution {
 public:
     ListNode* mergeKLists(vector<ListNode*>& lists) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -276,8 +273,7 @@ struct ListNode {
 class Solution {
 public:
     ListNode* reverseKGroup(ListNode* head, int k) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -358,8 +354,7 @@ using namespace std;
 class Solution {
 public:
     string minWindow(string s, string t) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -417,8 +412,7 @@ using namespace std;
 class Solution {
 public:
     int largestRectangleArea(vector<int>& heights) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -475,8 +469,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<string>> solveNQueens(int n) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -549,8 +542,7 @@ using namespace std;
 class Solution {
 public:
     int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {

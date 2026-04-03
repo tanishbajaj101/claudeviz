@@ -1,7 +1,7 @@
 
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useFriends, type FriendEntry } from "./FriendsContext";
 
@@ -89,7 +89,7 @@ function FriendItem({ friend, onClick }: FriendItemProps) {
 }
 
 export function FriendsListView() {
-    const { setView, setActiveFriend, setActiveConversationId, friendsRefreshToken } = useFriends();
+    const { setView, setActiveFriend, setActiveConversationId, friendsRefreshToken, closeSidebar } = useFriends();
     const [friends, setFriends] = useState<FriendEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const mountedRef = useRef(true);
@@ -132,13 +132,22 @@ export function FriendsListView() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <h2 className="font-semibold text-foreground font-mono">Friends</h2>
-                <button
-                    onClick={() => setView("search")}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    aria-label="Search users"
-                >
-                    <Search className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setView("search")}
+                        className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        aria-label="Search users"
+                    >
+                        <Search className="h-4 w-4" />
+                    </button>
+                    <button
+                        onClick={closeSidebar}
+                        className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        aria-label="Close sidebar"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
             {/* List */}

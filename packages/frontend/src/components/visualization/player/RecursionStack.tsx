@@ -19,9 +19,9 @@ export default function RecursionStack({ frames = [], returnFlash = null }: Recu
       style={{
         width: 200,
         flexShrink: 0,
-        background: '#fff',
+        background: 'hsl(var(--card))',
         borderRadius: 8,
-        border: '1px solid #E5E7EB',
+        border: '1px solid hsl(var(--border))',
         padding: 10,
         display: 'flex',
         flexDirection: 'column',
@@ -33,7 +33,7 @@ export default function RecursionStack({ frames = [], returnFlash = null }: Recu
         style={{
           fontSize: 11,
           fontWeight: 700,
-          color: '#6B7280',
+          color: 'hsl(var(--muted-foreground))',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           marginBottom: 4,
@@ -44,17 +44,17 @@ export default function RecursionStack({ frames = [], returnFlash = null }: Recu
       </div>
 
       {frames.length === 0 && (
-        <div style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Empty</div>
+        <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>Empty</div>
       )}
 
       {hidden > 0 && (
         <div
           style={{
             fontSize: 11,
-            color: '#9CA3AF',
+            color: 'hsl(var(--muted-foreground))',
             textAlign: 'center',
             padding: '2px 0',
-            borderBottom: '1px dashed #E5E7EB',
+            borderBottom: '1px dashed hsl(var(--border))',
           }}
         >
           ...+{hidden} more
@@ -68,8 +68,8 @@ export default function RecursionStack({ frames = [], returnFlash = null }: Recu
             <div
               key={i}
               style={{
-                background: isTop ? '#EFF6FF' : '#F9FAFB',
-                border: `1px solid ${isTop ? '#BFDBFE' : '#E5E7EB'}`,
+                background: isTop ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--muted))',
+                border: `1px solid ${isTop ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--border))'}`,
                 borderRadius: 6,
                 padding: '5px 8px',
                 fontSize: 12,
@@ -77,11 +77,11 @@ export default function RecursionStack({ frames = [], returnFlash = null }: Recu
                 transition: 'all 150ms ease',
               }}
             >
-              <div style={{ fontWeight: 700, color: isTop ? '#1D4ED8' : '#374151' }}>
+              <div style={{ fontWeight: 700, color: isTop ? 'hsl(var(--primary))' : 'hsl(var(--foreground))' }}>
                 {frame.label}
               </div>
               {frame.args && (
-                <div style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>
+                <div style={{ color: 'hsl(var(--muted-foreground))', fontSize: 11, marginTop: 2 }}>
                   {Object.entries(frame.args)
                     .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
                     .join(', ')}
@@ -96,10 +96,10 @@ export default function RecursionStack({ frames = [], returnFlash = null }: Recu
         <div
           style={{
             fontSize: 11,
-            color: '#059669',
+            color: 'hsl(var(--viz-active-text))',
             fontFamily: 'monospace',
             padding: '3px 6px',
-            background: '#D1FAE5',
+            background: 'hsl(var(--viz-active-bg))',
             borderRadius: 4,
             textAlign: 'center',
           }}

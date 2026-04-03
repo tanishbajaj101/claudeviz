@@ -14,7 +14,6 @@ interface ChatPanelProps {
 export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Hydrate messages from localStorage on mount
@@ -25,9 +24,9 @@ export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPa
     }
   }, [problemId]);
 
-  // Persist messages to localStorage whenever they change
+  // Persist messages to localStorage whenever a non-streaming message is added/updated
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && !messages[messages.length - 1].streaming) {
       saveChatHistory(problemId, messages);
     }
   }, [messages, problemId]);
@@ -36,51 +35,97 @@ export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPa
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const isStreaming = messages.length > 0 && messages[messages.length - 1].streaming === true;
+
   async function handleSend() {
-    if (!input.trim() || loading) return;
+    if (!input.trim() || isStreaming) return;
 
     const userMessage = input.trim();
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setLoading(true);
+
+    const history = messages.slice(-10).map(({ role, content }) => ({ role, content }));
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: userMessage },
+      { role: "assistant", content: "", streaming: true },
+    ]);
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage,
-          problemContext,
-        }),
+        body: JSON.stringify({ message: userMessage, problemContext, history }),
       });
 
-      if (!response.ok) {
+      if (!response.ok || !response.body) {
         throw new Error("Chat request failed");
       }
 
-      const data = (await response.json()) as {
-        reply: string;
-        visualization?: VisualizationData;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const updateLast = (updater: (msg: ChatMessage) => ChatMessage) => {
+        setMessages((prev) => {
+          const msgs = [...prev];
+          msgs[msgs.length - 1] = updater(msgs[msgs.length - 1]);
+          return msgs;
+        });
       };
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          visualization: data.visualization,
-        },
-      ]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop()!;
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          let event: { type: string; chunk?: string; text?: string; data?: VisualizationData; message?: string };
+          try {
+            event = JSON.parse(line.slice(6));
+          } catch {
+            continue;
+          }
+
+          if (event.type === "text" && event.chunk) {
+            updateLast((msg) => {
+              const newContent = msg.content + event.chunk!;
+              const hasVizRequest = newContent.includes("```vizrequest");
+              // Strip the vizrequest block and everything after it from display
+              const displayContent = hasVizRequest
+                ? newContent.slice(0, newContent.indexOf("```vizrequest")).trimEnd()
+                : newContent;
+              return { ...msg, content: displayContent, loadingViz: hasVizRequest };
+            });
+          } else if (event.type === "replace" && event.text !== undefined) {
+            updateLast((msg) => ({ ...msg, content: event.text!, loadingViz: false }));
+          } else if (event.type === "visualization" && event.data) {
+            updateLast((msg) => ({ ...msg, visualization: event.data }));
+          } else if (event.type === "done") {
+            updateLast((msg) => ({ ...msg, streaming: false }));
+          } else if (event.type === "error") {
+            updateLast((msg) => ({
+              ...msg,
+              content: msg.content || "Sorry, something went wrong. Please try again.",
+              streaming: false,
+            }));
+          }
+        }
+      }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
+      setMessages((prev) => {
+        const msgs = [...prev];
+        msgs[msgs.length - 1] = {
           role: "assistant",
           content: "Sorry, something went wrong. Please try again.",
-        },
-      ]);
-    } finally {
-      setLoading(false);
+          streaming: false,
+        };
+        return msgs;
+      });
     }
   }
 
@@ -136,7 +181,28 @@ export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPa
                   : "bg-muted text-muted-foreground"
               }`}
             >
-              <div className="whitespace-pre-wrap">{msg.content}</div>
+              {msg.content || msg.streaming ? (
+                <div className="whitespace-pre-wrap">
+                  {msg.content}
+                  {msg.streaming && !msg.content && !msg.loadingViz && (
+                    <div className="flex gap-1 py-1">
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-500" style={{ animationDelay: "0ms" }} />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-500" style={{ animationDelay: "150ms" }} />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-500" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  )}
+                  {msg.loadingViz && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500" style={{ animationDelay: "0ms" }} />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500" style={{ animationDelay: "150ms" }} />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500" style={{ animationDelay: "300ms" }} />
+                      </div>
+                      <span className="font-mono text-xs text-emerald-400">loading visualization...</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
               {msg.visualization && (
                 <div className="mt-3">
                   <VisualizationRenderer data={msg.visualization} />
@@ -145,17 +211,6 @@ export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPa
             </div>
           </div>
         ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="rounded-lg bg-muted px-3 py-2">
-              <div className="flex gap-1">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-500" style={{ animationDelay: "0ms" }} />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-500" style={{ animationDelay: "150ms" }} />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-500" style={{ animationDelay: "300ms" }} />
-              </div>
-            </div>
-          </div>
-        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -169,11 +224,11 @@ export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPa
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
             placeholder="Ask the AI coach..."
             className="flex-1 rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-foreground placeholder-zinc-500 outline-none focus:border-emerald-500"
-            disabled={loading}
+            disabled={isStreaming}
           />
           <button
             onClick={handleSend}
-            disabled={loading || !input.trim()}
+            disabled={isStreaming || !input.trim()}
             className="rounded-md bg-primary px-4 py-2 font-mono text-sm font-medium text-white transition-colors hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send

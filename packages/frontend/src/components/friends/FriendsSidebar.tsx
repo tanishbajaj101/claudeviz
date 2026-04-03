@@ -1,7 +1,6 @@
 
 
 import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
 import { useFriends } from "./FriendsContext";
 import { FriendsListView } from "./FriendsListView";
 import { FriendsSearchView } from "./FriendsSearchView";
@@ -54,15 +53,6 @@ export function FriendsSidebar() {
                     }`}
                 aria-label="Friends sidebar"
             >
-                {/* Close button */}
-                <button
-                    onClick={closeSidebar}
-                    className="absolute right-3 top-2.5 z-10 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    aria-label="Close sidebar"
-                >
-                    <X className="h-4 w-4" />
-                </button>
-
                 {/* View switcher */}
                 <div className="flex h-full flex-col">
                     {view === "list" && <FriendsListView />}

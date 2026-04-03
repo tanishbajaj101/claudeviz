@@ -1,3 +1,5 @@
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/monaspace-xenon/index.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,6 +26,8 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    --viz-active-bg: 152 65% 90%;
+    --viz-active-text: 152 55% 25%;
   }
 
   .dark {
@@ -46,6 +50,8 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    --viz-active-bg: 152 45% 16%;
+    --viz-active-text: 152 60% 65%;
   }
 
   /* OCEAN THEME */
@@ -69,6 +75,8 @@
     --border: 216 34% 17%;
     --input: 216 34% 17%;
     --ring: 199 89% 48%;
+    --viz-active-bg: 152 45% 14%;
+    --viz-active-text: 152 60% 65%;
   }
 
   /* SUNSET THEME */
@@ -92,6 +100,8 @@
     --border: 340 30% 20%;
     --input: 340 30% 20%;
     --ring: 20 100% 60%;
+    --viz-active-bg: 152 40% 16%;
+    --viz-active-text: 152 60% 65%;
   }
 
   /* CYBERPUNK THEME */
@@ -115,6 +125,8 @@
     --border: 270 30% 15%;
     --input: 270 30% 15%;
     --ring: 60 100% 50%;
+    --viz-active-bg: 120 70% 10%;
+    --viz-active-text: 120 70% 60%;
   }
 
   /* FOREST THEME */
@@ -138,6 +150,8 @@
     --border: 140 30% 15%;
     --input: 140 30% 15%;
     --ring: 150 70% 40%;
+    --viz-active-bg: 152 55% 18%;
+    --viz-active-text: 152 70% 70%;
   }
 
   /* MIDNIGHT THEME */
@@ -161,6 +175,8 @@
     --border: 230 40% 12%;
     --input: 230 40% 12%;
     --ring: 250 80% 65%;
+    --viz-active-bg: 152 45% 14%;
+    --viz-active-text: 152 60% 65%;
   }
 
   /* ROSE THEME */
@@ -184,29 +200,8 @@
     --border: 350 30% 15%;
     --input: 350 30% 15%;
     --ring: 350 70% 55%;
-  }
-
-  /* MINT THEME */
-  .theme-mint {
-    --background: 150 60% 97%;
-    --foreground: 150 40% 15%;
-    --card: 150 40% 95%;
-    --card-foreground: 150 40% 15%;
-    --popover: 150 40% 95%;
-    --popover-foreground: 150 40% 15%;
-    --primary: 150 65% 38%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 150 30% 88%;
-    --secondary-foreground: 150 40% 15%;
-    --muted: 150 30% 91%;
-    --muted-foreground: 150 25% 40%;
-    --accent: 150 40% 85%;
-    --accent-foreground: 150 40% 15%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 150 25% 82%;
-    --input: 150 25% 82%;
-    --ring: 150 65% 38%;
+    --viz-active-bg: 152 40% 14%;
+    --viz-active-text: 152 60% 65%;
   }
 
   /* BUBBLEGUM THEME */
@@ -230,6 +225,8 @@
     --border: 340 35% 82%;
     --input: 340 35% 82%;
     --ring: 340 72% 58%;
+    --viz-active-bg: 152 55% 88%;
+    --viz-active-text: 152 50% 22%;
   }
 
   /* LAVENDER THEME */
@@ -253,6 +250,8 @@
     --border: 270 28% 82%;
     --input: 270 28% 82%;
     --ring: 270 68% 60%;
+    --viz-active-bg: 152 55% 88%;
+    --viz-active-text: 152 50% 22%;
   }
 
   /* PEACH THEME */
@@ -276,6 +275,8 @@
     --border: 25 40% 82%;
     --input: 25 40% 82%;
     --ring: 25 88% 54%;
+    --viz-active-bg: 152 55% 88%;
+    --viz-active-text: 152 50% 22%;
   }
 
   /* SKY THEME */
@@ -299,6 +300,8 @@
     --border: 200 35% 82%;
     --input: 200 35% 82%;
     --ring: 200 90% 46%;
+    --viz-active-bg: 152 55% 88%;
+    --viz-active-text: 152 50% 22%;
   }
 
   /* LEMON THEME */
@@ -322,6 +325,8 @@
     --border: 54 45% 80%;
     --input: 54 45% 80%;
     --ring: 46 95% 46%;
+    --viz-active-bg: 152 55% 88%;
+    --viz-active-text: 152 50% 22%;
   }
 
   /* SOLAR THEME */
@@ -345,6 +350,8 @@
     --border: 40 30% 18%;
     --input: 40 30% 18%;
     --ring: 40 90% 55%;
+    --viz-active-bg: 152 40% 16%;
+    --viz-active-text: 152 60% 65%;
   }
 }
 
@@ -356,4 +363,18 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Monaco editor read-only region decorations */
+.editor-readonly-line {
+  background-color: rgba(128, 128, 128, 0.08) !important;
+  opacity: 0.6;
+}
+
+.editor-readonly-separator-bottom {
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.35) !important;
+}
+
+.editor-readonly-separator-top {
+  border-top: 1px dashed rgba(128, 128, 128, 0.35) !important;
 }

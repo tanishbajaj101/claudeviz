@@ -16,11 +16,15 @@ class Tracer {
     return edges;
   }
 
+  _deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
   init(configOrArray) {
     if (Array.isArray(configOrArray)) {
       this._multi = true;
       this._renderers = configOrArray.map(cfg => {
-        const resolved = { ...cfg, type: this._inferType(cfg) };
+        const resolved = { ...this._deepClone(cfg), type: this._inferType(cfg) };
         if (resolved.type === 'tree' && resolved.nodes && (!resolved.edges || resolved.edges.length === 0)) {
           resolved.edges = this._autoTreeEdges(resolved.nodes);
         }
@@ -32,8 +36,9 @@ class Tracer {
         config: { type: "multi", layout: "horizontal", renderers: this._renderers },
       });
     } else {
-      this.type = this._inferType(configOrArray);
-      let cfg = { ...configOrArray, type: this.type };
+      const cloned = this._deepClone(configOrArray);
+      this.type = this._inferType(cloned);
+      let cfg = { ...cloned, type: this.type };
       if (cfg.type === 'tree' && cfg.nodes && (!cfg.edges || cfg.edges.length === 0)) {
         cfg = { ...cfg, edges: this._autoTreeEdges(cfg.nodes) };
       }

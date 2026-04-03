@@ -39,8 +39,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<int>> permute(vector<int>& nums) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -109,8 +108,7 @@ using namespace std;
 class Solution {
 public:
     void rotate(vector<vector<int>>& matrix) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -180,8 +178,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<string>> groupAnagrams(vector<string>& strs) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -249,8 +246,7 @@ using namespace std;
 class Solution {
 public:
     int maxSubArray(vector<int>& nums) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -311,8 +307,7 @@ using namespace std;
 class Solution {
 public:
     vector<int> spiralOrder(vector<vector<int>>& matrix) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -383,8 +378,7 @@ using namespace std;
 class Solution {
 public:
     bool canJump(vector<int>& nums) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -445,8 +439,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<int>> merge(vector<vector<int>>& intervals) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -517,8 +510,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<int>> insert(vector<vector<int>>& intervals, vector<int>& newInterval) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -589,8 +581,7 @@ using namespace std;
 class Solution {
 public:
     int uniquePaths(int m, int n) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -651,8 +642,7 @@ using namespace std;
 class Solution {
 public:
     int minPathSum(vector<vector<int>>& grid) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {

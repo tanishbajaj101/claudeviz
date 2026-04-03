@@ -1,0 +1,18 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "npm run build -w @algoarena/shared && npm run build -w @algoarena/backend"
+watchPatterns = [
+  "/package.json",
+  "/package-lock.json",
+  "/prisma/**",
+  "/packages/shared/**",
+  "/packages/backend/**",
+]
+
+[deploy]
+preDeployCommand = "npx prisma migrate deploy --schema=prisma/schema.prisma"
+startCommand = "npm run start -w @algoarena/backend"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

@@ -47,8 +47,7 @@ using namespace std;
 class Solution {
 public:
     vector<int> twoSum(vector<int>& nums, int target) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -125,8 +124,7 @@ using namespace std;
 class Solution {
 public:
     int search(vector<int>& nums, int target) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -200,8 +198,7 @@ using namespace std;
 class Solution {
 public:
     bool isValid(string s) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -273,8 +270,7 @@ struct ListNode {
 class Solution {
 public:
     ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -363,8 +359,7 @@ using namespace std;
 class Solution {
 public:
     int maxProfit(vector<int>& prices) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {

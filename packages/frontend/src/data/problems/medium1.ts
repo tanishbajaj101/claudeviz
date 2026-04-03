@@ -52,8 +52,7 @@ struct ListNode {
 class Solution {
 public:
     ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -139,8 +138,7 @@ using namespace std;
 class Solution {
 public:
     int lengthOfLongestSubstring(string s) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -199,8 +197,7 @@ using namespace std;
 class Solution {
 public:
     string longestPalindrome(string s) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -259,8 +256,7 @@ using namespace std;
 class Solution {
 public:
     int maxArea(vector<int>& height) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -320,8 +316,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<int>> threeSum(vector<int>& nums) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -385,8 +380,7 @@ using namespace std;
 class Solution {
 public:
     vector<string> letterCombinations(string digits) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -457,8 +451,7 @@ struct ListNode {
 class Solution {
 public:
     ListNode* removeNthFromEnd(ListNode* head, int n) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -520,8 +513,7 @@ using namespace std;
 class Solution {
 public:
     vector<string> generateParenthesis(int n) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -584,8 +576,7 @@ using namespace std;
 class Solution {
 public:
     int search(vector<int>& nums, int target) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {
@@ -649,8 +640,7 @@ using namespace std;
 class Solution {
 public:
     vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
-        // Write your code here
-    }
+            }
 };
 
 int main() {

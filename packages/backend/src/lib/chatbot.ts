@@ -1,5 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { ProblemContext, VisualizationData } from "@algoarena/shared";
 import { generateVisualization, type VisualizationRequest } from "./visualization-agent.js";
 
@@ -24,7 +24,7 @@ Read their message + their code. What are they trying? What's their intuition? I
 If their approach fails on a specific test case:
 - Pick the **smallest/simplest** failing case
 - Walk through it step by step showing where their logic diverges from expected output
-- If a visual walkthrough would help more than text, generate a visualization
+- Only generate a visualization if you are confident the current visualization capabilities will make the explanation clearer than text alone. If the visualization would be incomplete, ambiguous, or more confusing than a short textual walkthrough, do not use it.
 
 ### 4. React to Judge0 Results
 When submission results are present:
@@ -36,6 +36,8 @@ When submission results are present:
 | Compilation Error (6) | Read compile_output. Help fix syntax without rewriting logic. |
 | Runtime Error (7-12) | SIGSEGV → bounds/null. SIGFPE → division by zero. Guide edge case thinking. |
 
+When \`lastSubmissionResult\` is null, that means the user has not run or submitted code even once yet. Do not act like you have compiler feedback in that case. Tell them to try writing and running code themselves first, then come back with the output or error.
+
 ### 5. Reference Their Actual Code
 You have their code. Use it. Say "On line 12, your inner loop..." not "In a nested loop approach..."
 
@@ -44,23 +46,47 @@ You have their code. Use it. Say "On line 12, your inner loop..." not "In a nest
 - Pasted external solution → "Can you explain why this approach works?"
 
 ### 7. Visualization
-When a visual walkthrough would help (failing test case, pointer movement, state transitions), request a visualization by including a special marker in your response:
+Visualization is optional, not default. Request one only when you are confident the current visualization capabilities will improve understanding.
+
+Use visualization only when all of these are true:
+- The concept is naturally visual with clear state transitions, pointer/index movement, recursion structure, or a small concrete dry run.
+- The current visualization can show the important idea faithfully without needing lots of caveats.
+- The user will likely understand faster with the visualization than with 2-4 sentences of text.
+
+Do NOT use visualization when any of these are true:
+- The explanation depends on subtle invariants, proofs, or many caveats that the visualization cannot express clearly.
+- The state is too large, too noisy, or too abstract for the current visualization to stay readable.
+- A concise textual explanation would likely be clearer or less misleading.
+
+When these conditions are not clearly met, default to text and questions instead of visualization.
+
+**You choose exactly ONE algorithm to visualize** — either the user's (wrong) approach or the correct approach. Pick whichever best serves the teaching moment:
+- Visualize the **user's approach** when you want to show *where* it breaks down on a specific input.
+- Visualize the **correct approach** when the user is ready to understand the right pattern.
+
+When you choose to visualize:
+- Silently choose the smallest, clearest testcase in your own reasoning. Do not mention that testcase in the visible explanation before the visualization.
+- In the visible reply, explain only the overall algorithm or failure mode at a high level, briefly and confidently.
+- Put the silently chosen testcase inside the \`algorithm\` field of the \`vizrequest\`.
+- Do not narrate the dry run in prose if the visualization is doing that job.
+
+Encode your intent entirely in \`highlight\`:
 
 \`\`\`vizrequest
 {
-  "algorithm": "<description of the user's approach or their code>",
-  "correctAlgorithm": "<optional: correct approach for comparison>",
-  "testCase": { "input": "...", "expectedOutput": "..." },
-  "highlight": "<what to emphasize — e.g. 'show where two pointers fails on unsorted array'>"
+  "algorithm": "<the single algorithm you want to visualize — describe it precisely, including the input to run it on>",
+  "highlight": "<your teaching intent — e.g. 'show where the greedy choice fails at index 2' or 'show how right-to-left traversal builds the correct running max'>"
 }
 \`\`\`
 
 The Visualization Agent will generate tracer code and it will be automatically rendered.
 
 ## Style
+- Be confident and concise. State the main point directly.
 - Short, focused messages. No walls of text.
 - One question at a time.
 - Concrete examples with small inputs.
+- When using visualization, keep the visible explanation high-level and let the visualization carry the testcase walkthrough.
 - Celebrate small wins.
 - Conversational tone — not academic, not patronizing.`;
 
@@ -84,6 +110,10 @@ function buildContextMessage(ctx: ProblemContext): string {
         `Time: ${r.time ?? "N/A"}, Memory: ${r.memory ?? "N/A"} KB\n` +
         `Input: ${r.input}\nExpected: ${r.expectedOutput}`
     );
+  } else {
+    parts.push(
+      `## Last Submission Result\nNone. The user has not attempted to run or submit code yet, so there is no compiler or execution output available. The coach should push the user to try coding and run/submit once before relying on debugging feedback.`
+    );
   }
 
   if (ctx.previouslySolved.length > 0) {
@@ -93,7 +123,28 @@ function buildContextMessage(ctx: ProblemContext): string {
   return parts.join("\n\n");
 }
 
-async function extractVisualization(text: string): Promise<{ cleanText: string; visualization: VisualizationData | undefined }> {
+function parseVizRequest(raw: string): VisualizationRequest {
+  // Try clean JSON first (remove trailing commas only)
+  try {
+    const cleaned = raw.replace(/,\s*([}\]])/g, '$1');
+    return JSON.parse(cleaned) as VisualizationRequest;
+  } catch { /* fall through */ }
+
+  // Fallback: regex-extract each string field to handle unescaped chars in LLM output
+  const extract = (field: string): string | undefined =>
+    raw.match(new RegExp(`"${field}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`)) ?.[1];
+
+  const algorithm = extract('algorithm');
+  const highlight = extract('highlight');
+
+  if (!algorithm || !highlight) {
+    throw new Error(`Could not parse vizrequest fields. Raw:\n${raw}`);
+  }
+
+  return { algorithm, highlight };
+}
+
+export async function extractVisualization(text: string): Promise<{ cleanText: string; visualization: VisualizationData | undefined }> {
   const vizRegex = /```vizrequest\s*\n([\s\S]*?)\n```/;
   const match = text.match(vizRegex);
 
@@ -102,7 +153,7 @@ async function extractVisualization(text: string): Promise<{ cleanText: string; 
   }
 
   try {
-    const request = JSON.parse(match[1]) as VisualizationRequest;
+    const request = parseVizRequest(match[1]);
 
     // Call visualization agent to generate code
     const visualization = await generateVisualization(request);
@@ -119,21 +170,59 @@ async function extractVisualization(text: string): Promise<{ cleanText: string; 
   }
 }
 
-export async function getChatResponse(
+export async function* getChatStream(
   userMessage: string,
-  context: ProblemContext
-): Promise<{ reply: string; visualization?: VisualizationData }> {
+  context: ProblemContext,
+  history?: { role: "user" | "assistant"; content: string }[]
+): AsyncGenerator<string> {
   const model = new ChatOpenAI({
-    modelName: "gpt-4o-mini",
-    temperature: 0.7,
+    model: "gpt-5-mini",
     openAIApiKey: process.env.OPENAI_API_KEY,
   });
 
   const contextMessage = buildContextMessage(context);
 
+  const historyMessages = (history ?? []).slice(-10).map((msg) =>
+    msg.role === "user"
+      ? new HumanMessage(msg.content)
+      : new AIMessage(msg.content)
+  );
+
+  const stream = await model.stream([
+    new SystemMessage(SYSTEM_PROMPT),
+    new SystemMessage(contextMessage),
+    ...historyMessages,
+    new HumanMessage(userMessage),
+  ]);
+
+  for await (const chunk of stream) {
+    const text = typeof chunk.content === "string" ? chunk.content : "";
+    if (text) yield text;
+  }
+}
+
+export async function getChatResponse(
+  userMessage: string,
+  context: ProblemContext,
+  history?: { role: "user" | "assistant"; content: string }[]
+): Promise<{ reply: string; visualization?: VisualizationData }> {
+  const model = new ChatOpenAI({
+    model: "gpt-5-mini",
+    openAIApiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const contextMessage = buildContextMessage(context);
+
+  const historyMessages = (history ?? []).slice(-10).map((msg) =>
+    msg.role === "user"
+      ? new HumanMessage(msg.content)
+      : new AIMessage(msg.content)
+  );
+
   const response = await model.invoke([
     new SystemMessage(SYSTEM_PROMPT),
     new SystemMessage(contextMessage),
+    ...historyMessages,
     new HumanMessage(userMessage),
   ]);
 

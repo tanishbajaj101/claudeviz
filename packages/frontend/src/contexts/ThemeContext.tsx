@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "ocean" | "sunset" | "cyberpunk" | "forest" | "midnight" | "rose" | "solar" | "mint" | "bubblegum" | "lavender" | "peach" | "sky" | "lemon";
+type Theme = "light" | "cyberpunk" | "forest" | "midnight" | "bubblegum" | "peach" | "sky" | "lemon";
+
+const VALID_THEMES: Theme[] = ["light", "cyberpunk", "forest", "midnight", "bubblegum", "peach", "sky", "lemon"];
+
+function isTheme(value: string | null): value is Theme {
+    return value !== null && VALID_THEMES.includes(value as Theme);
+}
 
 interface ThemeContextType {
     theme: Theme;
@@ -12,7 +18,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>(() => {
         const saved = localStorage.getItem("ui-theme");
-        return (saved as Theme) || "dark";
+        return isTheme(saved) ? saved : "midnight";
     });
 
     useEffect(() => {
@@ -20,26 +26,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
         // Remove all theme classes first
         root.classList.remove(
-            "dark",
             "light",
-            "theme-ocean",
-            "theme-sunset",
             "theme-cyberpunk",
             "theme-forest",
             "theme-midnight",
-            "theme-rose",
-            "theme-solar",
-            "theme-mint",
             "theme-bubblegum",
-            "theme-lavender",
             "theme-peach",
             "theme-sky",
             "theme-lemon"
         );
 
         // Apply the active theme
-        if (theme === "dark" || theme === "light") {
-            root.classList.add(theme); // Standard tailwind dark mode expects just "dark" class
+        if (theme === "light") {
+            root.classList.add(theme);
         } else {
             root.classList.add(`theme-${theme}`);
         }

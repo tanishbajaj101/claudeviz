@@ -1,14 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
-import { Settings } from 'lucide-react';
-import { EditorSettingsModal } from './EditorSettingsModal';
-import { loadPreferences, savePreferences } from '@/lib/editor/preferences/editor-preferences';
 import { registerCompletionProvider } from '@/lib/editor/autocomplete/completion-provider';
 import { registerLinting } from '@/lib/editor/linting/diagnostic-provider';
 import { registerKeyboardShortcuts } from '@/lib/editor/shortcuts/keyboard-actions';
-import type { EditorPreferences } from '@/types/editor';
+import { setupRestrictedEditing } from '@/lib/editor/restricted-editing';
 import { registerMonacoThemes, MONACO_THEME_ID, type AppTheme } from '@/lib/editor/monaco-themes';
 
 interface CodeEditorProps {
@@ -22,11 +19,10 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
   const monacoRef = useRef<typeof Monaco | null>(null);
   const lintingCleanupRef = useRef<(() => void) | null>(null);
   const completionProviderRef = useRef<Monaco.IDisposable | null>(null);
+  const restrictedEditingRef = useRef<Monaco.IDisposable | null>(null);
 
-  const [preferences, setPreferences] = useState<EditorPreferences>(() => loadPreferences());
-  const [showSettings, setShowSettings] = useState(false);
   const { theme: appTheme } = useTheme();
-  const monacoTheme = MONACO_THEME_ID[appTheme as AppTheme] ?? 'app-dark';
+  const monacoTheme = MONACO_THEME_ID[appTheme as AppTheme] ?? 'app-midnight';
 
   // Handle editor mount
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -35,7 +31,7 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
 
     // Register all custom themes, then apply the current one
     registerMonacoThemes(monaco);
-    monaco.editor.setTheme(MONACO_THEME_ID[appTheme as AppTheme] ?? 'app-dark');
+    monaco.editor.setTheme(MONACO_THEME_ID[appTheme as AppTheme] ?? 'app-midnight');
 
     // Register autocomplete provider
     completionProviderRef.current = registerCompletionProvider(monaco);
@@ -45,6 +41,9 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
 
     // Register keyboard shortcuts
     registerKeyboardShortcuts(monaco, editor, onSubmit);
+
+    // Set up read-only regions for boilerplate code
+    restrictedEditingRef.current = setupRestrictedEditing(monaco, editor);
 
     // Focus editor
     editor.focus();
@@ -57,19 +56,6 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
     }
   }, [monacoTheme]);
 
-  // Update editor options when preferences change
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.updateOptions({
-        fontSize: preferences.fontSize,
-        lineNumbers: preferences.lineNumbers ? 'on' : 'off',
-        wordWrap: preferences.wordWrap,
-        minimap: { enabled: preferences.minimap },
-        tabSize: preferences.tabSize,
-      });
-    }
-  }, [preferences]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -79,16 +65,14 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
       if (completionProviderRef.current) {
         completionProviderRef.current.dispose();
       }
+      if (restrictedEditingRef.current) {
+        restrictedEditingRef.current.dispose();
+      }
       if (editorRef.current) {
         editorRef.current.dispose();
       }
     };
   }, []);
-
-  const handleSavePreferences = (newPrefs: EditorPreferences) => {
-    setPreferences(newPrefs);
-    savePreferences(newPrefs);
-  };
 
   return (
     <div className="relative h-full">
@@ -101,39 +85,22 @@ export function CodeEditor({ code, onChange, onSubmit }: CodeEditorProps) {
           onChange={(value) => onChange(value || '')}
           onMount={handleEditorDidMount}
           options={{
-            minimap: { enabled: preferences.minimap },
-            fontSize: preferences.fontSize,
-            fontFamily: 'var(--font-mono), ui-monospace, monospace',
+            minimap: { enabled: false },
+            fontSize: 14,
+            fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace",
+            fontLigatures: true,
             lineHeight: 1.6,
             scrollBeyondLastLine: false,
             padding: { top: 16 },
-            lineNumbers: preferences.lineNumbers ? 'on' : 'off',
-            wordWrap: preferences.wordWrap,
-            tabSize: preferences.tabSize,
+            lineNumbers: 'on',
+            wordWrap: 'off',
+            tabSize: 4,
             automaticLayout: true,
             formatOnType: true,
             formatOnPaste: true,
           }}
         />
       </div>
-
-      {/* Settings Button */}
-      <button
-        onClick={() => setShowSettings(true)}
-        className="absolute right-4 top-4 rounded border border-border bg-card/90 p-2 text-muted-foreground hover:bg-muted hover:text-white"
-        title="Editor Settings"
-      >
-        <Settings className="h-4 w-4" />
-      </button>
-
-      {/* Settings Modal */}
-      {showSettings && (
-        <EditorSettingsModal
-          currentPrefs={preferences}
-          onSave={handleSavePreferences}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
     </div>
   );
 }

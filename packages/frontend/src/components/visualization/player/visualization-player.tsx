@@ -17,6 +17,7 @@ import '../visualization.css';
 interface VisualizationPlayerProps {
   config: any;
   steps: any[];
+  initialStep?: number;
 }
 
 function RendererFor({ config, steps, currentIndex, isSeek }: { config: any, steps: any[], currentIndex: number, isSeek: boolean }) {
@@ -50,7 +51,7 @@ function buildRendererData(renderers: any[], steps: any[]) {
   return result;
 }
 
-export function VisualizationPlayer({ config, steps }: VisualizationPlayerProps) {
+export function VisualizationPlayer({ config, steps, initialStep }: VisualizationPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isSeek, setIsSeek] = useState(false);
   const [recursionFrames, setRecursionFrames] = useState<any[]>([]);
@@ -91,7 +92,7 @@ export function VisualizationPlayer({ config, steps }: VisualizationPlayerProps)
     }
   }, [steps]);
 
-  const player = usePlayer(steps, handleStep);
+  const player = usePlayer(steps, handleStep, initialStep);
   const hasRecursion = useMemo(() => steps?.some(s => s.type === 'recursion-push'), [steps]);
 
   const renderPanel = (cfg: any, filteredSteps: any[], localIndex: number, label?: string) => (
@@ -110,7 +111,7 @@ export function VisualizationPlayer({ config, steps }: VisualizationPlayerProps)
         <div style={{
           fontSize: 11,
           fontWeight: 700,
-          color: '#6B7280',
+          color: 'hsl(var(--muted-foreground))',
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
           paddingLeft: 4,
@@ -120,9 +121,9 @@ export function VisualizationPlayer({ config, steps }: VisualizationPlayerProps)
       )}
       <div className="viz-scrollable" style={{
         flex: 1,
-        background: '#fff',
+        background: 'hsl(var(--card))',
         borderRadius: 8,
-        border: '1px solid #E5E7EB',
+        border: '1px solid hsl(var(--border))',
         overflow: 'auto',
         padding: 24,
       }}>
@@ -152,9 +153,9 @@ export function VisualizationPlayer({ config, steps }: VisualizationPlayerProps)
     visualization = (
       <div className="viz-scrollable" style={{
         flex: 1,
-        background: '#fff',
+        background: 'hsl(var(--card))',
         borderRadius: 8,
-        border: '1px solid #E5E7EB',
+        border: '1px solid hsl(var(--border))',
         overflow: 'auto',
         padding: 24,
         minHeight: 0,

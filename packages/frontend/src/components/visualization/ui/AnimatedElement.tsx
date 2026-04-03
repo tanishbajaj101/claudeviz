@@ -21,8 +21,8 @@ export default function AnimatedElement({
   x,
   y,
   value,
-  color = '#F3F4F6',
-  textColor = '#1F2937',
+  color = 'hsl(var(--muted))',
+  textColor = 'hsl(var(--foreground))',
   opacity = 1,
   scale = 1,
   flash,
@@ -106,7 +106,7 @@ export default function AnimatedElement({
         fontFamily: 'monospace',
         fontWeight: 600,
         fontSize: size < 40 ? 11 : 14,
-        border: groupColor ? `2px solid ${groupColor}` : '1px solid rgba(0,0,0,0.1)',
+        border: groupColor ? `2px solid ${groupColor}` : '1px solid hsl(var(--border))',
         transition: instant
           ? 'none'
           : `left ${DURATIONS.move}ms ease-out, top ${DURATIONS.move}ms ease-out, background-color ${DURATIONS.color}ms ease, opacity ${DURATIONS.fade}ms ease, transform ${DURATIONS.fade}ms ease, border-color ${DURATIONS.color}ms ease`,

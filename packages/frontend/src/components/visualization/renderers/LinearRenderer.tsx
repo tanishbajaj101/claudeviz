@@ -13,11 +13,23 @@ const ELEM_Y = 50;
 
 function initState(config: any) {
   if (!config || !config.data) return { elements: [], pointers: {} as Record<string, any>, dimRegion: null as any, annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any> };
-  const elements = config.data.map((val: any, i: number) => ({
-    id: i, value: val, index: i, color: STATE_COLORS.default.bg, textColor: STATE_COLORS.default.text,
-    opacity: 1, pulse: false, flash: null as string | null,
-  }));
+  const elements = config.data.map((val: any, i: number) => {
+    const isObj = val !== null && typeof val === 'object' && !Array.isArray(val);
+    return {
+      id: isObj && val.id != null ? val.id : i,
+      value: isObj && val.value != null ? val.value : val,
+      index: i,
+      color: STATE_COLORS.default.bg, textColor: STATE_COLORS.default.text,
+      opacity: 1, pulse: false, flash: null as string | null,
+    };
+  });
   return { elements, pointers: {} as Record<string, any>, dimRegion: null as any, annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any> };
+}
+
+// Match element by id (string) or index (number), handling type coercion
+function elMatch(el: any, target: any): boolean {
+  // eslint-disable-next-line eqeqeq
+  return el.id == target || el.index == target;
 }
 
 function applyStepToState(state: any, step: any, instant: boolean) {
@@ -28,10 +40,11 @@ function applyStepToState(state: any, step: any, instant: boolean) {
     case 'swap': {
       const [i, j] = step.targets;
       const elems = elements.map((el: any) => ({ ...el, pulse: false, flash: null }));
-      const ii = elems.findIndex((e: any) => e.index === i); const ij = elems.findIndex((e: any) => e.index === j);
+      const ii = elems.findIndex((e: any) => elMatch(e, i)); const ij = elems.findIndex((e: any) => elMatch(e, j));
       if (ii === -1 || ij === -1) return state;
       const ne = [...elems];
-      ne[ii] = { ...ne[ii], index: j }; ne[ij] = { ...ne[ij], index: i };
+      const tmpIdx = ne[ii].index;
+      ne[ii] = { ...ne[ii], index: ne[ij].index }; ne[ij] = { ...ne[ij], index: tmpIdx };
       return { ...state, elements: ne };
     }
     case 'batch-shift': {
@@ -47,31 +60,35 @@ function applyStepToState(state: any, step: any, instant: boolean) {
       return { ...state, elements: ne };
     }
     case 'fade-out': {
-      const ne = elements.map((el: any) => el.index === step.target ? { ...el, opacity: 0, pulse: false, flash: null } : { ...el, pulse: false, flash: null });
-      return { ...state, elements: ne, _pendingRemove: step.target };
+      const targetEl = elements.find((el: any) => elMatch(el, step.target));
+      const removeIdx = targetEl ? targetEl.index : Number(step.target);
+      const ne = elements.map((el: any) => el.index === removeIdx ? { ...el, opacity: 0, pulse: false, flash: null } : { ...el, pulse: false, flash: null });
+      return { ...state, elements: ne, _pendingRemove: removeIdx };
     }
     case 'visit': {
       const sc = (STATE_COLORS as any)[step.state] || STATE_COLORS.default;
-      return { ...state, elements: elements.map((el: any) => el.index === step.target
+      return { ...state, elements: elements.map((el: any) => elMatch(el, step.target)
         ? { ...el, color: sc.bg, textColor: sc.text, pulse: !instant, flash: null } : { ...el, pulse: false, flash: null }) };
     }
     case 'pointer': {
       const { label, to } = step;
       if (to === null || to === undefined) { const np = { ...pointers }; delete np[label]; return { ...state, pointers: np }; }
-      return { ...state, pointers: { ...pointers, [label]: to } };
+      // Store the positional index for pointer placement
+      const targetEl = elements.find((el: any) => elMatch(el, to));
+      const posIdx = targetEl ? targetEl.index : Number(to);
+      return { ...state, pointers: { ...pointers, [label]: posIdx } };
     }
     case 'compare': {
       const [a, b] = step.targets;
       let fc = COMPARE_COLORS.neutral;
       if (step.result === 'pass') fc = COMPARE_COLORS.pass;
       else if (step.result === 'fail') fc = COMPARE_COLORS.fail;
-      const tgt = new Set([a, b]);
-      return { ...state, elements: elements.map((el: any) => tgt.has(el.index)
+      return { ...state, elements: elements.map((el: any) => elMatch(el, a) || elMatch(el, b)
         ? { ...el, flash: instant ? null : fc, pulse: false } : { ...el, pulse: false, flash: null }) };
     }
     case 'search-narrow': return { ...state, dimRegion: { activeStart: step.active[0], activeEnd: step.active[1] } };
     case 'value-update': {
-      return { ...state, elements: elements.map((el: any) => el.index === step.target
+      return { ...state, elements: elements.map((el: any) => elMatch(el, step.target)
         ? { ...el, value: step.value, flash: instant ? null : VALUE_UPDATE_COLOR, pulse: false } : { ...el, pulse: false, flash: null }) };
     }
     case 'annotate': {
@@ -153,7 +170,7 @@ export default function LinearRenderer({ config, steps, currentIndex, isSeek }: 
       {elements.map((el: any) => (
         <div key={`lbl-${el.id}`} style={{ position: 'absolute', left: el.index * CELL,
           top: ELEM_Y + BOX_SIZE + 4, width: BOX_SIZE, textAlign: 'center',
-          fontSize: 10, color: '#9CA3AF', fontFamily: 'monospace',
+          fontSize: 10, color: 'hsl(var(--muted-foreground))', fontFamily: 'monospace',
           transition: isSeek ? 'none' : `left ${DURATIONS.move}ms ease-out` }}>
           {config?.labels?.[el.index] ?? el.index}
         </div>

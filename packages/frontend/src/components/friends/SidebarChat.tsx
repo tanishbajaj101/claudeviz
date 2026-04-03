@@ -1,7 +1,7 @@
 
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, Maximize2, Send } from "lucide-react";
+import { ArrowLeft, Maximize2, Send, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "./FriendsContext";
 import { MessageRenderer } from "./MessageRenderer";
@@ -42,6 +42,7 @@ export function SidebarChat() {
         setActiveConversationId,
         setUnreadChatCount,
         refreshFriends,
+        closeSidebar,
     } = useFriends();
 
     const { socket } = useChatSocket();
@@ -245,6 +246,13 @@ export function SidebarChat() {
                     aria-label="Open full screen chat"
                 >
                     <Maximize2 className="h-4 w-4" />
+                </button>
+                <button
+                    onClick={closeSidebar}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    aria-label="Close sidebar"
+                >
+                    <X className="h-4 w-4" />
                 </button>
             </div>
 

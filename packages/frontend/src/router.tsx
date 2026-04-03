@@ -41,14 +41,16 @@ export const router = createBrowserRouter([
         element: <SignInPage />,
       },
 
+      // Landing page (public)
+      {
+        index: true,
+        element: <HomePage />,
+      },
+
       // Protected routes (require authentication)
       {
         element: <ProtectedRoute />,
         children: [
-          {
-            path: '/',
-            element: <HomePage />,
-          },
           {
             path: 'problems',
             element: <ProblemsPage />,

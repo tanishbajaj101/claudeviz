@@ -2,7 +2,7 @@
 
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { Home, User, Trophy, Users, Bell, MessageSquare, Code2 } from "lucide-react";
+import { Home, User, Trophy, Users, MessageSquare, Code2 } from "lucide-react";
 import { useFriends } from "../../components/friends/FriendsContext";
 import { NotificationsDropdown } from "../../components/notifications/NotificationsDropdown";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -75,6 +75,8 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <ThemeSwitcher />
+
           {user ? (
             <div className="flex items-center gap-3">
               {/* Friends icon with real-time unread badge */}
@@ -93,9 +95,6 @@ export function Navbar() {
 
               {/* Notifications dropdown */}
               <NotificationsDropdown />
-
-              {/* Theme Switcher */}
-              <ThemeSwitcher />
 
               {/* User menu */}
               <Link

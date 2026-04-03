@@ -15,7 +15,7 @@ export default function PointerLabel({
   label,
   x,
   y,
-  color = '#3B82F6',
+  color = 'hsl(var(--primary))',
   position = 'above',
   stackOffset = 0,
   instant = false,
