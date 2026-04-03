@@ -103,7 +103,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Redirects to backend OAuth endpoint.
    */
   const signIn = useCallback(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    let apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    
+    // Ensure apiUrl is absolute if it looks like a domain (no protocol and doesn't start with /)
+    if (apiUrl && !apiUrl.startsWith('http') && !apiUrl.startsWith('/')) {
+      apiUrl = `https://${apiUrl}`;
+    }
+    
     window.location.href = `${apiUrl}/api/auth/google`;
   }, []);
 

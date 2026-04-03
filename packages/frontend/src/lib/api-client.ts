@@ -5,7 +5,12 @@
  * common error cases like 401 Unauthorized.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Ensure API_BASE_URL is absolute if it looks like a domain (no protocol and doesn't start with /)
+if (API_BASE_URL && !API_BASE_URL.startsWith('http') && !API_BASE_URL.startsWith('/')) {
+  API_BASE_URL = `https://${API_BASE_URL}`;
+}
 
 export class ApiError extends Error {
   constructor(

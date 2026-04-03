@@ -12,6 +12,12 @@ import type { DbUser } from '../lib/db.js';
 
 const router = Router();
 
+// Ensure FRONTEND_URL is absolute
+let FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+if (FRONTEND_URL && !FRONTEND_URL.startsWith('http')) {
+  FRONTEND_URL = `https://${FRONTEND_URL}`;
+}
+
 /**
  * POST /api/auth/google
  * Initiates Google OAuth flow
@@ -30,13 +36,16 @@ router.get(
  */
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/signin?error=oauth_failed` }),
+  passport.authenticate('google', { 
+    session: false, 
+    failureRedirect: `${FRONTEND_URL}/auth/signin?error=oauth_failed` 
+  }),
   (req: Request, res: Response) => {
     try {
       const user = req.user as any;
 
       if (!user) {
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/signin?error=no_user`);
+        res.redirect(`${FRONTEND_URL}/auth/signin?error=no_user`);
         return;
       }
 
@@ -56,11 +65,11 @@ router.get(
         res.cookie('auth-token', pendingToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
           maxAge: 60 * 60 * 1000, // 1 hour for onboarding
         });
 
-        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding?token=${pendingToken}`);
+        res.redirect(`${FRONTEND_URL}/onboarding?token=${pendingToken}`);
         return;
       }
 
@@ -81,15 +90,15 @@ router.get(
       res.cookie('auth-token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
       // Redirect to home page
-      res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');
+      res.redirect(FRONTEND_URL);
     } catch (error) {
       console.error('OAuth callback error:', error);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/signin?error=server_error`);
+      res.redirect(`${FRONTEND_URL}/auth/signin?error=server_error`);
     }
   }
 );
@@ -169,7 +178,7 @@ router.post('/logout', (req: Request, res: Response) => {
   res.clearCookie('auth-token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
 
   res.json({ success: true, message: 'Logged out successfully' });

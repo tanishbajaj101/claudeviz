@@ -114,7 +114,12 @@ export function useSocket<TNamespace extends SocketNamespace>(
 
     // NEXT_PUBLIC_SOCKET_URL should be set in .env.local for production.
     // In development it defaults to the same origin (empty string → same host).
-    const socketUrl = import.meta.env.VITE_SOCKET_URL ?? "";
+    let socketUrl = import.meta.env.VITE_SOCKET_URL ?? import.meta.env.VITE_API_URL ?? "";
+
+    // Ensure socketUrl is absolute if it looks like a domain (no protocol and doesn't start with /)
+    if (socketUrl && !socketUrl.startsWith('http') && !socketUrl.startsWith('ws') && !socketUrl.startsWith('/')) {
+      socketUrl = `https://${socketUrl}`;
+    }
 
     const socket = io(`${socketUrl}${namespace}`, {
       withCredentials: true,         // forward session cookies same-origin
