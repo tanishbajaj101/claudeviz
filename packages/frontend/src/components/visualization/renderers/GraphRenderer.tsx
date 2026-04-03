@@ -8,6 +8,35 @@ import { RendererProps } from './types';
 const NODE_SIZE = 44;
 const PAD = 80;
 
+interface GraphNode {
+  id: string;
+  value: any;
+  color: string;
+  textColor: string;
+  opacity: number;
+  _fadingIn?: boolean;
+}
+
+interface GraphEdge {
+  from: string;
+  to: string;
+  weight: number | null;
+  color: string;
+  opacity: number;
+}
+
+interface GraphState {
+  nodes: Record<string, GraphNode>;
+  edges: GraphEdge[];
+  nodeLayout: Record<string, { x: number; y: number }>;
+  pointers: Record<string, string>;
+  levelHighlights: string[];
+  annotations: Record<string, string>;
+  elementGroups: Record<string, string>;
+  rangeHighlights: string[];
+  _pendingRemove?: string;
+}
+
 // Simple circular layout fallback since we don't have d3-force installed
 function computeSimpleLayout(nodes: any[], edges: any[], existingLayout: any = {}) {
   const layout: Record<string, { x: number, y: number }> = {};
@@ -28,16 +57,16 @@ function computeSimpleLayout(nodes: any[], edges: any[], existingLayout: any = {
   return layout;
 }
 
-function initState(config: any) {
-  if (!config || !config.nodes) return { nodes: {} as Record<string, any>, edges: [] as any[], nodeLayout: {} as Record<string, any>, pointers: {} as Record<string, any>, levelHighlights: [] as string[], annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any>, rangeHighlights: [] as string[] };
-  const nodes: Record<string, any> = {};
+function initState(config: any): GraphState {
+  if (!config || !config.nodes) return { nodes: {}, edges: [], nodeLayout: {}, pointers: {}, levelHighlights: [], annotations: {}, elementGroups: {}, rangeHighlights: [] };
+  const nodes: Record<string, GraphNode> = {};
   config.nodes.forEach((n: any) => { nodes[n.id] = { id: n.id, value: n.value ?? n.id, color: STATE_COLORS.default.bg, textColor: STATE_COLORS.default.text, opacity: 1 }; });
-  const edges = (config.edges || []).map((e: any) => ({ from: e.from, to: e.to, weight: e.weight ?? null, color: EDGE_COLORS.default, opacity: 1 }));
+  const edges: GraphEdge[] = (config.edges || []).map((e: any) => ({ from: e.from, to: e.to, weight: e.weight ?? null, color: EDGE_COLORS.default, opacity: 1 }));
   const layout = computeSimpleLayout(config.nodes, edges);
-  return { nodes, edges, nodeLayout: layout, pointers: {} as Record<string, any>, levelHighlights: [] as string[], annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any>, rangeHighlights: [] as string[] };
+  return { nodes, edges, nodeLayout: layout, pointers: {}, levelHighlights: [], annotations: {}, elementGroups: {}, rangeHighlights: [] };
 }
 
-function applyStepToState(state: any, step: any, instant: boolean, config: any) {
+function applyStepToState(state: GraphState, step: any, instant: boolean, config: any): GraphState {
   if (!step) return state;
   let { nodes, edges, pointers, annotations, elementGroups, nodeLayout } = state;
 
@@ -64,7 +93,7 @@ function applyStepToState(state: any, step: any, instant: boolean, config: any) 
     case 'fade-in': {
       const nn = { ...nodes };
       nn[step.target] = { id: step.target, value: step.value ?? step.target, color: STATE_COLORS.default.bg, textColor: STATE_COLORS.default.text, opacity: instant ? 1 : 0, _fadingIn: !instant };
-      const allNodes = Object.values(nn).map((n: any) => ({ id: n.id }));
+      const allNodes = Object.values(nn).map((n) => ({ id: n.id }));
       const nl = computeSimpleLayout(allNodes, edges, nodeLayout);
       return { ...state, nodes: nn, nodeLayout: nl };
     }
@@ -76,12 +105,12 @@ function applyStepToState(state: any, step: any, instant: boolean, config: any) 
     case 'edge-update': {
       const [from, to] = step.edge; const ec = (EDGE_COLORS as any)[step.state] || EDGE_COLORS.default;
       if (from === to) { const nn = { ...nodes }; if (nn[from]) nn[from] = { ...nn[from], color: STATE_COLORS.visited.bg, textColor: STATE_COLORS.visited.text }; return { ...state, nodes: nn }; }
-      const ne = edges.map((e: any) => (e.from === from && e.to === to) || (!config?.directed && e.from === to && e.to === from) ? { ...e, color: ec } : e);
+      const ne = edges.map((e) => (e.from === from && e.to === to) || (!config?.directed && e.from === to && e.to === from) ? { ...e, color: ec } : e);
       return { ...state, edges: ne };
     }
     case 'weight-update': {
       const [from, to] = step.edge;
-      const ne = edges.map((e: any) => e.from === from && e.to === to ? { ...e, weight: step.weight } : e);
+      const ne = edges.map((e) => e.from === from && e.to === to ? { ...e, weight: step.weight } : e);
       return { ...state, edges: ne };
     }
     case 'level-highlight': return { ...state, levelHighlights: step.targets || [] };
@@ -106,19 +135,19 @@ function applyStepToState(state: any, step: any, instant: boolean, config: any) 
   }
 }
 
-function finalizePendingRemove(state: any) {
+function finalizePendingRemove(state: GraphState): GraphState {
   if (state._pendingRemove === undefined) return state;
   const target = state._pendingRemove;
   const newNodes = { ...state.nodes }; delete newNodes[target];
-  const newEdges = state.edges.filter((e: any) => e.from !== target && e.to !== target);
-  const allNodes = Object.values(newNodes).map((n: any) => ({ id: n.id }));
+  const newEdges = state.edges.filter((e) => e.from !== target && e.to !== target);
+  const allNodes = Object.values(newNodes).map((n) => ({ id: n.id }));
   const nl = computeSimpleLayout(allNodes, newEdges, state.nodeLayout);
   return { ...state, nodes: newNodes, edges: newEdges, nodeLayout: nl, _pendingRemove: undefined };
 }
 
-function finalizeFadeIn(state: any) {
-  const newNodes: Record<string, any> = {}; let changed = false;
-  Object.entries(state.nodes).forEach(([id, n]: [string, any]) => {
+function finalizeFadeIn(state: GraphState): GraphState {
+  const newNodes: Record<string, GraphNode> = {}; let changed = false;
+  Object.entries(state.nodes).forEach(([id, n]) => {
     if (n._fadingIn) { newNodes[id] = { ...n, opacity: 1, _fadingIn: false }; changed = true; }
     else newNodes[id] = n;
   });
@@ -183,7 +212,7 @@ export default function GraphRenderer({ config, steps, currentIndex, isSeek }: R
 
   return (
     <div style={{ position: 'relative', width: w, height: h, transition: `width ${DURATIONS.layout}ms ease, height ${DURATIONS.layout}ms ease` }}>
-      {nodeList.filter((n: any) => hlSet.has(n.id)).map((node: any) => {
+      {nodeList.filter((n) => hlSet.has(n.id)).map((node) => {
         const pos = nodeLayout[node.id]; if (!pos) return null;
         return <div key={`hl-${node.id}`} style={{ position: 'absolute',
           left: pos.x + offsetX - 6, top: pos.y + offsetY - 6,
@@ -191,7 +220,7 @@ export default function GraphRenderer({ config, steps, currentIndex, isSeek }: R
           background: 'rgba(254,243,199,0.6)', border: '2px dashed #F59E0B',
           pointerEvents: 'none', zIndex: 0, transition: isSeek ? 'none' : `all ${DURATIONS.layout}ms ease-out` }} />;
       })}
-      {nodeList.filter((n: any) => rnSet.has(n.id)).map((node: any) => {
+      {nodeList.filter((n) => rnSet.has(n.id)).map((node) => {
         const pos = nodeLayout[node.id]; if (!pos) return null;
         return <div key={`rh-${node.id}`} style={{ position: 'absolute',
           left: pos.x + offsetX - 6, top: pos.y + offsetY - 6,
@@ -201,7 +230,7 @@ export default function GraphRenderer({ config, steps, currentIndex, isSeek }: R
           pointerEvents: 'none', zIndex: 0, transition: isSeek ? 'none' : `all ${DURATIONS.layout}ms ease-out` }} />;
       })}
       <svg style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', overflow: 'visible' }} width={w} height={h}>
-        {edges.map((edge: any, i: number) => {
+        {edges.map((edge, i) => {
           const fp = nodeLayout[edge.from]; const tp = nodeLayout[edge.to];
           if (!fp || !tp) return null;
           return <AnimatedEdge key={`${edge.from}-${edge.to}-${i}`}
@@ -211,7 +240,7 @@ export default function GraphRenderer({ config, steps, currentIndex, isSeek }: R
             weight={edge.weight} instant={isSeek} />;
         })}
       </svg>
-      {nodeList.map((node: any) => {
+      {nodeList.map((node) => {
         const pos = nodeLayout[node.id]; if (!pos) return null;
         return <AnimatedElement key={node.id}
           x={pos.x + offsetX} y={pos.y + offsetY}

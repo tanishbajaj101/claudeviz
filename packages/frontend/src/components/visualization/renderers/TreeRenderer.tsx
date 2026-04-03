@@ -10,6 +10,35 @@ const LEVEL_HEIGHT = 80;
 const NODE_SPACING = 70;
 const PAD = 40;
 
+interface TreeNode {
+  id: string;
+  value: any;
+  color: string;
+  textColor: string;
+  opacity: number;
+  _fadingIn?: boolean;
+}
+
+interface TreeEdge {
+  from: string;
+  to: string;
+  weight: number | null;
+  color: string;
+  opacity: number;
+}
+
+interface TreeState {
+  nodes: Record<string, TreeNode>;
+  edges: TreeEdge[];
+  nodeLayout: Record<string, { x: number; y: number }>;
+  pointers: Record<string, string>;
+  levelHighlights: string[];
+  annotations: Record<string, string>;
+  elementGroups: Record<string, string>;
+  rangeHighlights: string[];
+  _pendingRemove?: string;
+}
+
 function buildTree(nodes: any[], edges: any[]) {
   const children: Record<string, string[]> = {}; const parents: Record<string, string> = {};
   nodes.forEach(n => { children[n.id] = []; });
@@ -34,16 +63,16 @@ function computeLayout(nodes: any[], edges: any[]) {
   return positions;
 }
 
-function initState(config: any) {
-  if (!config || !config.nodes) return { nodes: {} as Record<string, any>, edges: [] as any[], nodeLayout: {} as Record<string, any>, pointers: {} as Record<string, any>, levelHighlights: [] as string[], annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any>, rangeHighlights: [] as string[] };
-  const nodes: Record<string, any> = {};
+function initState(config: any): TreeState {
+  if (!config || !config.nodes) return { nodes: {}, edges: [], nodeLayout: {}, pointers: {}, levelHighlights: [], annotations: {}, elementGroups: {}, rangeHighlights: [] };
+  const nodes: Record<string, TreeNode> = {};
   config.nodes.forEach((n: any) => { nodes[n.id] = { id: n.id, value: n.value ?? n.id, color: STATE_COLORS.default.bg, textColor: STATE_COLORS.default.text, opacity: 1 }; });
-  const edges = (config.edges || []).map((e: any) => ({ from: e.from, to: e.to, weight: e.weight ?? null, color: EDGE_COLORS.default, opacity: 1 }));
+  const edges: TreeEdge[] = (config.edges || []).map((e: any) => ({ from: e.from, to: e.to, weight: e.weight ?? null, color: EDGE_COLORS.default, opacity: 1 }));
   const layout = computeLayout(config.nodes, config.edges || []);
-  return { nodes, edges, nodeLayout: layout, pointers: {} as Record<string, any>, levelHighlights: [] as string[], annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any>, rangeHighlights: [] as string[] };
+  return { nodes, edges, nodeLayout: layout, pointers: {}, levelHighlights: [], annotations: {}, elementGroups: {}, rangeHighlights: [] };
 }
 
-function applyStepToState(state: any, step: any, instant: boolean) {
+function applyStepToState(state: TreeState, step: any, instant: boolean): TreeState {
   if (!step) return state;
   let { nodes, edges, pointers, annotations, elementGroups } = state;
 
@@ -77,8 +106,8 @@ function applyStepToState(state: any, step: any, instant: boolean) {
       const newNodes = { ...nodes };
       newNodes[target] = { id: target, value: value ?? target, color: STATE_COLORS.default.bg, textColor: STATE_COLORS.default.text, opacity: instant ? 1 : 0, _fadingIn: !instant };
       const newEdges = [...edges];
-      if (newEdge) newEdges.push({ from: newEdge.from, to: newEdge.to, color: EDGE_COLORS.default, opacity: 1 });
-      const allNodes = Object.values(newNodes).map((n: any) => ({ id: n.id, value: n.value }));
+      if (newEdge) newEdges.push({ from: newEdge.from, to: newEdge.to, weight: null, color: EDGE_COLORS.default, opacity: 1 });
+      const allNodes = Object.values(newNodes).map((n) => ({ id: n.id, value: n.value }));
       const layout = computeLayout(allNodes, newEdges);
       return { ...state, nodes: newNodes, edges: newEdges, nodeLayout: layout };
     }
@@ -90,12 +119,12 @@ function applyStepToState(state: any, step: any, instant: boolean) {
     case 'edge-update': {
       const [from, to] = step.edge;
       const ec = (EDGE_COLORS as any)[step.state] || EDGE_COLORS.default;
-      const newEdges = edges.map((e: any) => e.from === from && e.to === to ? { ...e, color: ec } : e);
+      const newEdges = edges.map((e) => e.from === from && e.to === to ? { ...e, color: ec } : e);
       return { ...state, edges: newEdges };
     }
     case 'weight-update': {
       const [from, to] = step.edge;
-      const newEdges = edges.map((e: any) => e.from === from && e.to === to ? { ...e, weight: step.weight } : e);
+      const newEdges = edges.map((e) => e.from === from && e.to === to ? { ...e, weight: step.weight } : e);
       return { ...state, edges: newEdges };
     }
     case 'level-highlight': return { ...state, levelHighlights: step.targets || [] };
@@ -120,19 +149,19 @@ function applyStepToState(state: any, step: any, instant: boolean) {
   }
 }
 
-function finalizePendingRemove(state: any) {
+function finalizePendingRemove(state: TreeState): TreeState {
   if (state._pendingRemove === undefined) return state;
   const target = state._pendingRemove;
   const newNodes = { ...state.nodes }; delete newNodes[target];
-  const newEdges = state.edges.filter((e: any) => e.from !== target && e.to !== target);
-  const allNodes = Object.values(newNodes).map((n: any) => ({ id: n.id, value: n.value }));
+  const newEdges = state.edges.filter((e) => e.from !== target && e.to !== target);
+  const allNodes = Object.values(newNodes).map((n) => ({ id: n.id, value: n.value }));
   const layout = computeLayout(allNodes, newEdges);
   return { ...state, nodes: newNodes, edges: newEdges, nodeLayout: layout, _pendingRemove: undefined };
 }
 
-function finalizeFadeIn(state: any) {
-  const newNodes: Record<string, any> = {}; let changed = false;
-  Object.entries(state.nodes).forEach(([id, n]: [string, any]) => {
+function finalizeFadeIn(state: TreeState): TreeState {
+  const newNodes: Record<string, TreeNode> = {}; let changed = false;
+  Object.entries(state.nodes).forEach(([id, n]) => {
     if (n._fadingIn) { newNodes[id] = { ...n, opacity: 1, _fadingIn: false }; changed = true; }
     else newNodes[id] = n;
   });
@@ -199,7 +228,7 @@ export default function TreeRenderer({ config, steps, currentIndex, isSeek }: Re
           pointerEvents: 'none', border: `2px solid ${HIGHLIGHT_RANGE_COLOR.border}`, zIndex: 0 }} />;
       })}
       <svg style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', overflow: 'visible' }} width={w} height={h}>
-        {edges.map((edge: any, i: number) => {
+        {edges.map((edge, i) => {
           const fp = nodeLayout[edge.from]; const tp = nodeLayout[edge.to];
           if (!fp || !tp) return null;
           return <AnimatedEdge key={`${edge.from}-${edge.to}-${i}`}
@@ -209,7 +238,7 @@ export default function TreeRenderer({ config, steps, currentIndex, isSeek }: Re
             weight={edge.weight} instant={isSeek} />;
         })}
       </svg>
-      {nodeList.map((node: any) => {
+      {nodeList.map((node) => {
         const pos = nodeLayout[node.id]; if (!pos) return null;
         return <AnimatedElement key={node.id}
           x={pos.x + offsetX} y={pos.y + offsetY}

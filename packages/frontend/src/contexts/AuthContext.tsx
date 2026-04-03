@@ -23,6 +23,7 @@ export interface User {
   username?: string;
   avatar?: string;
   isPending?: boolean;
+  isNewUser?: boolean;
 }
 
 interface SessionResponse {

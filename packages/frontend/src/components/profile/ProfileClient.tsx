@@ -260,7 +260,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
     }
   };
 
-  if (authLoading === "loading" || loading) {
+  if (authLoading || loading) {
     return (
       <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <p className="font-mono text-sm text-muted-foreground">Loading...</p>

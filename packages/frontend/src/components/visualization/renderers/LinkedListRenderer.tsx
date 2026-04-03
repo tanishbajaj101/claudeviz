@@ -11,10 +11,34 @@ const PAD_X = 20;
 const PAD_Y = 60;
 const CONTAINER_H = 180;
 
-function initState(config: any) {
-  if (!config || !config.nodes) return { nodes: {} as Record<string, any>, order: [] as string[], edges: [] as any[], pointers: {} as Record<string, any> };
+interface LinkedListNode {
+  id: string;
+  value: any;
+  color: string;
+  textColor: string;
+  opacity: number;
+  _fadingIn?: boolean;
+}
 
-  const nodeMap: Record<string, any> = {};
+interface LinkedListEdge {
+  from: string;
+  to: string;
+  color: string;
+  opacity: number;
+}
+
+interface LinkedListState {
+  nodes: Record<string, LinkedListNode>;
+  order: string[];
+  edges: LinkedListEdge[];
+  pointers: Record<string, string>;
+  _pendingRemove?: string;
+}
+
+function initState(config: any): LinkedListState {
+  if (!config || !config.nodes) return { nodes: {}, order: [], edges: [], pointers: {} };
+
+  const nodeMap: Record<string, LinkedListNode> = {};
   config.nodes.forEach((n: any) => {
     nodeMap[n.id] = {
       id: n.id,
@@ -48,17 +72,17 @@ function initState(config: any) {
     if (!visited.has(n.id)) order.push(n.id);
   });
 
-  const edges = (config.edges || []).map((e: any) => ({
+  const edges: LinkedListEdge[] = (config.edges || []).map((e: any) => ({
     from: e.from,
     to: e.to,
     color: EDGE_COLORS.default,
     opacity: 1,
   }));
 
-  return { nodes: nodeMap, order, edges, pointers: {} as Record<string, any> };
+  return { nodes: nodeMap, order, edges, pointers: {} };
 }
 
-function applyStepToState(state: any, step: any, instant: boolean) {
+function applyStepToState(state: LinkedListState, step: any, instant: boolean): LinkedListState {
   if (!step) return state;
   let { nodes, order, edges, pointers } = state;
 
@@ -112,9 +136,9 @@ function applyStepToState(state: any, step: any, instant: boolean) {
         newOrder.push(target);
       }
       // Rebuild edges based on order
-      const newEdges = [];
+      const newEdges: LinkedListEdge[] = [];
       for (let i = 0; i < newOrder.length - 1; i++) {
-        const existing = edges.find((e: any) => e.from === newOrder[i] && e.to === newOrder[i + 1]);
+        const existing = edges.find((e) => e.from === newOrder[i] && e.to === newOrder[i + 1]);
         newEdges.push(existing || { from: newOrder[i], to: newOrder[i + 1], color: EDGE_COLORS.default, opacity: 1 });
       }
       return { ...state, nodes: newNodes, order: newOrder, edges: newEdges };
@@ -132,7 +156,7 @@ function applyStepToState(state: any, step: any, instant: boolean) {
     case 'edge-update': {
       const [from, to] = step.edge;
       const edgeColor = (EDGE_COLORS as any)[step.state] || EDGE_COLORS.default;
-      const newEdges = edges.map((e: any) => {
+      const newEdges = edges.map((e) => {
         if (e.from === from && e.to === to) return { ...e, color: edgeColor };
         return e;
       });
@@ -154,23 +178,23 @@ function applyStepToState(state: any, step: any, instant: boolean) {
   }
 }
 
-function finalizePendingRemove(state: any) {
+function finalizePendingRemove(state: LinkedListState): LinkedListState {
   if (state._pendingRemove === undefined) return state;
   const target = state._pendingRemove;
   const newNodes = { ...state.nodes };
   delete newNodes[target];
-  const newOrder = state.order.filter((id: string) => id !== target);
-  const newEdges = [];
+  const newOrder = state.order.filter((id) => id !== target);
+  const newEdges: LinkedListEdge[] = [];
   for (let i = 0; i < newOrder.length - 1; i++) {
     newEdges.push({ from: newOrder[i], to: newOrder[i + 1], color: EDGE_COLORS.default, opacity: 1 });
   }
   return { ...state, nodes: newNodes, order: newOrder, edges: newEdges, _pendingRemove: undefined };
 }
 
-function finalizeFadeIn(state: any) {
-  const newNodes: Record<string, any> = {};
+function finalizeFadeIn(state: LinkedListState): LinkedListState {
+  const newNodes: Record<string, LinkedListNode> = {};
   let changed = false;
-  Object.entries(state.nodes).forEach(([id, n]: [string, any]) => {
+  Object.entries(state.nodes).forEach(([id, n]) => {
     if (n._fadingIn) {
       newNodes[id] = { ...n, opacity: 1, _fadingIn: false };
       changed = true;
@@ -243,7 +267,7 @@ export default function LinkedListRenderer({ config, steps, currentIndex, isSeek
         height={CONTAINER_H}
       >
         {order.slice(0, -1).map((id, i) => {
-          const edge = edges.find((e: any) => e.from === id && e.to === order[i + 1]);
+          const edge = edges.find((e) => e.from === id && e.to === order[i + 1]);
           const edgeColor = edge?.color || EDGE_COLORS.default;
           return (
             <AnimatedEdge
