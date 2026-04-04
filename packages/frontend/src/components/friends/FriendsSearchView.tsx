@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFriends } from "./FriendsContext";
+import { api } from "../../lib/api-client";
 
 interface SearchUser {
     id: number;
@@ -41,9 +42,8 @@ export function FriendsSearchView() {
             return;
         }
         setLoading(true);
-        fetch(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`)
-            .then((r) => r.json())
-            .then((data: { users: SearchUser[] }) => setResults(data.users ?? []))
+        api.get<{ users: SearchUser[] }>(`/api/users/search?q=${encodeURIComponent(debouncedQuery)}`)
+            .then((data) => setResults(data.users ?? []))
             .catch(() => setResults([]))
             .finally(() => setLoading(false));
     }, [debouncedQuery]);

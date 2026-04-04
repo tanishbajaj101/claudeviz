@@ -18,6 +18,7 @@ import { LeaderboardTab } from '../components/contests/LeaderboardTab';
 import { DiscussionTab } from '../components/contests/DiscussionTab';
 import { LargeCountdown, CountdownTimer } from '../components/contests/CountdownTimer';
 import { InviteFriendsDropdown } from '../components/contests/InviteFriendsDropdown';
+import { api } from '../lib/api-client';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -69,18 +70,11 @@ export function ContestDetailPage() {
   const fetchContest = useCallback(async () => {
     if (!id) return;
     try {
-      const res = await fetch(`/api/contests/${id}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError((data as { error?: string }).error ?? 'Contest not found');
-        setLoading(false);
-        return;
-      }
-      const data = await res.json() as { contest: ContestDetail };
+      const data = await api.get<{ contest: ContestDetail }>(`/api/contests/${id}`);
       setContest(data.contest);
       setLiveStatus(getContestStatus(data.contest.starts_at, data.contest.duration_minutes));
-    } catch {
-      setError('Failed to load contest');
+    } catch (err: any) {
+      setError(err.data?.error || 'Failed to load contest');
     } finally {
       setLoading(false);
     }
@@ -104,15 +98,10 @@ export function ContestDetailPage() {
     if (!id || joining) return;
     setJoining(true);
     try {
-      const res = await fetch(`/api/contests/${id}/join`, { method: 'POST' });
-      if (res.ok) {
-        await fetchContest();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        alert((data as { error?: string }).error ?? 'Failed to join contest');
-      }
-    } catch {
-      alert('Failed to join contest');
+      await api.post(`/api/contests/${id}/join`);
+      await fetchContest();
+    } catch (err: any) {
+      alert(err.data?.error || 'Failed to join contest');
     } finally {
       setJoining(false);
     }

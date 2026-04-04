@@ -137,6 +137,11 @@ function DifficultyRing({
   );
 }
 
+interface FriendRequestsResponse {
+  received: Array<{ id: string; sender_id: number }>;
+  sent: Array<{ id: string; receiver_id: number }>;
+}
+
 export function ProfileClient({ userId }: ProfileClientProps) {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -165,14 +170,10 @@ export function ProfileClient({ userId }: ProfileClientProps) {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/users/${targetUserId}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch profile");
-        }
-        const data = await res.json();
+        const data = await api.get<UserProfile>(`/api/users/${targetUserId}`);
         setProfile(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -185,19 +186,10 @@ export function ProfileClient({ userId }: ProfileClientProps) {
     if (!profile) return;
     setFriendActionLoading(true);
     try {
-      const res = await fetch("/api/friends", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiver_id: targetUserId }),
-      });
-      if (res.ok) {
-        // Refresh profile to update friendship status
-        const refreshRes = await fetch(`/api/users/${targetUserId}`);
-        if (refreshRes.ok) {
-          const data = await refreshRes.json();
-          setProfile(data);
-        }
-      }
+      await api.post("/api/friends", { receiver_id: targetUserId });
+      // Refresh profile to update friendship status
+      const data = await api.get<UserProfile>(`/api/users/${targetUserId}`);
+      setProfile(data);
     } catch (err) {
       console.error("Failed to send friend request:", err);
     } finally {
@@ -210,15 +202,11 @@ export function ProfileClient({ userId }: ProfileClientProps) {
     setFriendActionLoading(true);
     try {
       // Fetch pending requests to get the friend request ID
-      const requestsRes = await fetch("/api/friends/requests");
-      if (!requestsRes.ok) {
-        throw new Error("Failed to fetch friend requests");
-      }
-      const requestsData = await requestsRes.json();
+      const requestsData = await api.get<FriendRequestsResponse>("/api/friends/requests");
 
       // Find the request from this user
       const request = requestsData.received.find(
-        (req: { sender_id: number }) => req.sender_id === targetUserId
+        (req) => req.sender_id === targetUserId
       );
 
       if (!request) {
@@ -226,18 +214,11 @@ export function ProfileClient({ userId }: ProfileClientProps) {
       }
 
       // Accept the request
-      const acceptRes = await fetch(`/api/friends/${request.id}/accept`, {
-        method: "POST",
-      });
+      await api.post(`/api/friends/${request.id}/accept`);
 
-      if (acceptRes.ok) {
-        // Refresh profile to update friendship status
-        const refreshRes = await fetch(`/api/users/${targetUserId}`);
-        if (refreshRes.ok) {
-          const data = await refreshRes.json();
-          setProfile(data);
-        }
-      }
+      // Refresh profile to update friendship status
+      const data = await api.get<UserProfile>(`/api/users/${targetUserId}`);
+      setProfile(data);
     } catch (err) {
       console.error("Failed to accept friend request:", err);
     } finally {
@@ -292,7 +273,7 @@ export function ProfileClient({ userId }: ProfileClientProps) {
       <div className="mb-8 flex items-start justify-between rounded-lg border border-border bg-card/50 p-6">
         <div className="flex items-center gap-4">
           <img
-            src={`/api/users/avatar?username=${profileUser.username}`}
+            src={`${API_BASE_URL}/api/users/avatar?username=${profileUser.username}`}
             alt={`${profileUser.username}'s avatar`}
             className="h-20 w-20 rounded-full"
           />

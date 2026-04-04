@@ -11,6 +11,7 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import type { UnreadUpdatePayload } from "../../lib/socket/events";
+import { api } from "../../lib/api-client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -88,11 +89,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
     const toggleSidebar = useCallback(() => setIsSidebarOpen((prev) => !prev), []);
     const refreshFriends = useCallback(() => setFriendsRefreshToken((t) => t + 1), []);
 
-    // Fetch initial unread count
+// Fetch initial unread count
     useEffect(() => {
         if (!user?.id) return;
-        fetch("/api/conversations/unread-count")
-            .then((r) => r.json())
+        api.get<{ unread_count: number }>("/api/conversations/unread-count")
             .then((data) => {
                 if (typeof data.unread_count === "number") {
                     setUnreadChatCount(data.unread_count);

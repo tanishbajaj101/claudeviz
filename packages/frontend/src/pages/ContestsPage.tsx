@@ -4,6 +4,7 @@ import { Trophy, Users, Clock, Plus, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getContestStatus, type ContestStatus } from '../lib/contest-status';
 import { CreateContestModal } from '../components/contests/CreateContestModal';
+import { api } from '../lib/api-client';
 
 interface ContestListItem {
   id: string;
@@ -16,8 +17,16 @@ interface ContestListItem {
   participant_count: number;
 }
 
+interface ContestListResponse {
+  contests: ContestListItem[];
+}
+
 interface MyContestItem extends ContestListItem {
   my_score: number;
+}
+
+interface MyContestResponse {
+  contests: MyContestItem[];
 }
 
 /**
@@ -37,19 +46,13 @@ export function ContestsPage() {
       try {
         // Fetch my contests if authenticated
         if (user) {
-          const myRes = await fetch('/api/contests/me');
-          if (myRes.ok) {
-            const data = await myRes.json();
-            setMyContests(data.contests || []);
-          }
+          const data = await api.get<MyContestResponse>('/api/contests/me');
+          setMyContests(data.contests || []);
         }
 
         // Fetch public contests
-        const publicRes = await fetch('/api/contests');
-        if (publicRes.ok) {
-          const data = await publicRes.json();
-          setPublicContests(data.contests || []);
-        }
+        const data = await api.get<ContestListResponse>('/api/contests');
+        setPublicContests(data.contests || []);
       } catch (error) {
         console.error('[ContestsPage] Error fetching contests:', error);
       } finally {
@@ -62,47 +65,34 @@ export function ContestsPage() {
 
   const handleJoinContest = async (contestId: string) => {
     try {
-      const res = await fetch(`/api/contests/${contestId}/join`, {
-        method: 'POST',
-      });
+      await api.post(`/api/contests/${contestId}/join`);
 
-      if (res.ok) {
-        // Refresh contest lists
-        const myRes = await fetch('/api/contests/me');
-        if (myRes.ok) {
-          const data = await myRes.json();
-          setMyContests(data.contests || []);
-        }
+      // Refresh contest lists
+      const myData = await api.get<MyContestResponse>('/api/contests/me');
+      setMyContests(myData.contests || []);
 
-        const publicRes = await fetch('/api/contests');
-        if (publicRes.ok) {
-          const data = await publicRes.json();
-          setPublicContests(data.contests || []);
-        }
-      } else {
-        const error = await res.json();
-        alert(error.error || 'Failed to join contest');
-      }
-    } catch (error) {
+      const publicData = await api.get<ContestListResponse>('/api/contests');
+      setPublicContests(publicData.contests || []);
+    } catch (error: any) {
       console.error('[ContestsPage] Error joining contest:', error);
-      alert('Failed to join contest');
+      alert(error.data?.error || 'Failed to join contest');
     }
   };
 
-  const handleContestCreated = () => {
+  const handleContestCreated = async () => {
     setShowCreateModal(false);
-    // Refresh contest lists
-    if (user) {
-      fetch('/api/contests/me')
-        .then((res) => res.json())
-        .then((data) => setMyContests(data.contests || []))
-        .catch(console.error);
-    }
+    try {
+      // Refresh contest lists
+      if (user) {
+        const myData = await api.get<MyContestResponse>('/api/contests/me');
+        setMyContests(myData.contests || []);
+      }
 
-    fetch('/api/contests')
-      .then((res) => res.json())
-      .then((data) => setPublicContests(data.contests || []))
-      .catch(console.error);
+      const publicData = await api.get<ContestListResponse>('/api/contests');
+      setPublicContests(publicData.contests || []);
+    } catch (error) {
+      console.error('[ContestsPage] Error refreshing contests after creation:', error);
+    }
   };
 
   if (authLoading || loading) {

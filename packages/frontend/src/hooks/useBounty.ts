@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNotificationSocket, useSocketEvent } from "./useSocket";
 import type { BountyInfo } from "@shared/types/socket";
+import { api } from "../lib/api-client";
 
 interface UseBountyReturn {
   bounty: BountyInfo | null;
   loading: boolean;
   timeRemaining: number; // seconds until expiry, 0 if expired
+}
+
+interface BountyResponse {
+  active: boolean;
+  problemId?: string;
+  expiresAt?: string;
 }
 
 export function useBounty(): UseBountyReturn {
@@ -17,9 +24,9 @@ export function useBounty(): UseBountyReturn {
   // Fetch initial bounty on mount
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/bounty/current")
-      .then((res) => res.json())
-      .then((data) => {
+    async function fetchBounty() {
+      try {
+        const data = await api.get<BountyResponse>("/api/bounty/current");
         if (cancelled) return;
         if (data.active) {
           const { active: _active, ...info } = data as { active: true } & BountyInfo;
@@ -27,11 +34,13 @@ export function useBounty(): UseBountyReturn {
         } else {
           setBounty(null);
         }
-      })
-      .catch(() => setBounty(null))
-      .finally(() => {
+      } catch (err) {
+        if (!cancelled) setBounty(null);
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    }
+    fetchBounty();
     return () => { cancelled = true; };
   }, []);
 

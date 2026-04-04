@@ -5,6 +5,8 @@ import { Search, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useFriends, type FriendEntry } from "./FriendsContext";
 
+import { api } from "../../lib/api-client";
+
 function formatLastActive(lastActive: string | null): string {
     if (!lastActive) return "long ago";
     // SQLite returns "YYYY-MM-DD HH:MM:SS" in UTC.
@@ -96,10 +98,10 @@ export function FriendsListView() {
 
     const fetchFriends = useCallback(async () => {
         try {
-            const res = await fetch("/api/friends");
-            if (!res.ok) return;
-            const data = await res.json() as { friends: FriendEntry[] };
+            const data = await api.get<{ friends: FriendEntry[] }>("/api/friends");
             if (mountedRef.current) setFriends(data.friends ?? []);
+        } catch {
+            // ignore
         } finally {
             if (mountedRef.current) setLoading(false);
         }
@@ -116,11 +118,10 @@ export function FriendsListView() {
         setActiveFriend(friend);
         // Get or create a direct conversation
         try {
-            const res = await fetch(`/api/conversations/direct?user_id=${friend.id}`);
-            if (res.ok) {
-                const data = await res.json() as { conversation: { id: string } };
-                setActiveConversationId(data.conversation.id);
-            }
+            const data = await api.get<{ conversation: { id: string } }>(
+                `/api/conversations/direct?user_id=${friend.id}`
+            );
+            setActiveConversationId(data.conversation.id);
         } catch {
             // fallback — conversation ID will be null, chat will show error state
         }

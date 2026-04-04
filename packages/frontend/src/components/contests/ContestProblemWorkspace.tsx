@@ -94,6 +94,8 @@ export function ContestProblemWorkspace({
     judge.submit(code, exampleCases, problem.judge0Limits);
   }, [code, problem, judge]);
 
+import { api } from "../../lib/api-client";
+
   const handleSubmit = useCallback(async () => {
     if (!isAuthenticated || status !== "active") return;
 
@@ -101,30 +103,23 @@ export function ContestProblemWorkspace({
     setSubmissionStatus("Submitting...");
 
     try {
-      const res = await fetch(`/api/contests/${contestId}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await api.post<{ submission: { is_correct: boolean; status: string } }>(
+        `/api/contests/${contestId}/submit`,
+        {
           problem_id: problem.id,
           code,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSubmissionStatus(data.submission.is_correct ? "Accepted" : data.submission.status);
-        if (data.submission.is_correct) {
-          setTimeout(() => {
-            navigate(`/contests/${contestId}`);
-          }, 2000);
         }
-      } else {
-        setSubmissionStatus("Submission failed: " + (data.error || "Unknown error"));
+      );
+
+      setSubmissionStatus(data.submission.is_correct ? "Accepted" : data.submission.status);
+      if (data.submission.is_correct) {
+        setTimeout(() => {
+          navigate(`/contests/${contestId}`);
+        }, 2000);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[ContestProblemWorkspace] Error:", err);
-      setSubmissionStatus("Submission failed");
+      setSubmissionStatus("Submission failed: " + (err.data?.error || "Unknown error"));
     } finally {
       setIsSubmitting(false);
     }

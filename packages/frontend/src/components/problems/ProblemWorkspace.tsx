@@ -78,11 +78,10 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
 
     const fetchSolvedStatus = async () => {
       try {
-        const res = await fetch(`/api/problems/${problem.id}/status`);
-        if (res.ok) {
-          const data = await res.json();
-          setSolvedStatus(data);
-        }
+        const data = await api.get<{ solved: boolean; solved_at: string | null }>(
+          `/api/problems/${problem.id}/status`
+        );
+        setSolvedStatus(data);
       } catch (err) {
         console.error("Failed to fetch solved status:", err);
       }
@@ -97,11 +96,7 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
 
     const trackActivity = async () => {
       try {
-        await fetch("/api/users/activity/problem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ problem_id: problem.id }),
-        });
+        await api.post("/api/users/activity/problem", { problem_id: problem.id });
       } catch (err) {
         console.error("Failed to track problem activity:", err);
       }
@@ -166,12 +161,11 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
         if (judge.allPassed) {
           console.log('[ProblemWorkspace] Refreshing solved status and friends list...');
           try {
-            const res = await fetch(`/api/problems/${problem.id}/status`);
-            if (res.ok) {
-              const data = await res.json();
-              setSolvedStatus(data);
-              console.log('[ProblemWorkspace] Solved status updated:', data);
-            }
+            const data = await api.get<{ solved: boolean; solved_at: string | null }>(
+              `/api/problems/${problem.id}/status`
+            );
+            setSolvedStatus(data);
+            console.log('[ProblemWorkspace] Solved status updated:', data);
 
             // Refresh friends list so sidebar shows "solved" status
             refreshFriends();

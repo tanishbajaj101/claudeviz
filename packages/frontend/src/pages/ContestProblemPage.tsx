@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, Lock } from 'lucide-react';
 import { getContestStatus } from '../lib/contest-status';
 import { ContestProblemWorkspace } from '../components/contests/ContestProblemWorkspace';
 import type { Problem } from '../types';
+import { api } from '../lib/api-client';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,15 +58,7 @@ export function ContestProblemPage() {
     if (!contestId || !problemId) return;
 
     try {
-      const res = await fetch(`/api/contests/${contestId}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setErrorMsg((data as { error?: string }).error ?? 'Contest not found');
-        setLoading(false);
-        return;
-      }
-
-      const data = await res.json() as { contest: ContestData };
+      const data = await api.get<{ contest: ContestData }>(`/api/contests/${contestId}`);
       const c = data.contest;
       setContest(c);
 
@@ -101,8 +94,8 @@ export function ContestProblemPage() {
       };
 
       setProblem(builtProblem);
-    } catch {
-      setErrorMsg('Failed to load contest data');
+    } catch (err: any) {
+      setErrorMsg(err.data?.error || 'Failed to load contest data');
     } finally {
       setLoading(false);
     }

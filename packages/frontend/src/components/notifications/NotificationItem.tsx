@@ -2,6 +2,7 @@ import { useState } from "react";
 import { UserPlus, Trophy, CircleDot, CheckCircle2 } from "lucide-react";
 import { DbNotification } from "./NotificationsDropdown";
 import { Link, useNavigate } from "react-router-dom";
+import { api } from "../../lib/api-client";
 
 export function NotificationItem({
   notification,
@@ -21,9 +22,7 @@ export function NotificationItem({
   const markRead = async () => {
     if (is_read) return;
     try {
-      await fetch(`/api/notifications/${notification.id}/read`, {
-        method: "POST",
-      });
+      await api.post(`/api/notifications/${notification.id}/read`);
       onUpdate(notification.id, true);
     } catch (e) {
       console.error("Failed to mark notification as read:", e);
@@ -44,14 +43,11 @@ export function NotificationItem({
           ? `/api/friends/${friendRequestId}/accept`
           : `/api/friends/${friendRequestId}/reject`;
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-      });
-
-      if (res.ok) {
-        // Remove the notification from UI immediately
-        onRemove(notification.id);
-      }
+      await api.post(endpoint);
+      // Remove the notification from UI immediately
+      onRemove(notification.id);
+    } catch (e) {
+      console.error("Failed to respond to friend request:", e);
     } finally {
       setLoading(false);
     }
@@ -61,14 +57,13 @@ export function NotificationItem({
     setLoading(true);
     try {
       const contestId = data.contest_id as string;
-      const res = await fetch(`/api/contests/${contestId}/join`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        setActionResult("Joined Contest!");
-        markRead();
-        navigate(`/contests/${contestId}`);
-      }
+      await api.post(`/api/contests/${contestId}/join`);
+      setActionResult("Joined Contest!");
+      markRead();
+      navigate(`/contests/${contestId}`);
+    } catch (e: any) {
+      console.error("Failed to join contest:", e);
+      alert(e.data?.error || "Failed to join contest");
     } finally {
       setLoading(false);
     }

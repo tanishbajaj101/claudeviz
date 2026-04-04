@@ -21,13 +21,12 @@ export function InviteFriendsDropdown({ contestId }: InviteFriendsDropdownProps)
   const [invitingIds, setInvitingIds] = useState<Set<number>>(new Set());
   const [invitedIds, setInvitedIds] = useState<Set<number>>(new Set());
 
+import { api } from "../../lib/api-client";
+
   const fetchFriends = useCallback(async () => {
     try {
-      const res = await fetch("/api/friends");
-      if (res.ok) {
-        const data = await res.json() as { friends: Friend[] };
-        setFriends(data.friends ?? []);
-      }
+      const data = await api.get<{ friends: Friend[] }>("/api/friends");
+      setFriends(data.friends ?? []);
     } catch { /* ignore */ }
   }, []);
 
@@ -49,14 +48,8 @@ export function InviteFriendsDropdown({ contestId }: InviteFriendsDropdownProps)
   const handleInvite = async (friendId: number) => {
     setInvitingIds(prev => new Set(prev).add(friendId));
     try {
-      const res = await fetch(`/api/contests/${contestId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "invite", friendId })
-      });
-      if (res.ok) {
-        setInvitedIds(prev => new Set(prev).add(friendId));
-      }
+      await api.post(`/api/contests/${contestId}`, { action: "invite", friendId });
+      setInvitedIds(prev => new Set(prev).add(friendId));
     } catch (err) {
       console.error("Failed to invite friend:", err);
     } finally {
@@ -97,7 +90,7 @@ export function InviteFriendsDropdown({ contestId }: InviteFriendsDropdownProps)
                     <div className="flex items-center gap-2">
                       <div className="relative">
                         <img
-                          src={`/api/users/avatar?username=${friend.username}`}
+                          src={`${API_BASE_URL}/api/users/avatar?username=${friend.username}`}
                           alt={friend.username}
                           className="h-6 w-6 rounded-full bg-muted"
                         />

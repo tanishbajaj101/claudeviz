@@ -1,7 +1,6 @@
-"use client";
-
 import { useState } from "react";
 import { TestCase, Judge0Limits, SubmissionResult } from "@/types";
+import { api } from "../lib/api-client";
 
 interface UseJudgeReturn {
   results: SubmissionResult[];
@@ -10,6 +9,11 @@ interface UseJudgeReturn {
   error: string | null;
   submit: (sourceCode: string, testCases: TestCase[], limits: Judge0Limits) => Promise<void>;
   reset: () => void;
+}
+
+interface JudgeResponse {
+  results: SubmissionResult[];
+  allPassed: boolean;
 }
 
 export function useJudge(): UseJudgeReturn {
@@ -29,31 +33,17 @@ export function useJudge(): UseJudgeReturn {
     setAllPassed(null);
 
     try {
-      const response = await fetch("/api/judge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sourceCode,
-          languageId: 54,
-          testCases,
-          judge0Limits: limits,
-        }),
+      const data = await api.post<JudgeResponse>("/api/judge", {
+        sourceCode,
+        languageId: 54,
+        testCases,
+        judge0Limits: limits,
       });
-
-      if (!response.ok) {
-        const errData = (await response.json()) as { error: string };
-        throw new Error(errData.error);
-      }
-
-      const data = (await response.json()) as {
-        results: SubmissionResult[];
-        allPassed: boolean;
-      };
 
       setResults(data.results);
       setAllPassed(data.allPassed);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Submission failed");
+    } catch (err: any) {
+      setError(err.data?.error || err.message || "Submission failed");
     } finally {
       setLoading(false);
     }

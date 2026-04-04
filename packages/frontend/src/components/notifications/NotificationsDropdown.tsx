@@ -6,6 +6,8 @@ import { NotificationItem } from "./NotificationItem";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNotificationSocket, useSocketEvent } from "../../hooks/useSocket";
 
+import { api } from "../../lib/api-client";
+
 export interface DbNotification {
   id: string;
   user_id: number;
@@ -25,11 +27,8 @@ export function NotificationsDropdown() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch("/api/notifications");
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications || []);
-      }
+      const data = await api.get<{ notifications: DbNotification[] }>("/api/notifications");
+      setNotifications(data.notifications || []);
     } catch (e) {
       console.error("Failed to fetch notifications");
     }
@@ -37,11 +36,8 @@ export function NotificationsDropdown() {
 
   const fetchUnreadCount = async () => {
     try {
-      const res = await fetch("/api/notifications/unread-count");
-      if (res.ok) {
-        const data = await res.json();
-        setUnreadCount(data.unread_count || 0);
-      }
+      const data = await api.get<{ unread_count: number }>("/api/notifications/unread-count");
+      setUnreadCount(data.unread_count || 0);
     } catch (e) {
       console.error("Failed to fetch unread count");
     }
@@ -97,13 +93,9 @@ export function NotificationsDropdown() {
   const markAllAsRead = async () => {
     if (unreadCount === 0) return;
     try {
-      const res = await fetch("/api/notifications/read-all", {
-        method: "POST",
-      });
-      if (res.ok) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-        setUnreadCount(0);
-      }
+      await api.post("/api/notifications/read-all");
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
     } catch (e) {
       console.error(e);
     }

@@ -164,9 +164,10 @@ export function CreateContestModal({
     setCalendarYear(newYear);
   };
 
+import { api } from "../../lib/api-client";
+
   useEffect(() => {
-    fetch("/api/friends")
-      .then((res) => res.json())
+    api.get<{ friends: Friend[] }>("/api/friends")
       .then((data) => setFriends(data.friends || []))
       .catch(console.error);
   }, []);
@@ -224,32 +225,23 @@ export function CreateContestModal({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/contests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          is_public: false,
-          starts_at: startsAt.toISOString(),
-          duration_minutes: duration,
-          problems: problemSlots.map((slot) => ({
-            difficulty: slot.difficulty,
-            topics: [...globalTopics],
-          })),
-          invited_user_ids:
-            selectedFriends.length > 0 ? selectedFriends : undefined,
-        }),
+      await api.post("/api/contests", {
+        title: title.trim(),
+        is_public: false,
+        starts_at: startsAt.toISOString(),
+        duration_minutes: duration,
+        problems: problemSlots.map((slot) => ({
+          difficulty: slot.difficulty,
+          topics: [...globalTopics],
+        })),
+        invited_user_ids:
+          selectedFriends.length > 0 ? selectedFriends : undefined,
       });
 
-      if (res.ok) {
-        onSuccess();
-      } else {
-        const data = await res.json();
-        setError(data.error || "Failed to create contest");
-      }
-    } catch (err) {
+      onSuccess();
+    } catch (err: any) {
       console.error("[CreateContestModal] Error:", err);
-      setError("Failed to create contest");
+      setError(err.data?.error || "Failed to create contest");
     } finally {
       setLoading(false);
     }

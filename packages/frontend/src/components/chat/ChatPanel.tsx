@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { ChatMessage, ProblemContext, VisualizationData } from "../../types";
 import { VisualizationRenderer } from "../../components/chat/VisualizationRenderer";
 import { saveChatHistory, loadChatHistory } from "../../lib/chat-storage";
+import { API_BASE_URL } from "../../lib/api-client";
 
 interface ChatPanelProps {
   problemId: string;
@@ -52,10 +53,11 @@ export function ChatPanel({ problemId, problemContext, isAuthenticated }: ChatPa
     ]);
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage, problemContext, history }),
+        credentials: "include",
       });
 
       if (!response.ok || !response.body) {

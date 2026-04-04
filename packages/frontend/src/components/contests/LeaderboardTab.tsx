@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Trophy, Loader2 } from "lucide-react";
 import { useContestSocket, useSocketEvent } from "../../hooks/useSocket";
 import type { LeaderboardEntry, LeaderboardUpdatePayload } from "../../lib/socket/events";
+import { api } from "../../lib/api-client";
 
 interface LeaderboardTabProps {
   contestId: string;
@@ -17,8 +18,7 @@ export function LeaderboardTab({ contestId, currentUserId }: LeaderboardTabProps
 
   // Fetch initial leaderboard
   useEffect(() => {
-    fetch(`/api/contests/${contestId}/leaderboard`)
-      .then((res) => res.json())
+    api.get<{ leaderboard: LeaderboardEntry[] }>(`/api/contests/${contestId}/leaderboard`)
       .then((data) => {
         setLeaderboard(data.leaderboard || []);
         setLoading(false);

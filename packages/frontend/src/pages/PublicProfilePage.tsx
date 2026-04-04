@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { ProfileClient } from '../components/profile/ProfileClient';
+import { api } from '../lib/api-client';
 
 /**
  * Public profile page - fetches user by username and renders ProfileClient
@@ -24,21 +25,15 @@ export function PublicProfilePage() {
         setError(null);
 
         // Fetch user ID by username
-        const res = await fetch(`/api/users/by-username/${encodeURIComponent(username)}`);
-        if (!res.ok) {
-          if (res.status === 404) {
-            setError('User not found');
-          } else {
-            setError('Failed to fetch user');
-          }
-          return;
-        }
-
-        const data = await res.json();
+        const data = await api.get<{ id: number }>(`/api/users/by-username/${encodeURIComponent(username)}`);
         setUserId(data.id);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching user:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        if (err.status === 404) {
+          setError('User not found');
+        } else {
+          setError(err.message || 'Failed to fetch user');
+        }
       } finally {
         setLoading(false);
       }

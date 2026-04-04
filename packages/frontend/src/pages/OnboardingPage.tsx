@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../lib/api-client';
+import { api, API_BASE_URL } from '../lib/api-client';
 import {
   Dices,
   Eye,
@@ -153,7 +153,7 @@ export function OnboardingPage() {
   // Fetch avatar whenever any param changes
   useEffect(() => {
     const params = new URLSearchParams({ seed, eyes, face, mouth, sides, top, texture, baseColor });
-    fetch(`/api/avatar?${params}`)
+    fetch(`${API_BASE_URL}/api/avatar?${params}`)
       .then((res) => res.text())
       .then((svg) => setAvatarSvg(svg))
       .catch((err) => console.error('Failed to fetch avatar:', err));
@@ -247,11 +247,8 @@ export function OnboardingPage() {
 
     checkTimeoutRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(username)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setUsernameStatus(data.available ? 'available' : 'taken');
-        }
+        const data = await api.get<{ available: boolean }>(`/api/users/check-username?username=${encodeURIComponent(username)}`);
+        setUsernameStatus(data.available ? 'available' : 'taken');
       } catch {
         setUsernameStatus('idle');
       }

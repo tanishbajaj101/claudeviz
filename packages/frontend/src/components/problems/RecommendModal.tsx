@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, Search, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { Problem } from "../../types";
+import { api } from "../../lib/api-client";
 
 interface FriendEntry {
     id: number;
@@ -28,11 +29,8 @@ export function RecommendModal({ problem, onClose }: RecommendModalProps) {
 
     const fetchFriends = useCallback(async () => {
         try {
-            const res = await fetch("/api/friends");
-            if (res.ok) {
-                const data = await res.json() as { friends: FriendEntry[] };
-                setFriends(data.friends ?? []);
-            }
+            const data = await api.get<{ friends: FriendEntry[] }>("/api/friends");
+            setFriends(data.friends ?? []);
         } catch { /* ignore */ }
     }, []);
 
@@ -60,34 +58,29 @@ export function RecommendModal({ problem, onClose }: RecommendModalProps) {
             // For each selected friend, get/create a direct conversation then send the message
             const promises = Array.from(selectedFriends).map(async (friendId) => {
                 // Get or create conversation
-                const convRes = await fetch(`/api/conversations/direct?user_id=${friendId}`);
-                if (!convRes.ok) throw new Error("Could not open conversation");
-                const convData = await convRes.json() as { conversation: { id: string } };
+                const convData = await api.get<{ conversation: { id: string } }>(
+                    `/api/conversations/direct?user_id=${friendId}`
+                );
                 const convId = convData.conversation.id;
 
                 // Send problem recommendation message
-                const msgRes = await fetch(`/api/conversations/${convId}/messages`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        type: "problem_recommendation",
-                        content: note || `Check out this problem: ${problem.title}`,
-                        metadata: {
-                            problem_id: problem.id,
-                            problem_name: problem.title,
-                            difficulty: problem.difficulty,
-                            note: note || undefined,
-                        },
-                    }),
+                await api.post(`/api/conversations/${convId}/messages`, {
+                    type: "problem_recommendation",
+                    content: note || `Check out this problem: ${problem.title}`,
+                    metadata: {
+                        problem_id: problem.id,
+                        problem_name: problem.title,
+                        difficulty: problem.difficulty,
+                        note: note || undefined,
+                    },
                 });
-                if (!msgRes.ok) throw new Error("Failed to send recommendation");
             });
 
             await Promise.all(promises);
             setSuccess(true);
             setTimeout(() => { onClose(); }, 1500);
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Failed to recommend problem");
+        } catch (err: any) {
+            setError(err.message || "Failed to recommend problem");
         } finally {
             setSending(false);
         }
@@ -147,10 +140,11 @@ export function RecommendModal({ problem, onClose }: RecommendModalProps) {
                                             <div className="flex items-center gap-3">
                                                 <div className="relative">
                                                     <img
-                                                        src={`/api/users/avatar?username=${friend.username}`}
+                                                        src={`${API_BASE_URL}/api/users/avatar?username=${friend.username}`}
                                                         alt={friend.username}
-                                                        className="h-8 w-8 rounded-full bg-muted"
+                                                        className="h-9 w-9 rounded-full bg-muted"
                                                     />
+
                                                     <div className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-zinc-900 ${friend.is_online ? "bg-primary" : "bg-zinc-500"}`} />
                                                 </div>
                                                 <div className="text-left flex flex-col">

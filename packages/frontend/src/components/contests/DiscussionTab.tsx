@@ -5,6 +5,7 @@ import { Send, Loader2, MessageSquare } from "lucide-react";
 import { useChatSocket, useSocketEvent } from "../../hooks/useSocket";
 import { getContestStatus, type ContestStatus } from "../../lib/contest-status";
 import type { MessageNewPayload } from "../../lib/socket/events";
+import { api } from "../../lib/api-client";
 
 interface Message {
   id: string;
@@ -56,8 +57,7 @@ export function DiscussionTab({
   useEffect(() => {
     if (!conversationId) return;
 
-    fetch(`/api/conversations/${conversationId}/messages?limit=100`)
-      .then((res) => res.json())
+    api.get<{ messages: Array<Record<string, unknown>> }>(`/api/conversations/${conversationId}/messages?limit=100`)
       .then((data) => {
         const messagesList = data.messages || [];
         setMessages(
@@ -127,24 +127,14 @@ export function DiscussionTab({
     setSendingMessage(true);
 
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "text",
-          content: messageInput.trim(),
-        }),
+      await api.post(`/api/conversations/${conversationId}/messages`, {
+        type: "text",
+        content: messageInput.trim(),
       });
-
-      if (res.ok) {
-        setMessageInput("");
-      } else {
-        const error = await res.json();
-        alert(error.error || "Failed to send message");
-      }
-    } catch (err) {
+      setMessageInput("");
+    } catch (err: any) {
       console.error("[DiscussionTab] Error sending message:", err);
-      alert("Failed to send message");
+      alert(err.data?.error || "Failed to send message");
     } finally {
       setSendingMessage(false);
     }

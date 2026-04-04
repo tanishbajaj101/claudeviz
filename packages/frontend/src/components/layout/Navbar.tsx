@@ -6,6 +6,7 @@ import { Home, User, Trophy, Users, MessageSquare, Code2 } from "lucide-react";
 import { useFriends } from "../../components/friends/FriendsContext";
 import { NotificationsDropdown } from "../../components/notifications/NotificationsDropdown";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { API_BASE_URL } from "../../lib/api-client";
 
 export function Navbar() {
   const { user, signIn, signOut } = useAuth();
@@ -103,7 +104,7 @@ export function Navbar() {
               >
                 {user.username && (
                   <img
-                    src={`/api/users/avatar?username=${user.username}`}
+                    src={`${API_BASE_URL}/api/users/avatar?username=${user.username}`}
                     alt="User Avatar"
                     className="h-6 w-6 rounded-full"
                   />

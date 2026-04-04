@@ -8,6 +8,8 @@ import { MessageRenderer } from "./MessageRenderer";
 import { useChatSocket, useSocketEvent } from "../../hooks/useSocket";
 import type { MessagePayload, MessageNewPayload } from "../../lib/socket/events";
 
+import { api } from "../../lib/api-client";
+
 interface ApiMessage {
     id: string;
     conversation_id: string;
@@ -17,6 +19,12 @@ interface ApiMessage {
     content: string;
     metadata: Record<string, unknown> | null;
     created_at: string;
+}
+
+interface MessagesResponse {
+    messages: ApiMessage[];
+    has_more: boolean;
+    cursor: { before?: string };
 }
 
 function apiToPayload(m: ApiMessage): MessagePayload {
@@ -63,13 +71,7 @@ export function SidebarChat() {
     const fetchMessages = useCallback(async () => {
         if (!convId) return;
         try {
-            const res = await fetch(`/api/conversations/${convId}/messages?limit=40`);
-            if (!res.ok) return;
-            const data = await res.json() as {
-                messages: ApiMessage[];
-                has_more: boolean;
-                cursor: { before?: string };
-            };
+            const data = await api.get<MessagesResponse>(`/api/conversations/${convId}/messages?limit=40`);
             const msgs = data.messages.map(apiToPayload);
             if (mountedRef.current) {
                 setMessages(msgs);
@@ -85,7 +87,7 @@ export function SidebarChat() {
     const markRead = useCallback(async () => {
         if (!convId) return;
         try {
-            await fetch(`/api/conversations/${convId}/read`, { method: "POST" });
+            await api.post(`/api/conversations/${convId}/read`);
             // unread_update event from server will refresh the count
             refreshFriends();
         } catch { /* best effort */ }
@@ -141,13 +143,7 @@ export function SidebarChat() {
         setLoadingMore(true);
         const prevScrollHeight = scrollRef.current?.scrollHeight ?? 0;
         try {
-            const res = await fetch(`/api/conversations/${convId}/messages?before=${oldestCursor}&limit=30`);
-            if (!res.ok) return;
-            const data = await res.json() as {
-                messages: ApiMessage[];
-                has_more: boolean;
-                cursor: { before?: string };
-            };
+            const data = await api.get<MessagesResponse>(`/api/conversations/${convId}/messages?before=${oldestCursor}&limit=30`);
             const msgs = data.messages.map(apiToPayload);
             setMessages((prev) => [...msgs, ...prev]);
             setHasMore(data.has_more);
@@ -170,20 +166,16 @@ export function SidebarChat() {
         setText("");
         setSending(true);
         try {
-            const res = await fetch(`/api/conversations/${convId}/messages`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "text", content }),
+            const data = await api.post<{ message: ApiMessage }>(`/api/conversations/${convId}/messages`, {
+                type: "text",
+                content,
             });
-            if (res.ok) {
-                const data = await res.json() as { message: ApiMessage };
-                const msg = apiToPayload(data.message);
-                setMessages((prev) => {
-                    if (prev.some((m) => m.id === msg.id)) return prev;
-                    return [...prev, msg];
-                });
-                setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-            }
+            const msg = apiToPayload(data.message);
+            setMessages((prev) => {
+                if (prev.some((m) => m.id === msg.id)) return prev;
+                return [...prev, msg];
+            });
+            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
         } finally {
             setSending(false);
         }

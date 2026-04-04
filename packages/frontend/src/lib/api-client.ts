@@ -5,7 +5,7 @@
  * common error cases like 401 Unauthorized.
  */
 
-let API_BASE_URL = import.meta.env.VITE_API_URL;
+export let API_BASE_URL = import.meta.env.VITE_API_URL;
 
 if (!API_BASE_URL) {
   // In production, we assume same-origin if no URL provided
