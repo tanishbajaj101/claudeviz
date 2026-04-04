@@ -5,7 +5,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { UserPlus, Check, Clock, Loader2, MessageSquare } from "lucide-react";
-import { api } from "../../lib/api-client";
+import { api, API_BASE_URL } from "../../lib/api-client";
 
 interface UserProfile {
   user: {
