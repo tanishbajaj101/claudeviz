@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, Search, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { Problem } from "../../types";
-import { api } from "../../lib/api-client";
+import { api, API_BASE_URL } from "../../lib/api-client";
 
 interface FriendEntry {
     id: number;

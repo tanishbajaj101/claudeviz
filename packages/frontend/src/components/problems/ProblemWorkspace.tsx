@@ -12,6 +12,7 @@ import { useJudge } from "../../hooks/useJudge";
 import { useSubmissions } from "../../hooks/useSubmissions";
 import { useFriends } from "../friends/FriendsContext";
 import { Lock, Share2 } from "lucide-react";
+import { api } from "../../lib/api-client";
 
 const AI_COACH_UNLOCK_MS = 3 * 60 * 1000;
 const AI_COACH_TIMER_KEY_PREFIX = "algoarena-ai-coach-start-";

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { UserPlus, Check, Loader2 } from "lucide-react";
+import { api, API_BASE_URL } from "../../lib/api-client";
 
 interface Friend {
   id: number;
@@ -20,8 +21,6 @@ export function InviteFriendsDropdown({ contestId }: InviteFriendsDropdownProps)
   const [friends, setFriends] = useState<Friend[]>([]);
   const [invitingIds, setInvitingIds] = useState<Set<number>>(new Set());
   const [invitedIds, setInvitedIds] = useState<Set<number>>(new Set());
-
-import { api } from "../../lib/api-client";
 
   const fetchFriends = useCallback(async () => {
     try {

@@ -15,6 +15,7 @@ import { DiscussionTab } from "../../components/contests/DiscussionTab";
 import { ResizeHandle } from "../../components/ui/ResizeHandle";
 import { getContestStatus, type ContestStatus } from "../../lib/contest-status";
 import { useJudge } from "../../hooks/useJudge";
+import { api } from "../../lib/api-client";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   3: { label: "Accepted", color: "text-emerald-400" },
@@ -93,8 +94,6 @@ export function ContestProblemWorkspace({
     const exampleCases = problem.testCases.slice(0, problem.examples.length);
     judge.submit(code, exampleCases, problem.judge0Limits);
   }, [code, problem, judge]);
-
-import { api } from "../../lib/api-client";
 
   const handleSubmit = useCallback(async () => {
     if (!isAuthenticated || status !== "active") return;

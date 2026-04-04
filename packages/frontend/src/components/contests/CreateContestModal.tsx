@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { problems } from "../../data/problems";
+import { api } from "../../lib/api-client";
 
 interface CreateContestModalProps {
   onClose: () => void;
@@ -164,11 +165,9 @@ export function CreateContestModal({
     setCalendarYear(newYear);
   };
 
-import { api } from "../../lib/api-client";
-
   useEffect(() => {
     api.get<{ friends: Friend[] }>("/api/friends")
-      .then((data) => setFriends(data.friends || []))
+      .then((data: { friends: Friend[] }) => setFriends(data.friends || []))
       .catch(console.error);
   }, []);
 
