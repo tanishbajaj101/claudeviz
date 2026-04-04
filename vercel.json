@@ -1,14 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://claudeviz-production.up.railway.app/api/:path*"
-    },
-    {
-      "source": "/socket.io/:path*",
-      "destination": "https://claudeviz-production.up.railway.app/socket.io/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
