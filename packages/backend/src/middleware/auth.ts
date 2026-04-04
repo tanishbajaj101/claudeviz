@@ -54,7 +54,7 @@ export async function authenticate(
     }
 
     // Verify JWT token
-    const secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+    const secret = process.env.JWT_SECRET!;
     const decoded = jwt.verify(token, secret) as TokenPayload;
 
     // Guard against old tokens that lack dbUserId
@@ -109,7 +109,7 @@ export async function optionalAuth(
       return;
     }
 
-    const secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+    const secret = process.env.JWT_SECRET!;
     const decoded = jwt.verify(token, secret) as TokenPayload;
     if (decoded.dbUserId) {
       const user = await getUserById(decoded.dbUserId);

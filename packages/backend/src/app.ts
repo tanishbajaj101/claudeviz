@@ -46,14 +46,14 @@ app.use(cookieParser());
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'dev-secret-change-in-production',
+    secret: process.env.SESSION_SECRET || process.env.JWT_SECRET!,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      sameSite: 'none',
     },
   })
 );
@@ -62,14 +62,6 @@ app.use(
 configurePassport();
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Request logging middleware (development only)
-if (process.env.NODE_ENV === 'development') {
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-  });
-}
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -99,13 +91,10 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);
 
   const statusCode = (err as any).statusCode || 500;
-  const message = process.env.NODE_ENV === 'production'
-    ? 'Internal server error'
-    : err.message;
+  const message = 'Internal server error';
 
   res.status(statusCode).json({
-    error: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    error: message
   });
 });
 

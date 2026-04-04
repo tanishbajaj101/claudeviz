@@ -62,10 +62,7 @@ export function initializeSocketIO(httpServer: HttpServer): Server {
 
   const io = new Server(httpServer, {
     cors: {
-      origin:
-        process.env.NODE_ENV === 'production'
-          ? (process.env.FRONTEND_URL ?? false)
-          : '*',
+      origin: process.env.FRONTEND_URL ?? false,
       methods: ['GET', 'POST'],
       credentials: true,
     },

@@ -13,7 +13,7 @@ import type { DbUser } from '../lib/db.js';
 const router = Router();
 
 // Ensure FRONTEND_URL is absolute
-let FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+let FRONTEND_URL = process.env.FRONTEND_URL!;
 if (FRONTEND_URL && !FRONTEND_URL.startsWith('http')) {
   FRONTEND_URL = `https://${FRONTEND_URL}`;
 }
@@ -58,14 +58,14 @@ router.get(
             email: user.email,
             name: user.name,
           },
-          process.env.JWT_SECRET || 'dev-secret-change-in-production',
+          process.env.JWT_SECRET!,
           { expiresIn: '1h' }
         );
 
         res.cookie('auth-token', pendingToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          secure: true,
+          sameSite: 'none',
           maxAge: 60 * 60 * 1000, // 1 hour for onboarding
         });
 
@@ -82,15 +82,15 @@ router.get(
           email: user.email,
           name: user.name,
         },
-        process.env.JWT_SECRET || 'dev-secret-change-in-production',
+        process.env.JWT_SECRET!,
         { expiresIn: '7d' }
       );
 
       // Set cookie
       res.cookie('auth-token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -120,7 +120,7 @@ router.get('/session', async (req: Request, res: Response) => {
   }
 
   try {
-    const secret = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+    const secret = process.env.JWT_SECRET!;
     const decoded = jwt.verify(token, secret) as any;
 
     // Pending users haven't completed onboarding yet — no DB record exists
@@ -177,8 +177,8 @@ router.get('/session', async (req: Request, res: Response) => {
 router.post('/logout', (req: Request, res: Response) => {
   res.clearCookie('auth-token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true,
+    sameSite: 'none',
   });
 
   res.json({ success: true, message: 'Logged out successfully' });

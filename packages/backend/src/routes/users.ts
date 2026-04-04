@@ -107,7 +107,7 @@ router.post('/', async (req: Request, res: Response) => {
 
   let decoded: any;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-change-in-production');
+    decoded = jwt.verify(token, process.env.JWT_SECRET!);
   } catch (err) {
     res.status(401).json({ error: 'Unauthorized: Invalid token' });
     return;
@@ -175,15 +175,15 @@ router.post('/', async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
       },
-      process.env.JWT_SECRET || 'dev-secret-change-in-production',
+      process.env.JWT_SECRET!,
       { expiresIn: '7d' }
     );
 
     // Set cookie
     res.cookie('auth-token', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: true,
+      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 

@@ -34,7 +34,7 @@ export function configurePassport() {
       {
         clientID: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/api/auth/google/callback',
+        callbackURL: process.env.GOOGLE_CALLBACK_URL!,
       },
       async (accessToken, refreshToken, profile: GoogleProfile, done) => {
         try {
@@ -76,7 +76,7 @@ export function configurePassport() {
       // Then try Authorization header
       ExtractJwt.fromAuthHeaderAsBearerToken(),
     ]),
-    secretOrKey: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+    secretOrKey: process.env.JWT_SECRET!,
   };
 
   passport.use(
