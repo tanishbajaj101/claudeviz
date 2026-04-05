@@ -171,6 +171,19 @@ VITE_API_URL=http://localhost:3001
 VITE_SOCKET_URL=http://localhost:3001
 ```
 
+**Production env vars (Railway backend):**
+```bash
+NODE_ENV=production
+FRONTEND_URL=https://codetracer.vercel.app
+GOOGLE_CALLBACK_URL=https://claudeviz-production.up.railway.app/api/auth/google/callback
+```
+
+**Production env vars (Vercel frontend):**
+```bash
+VITE_API_URL=https://claudeviz-production.up.railway.app
+VITE_SOCKET_URL=https://claudeviz-production.up.railway.app
+```
+
 ## Critical Rules
 
 1. **Problem data:** From `packages/frontend/src/data/problems/` or `packages/backend/src/data/problems/` only — never hardcoded in components
@@ -229,33 +242,27 @@ Statuses: 3=Accepted, 4=WrongAnswer, 5=TLE, 6=CompileError, 7=SIGSEGV, 9=SIGFPE,
 
 ## Production Deployment
 
-**Architecture:** Single server with Nginx reverse proxy
+**Architecture:** Split deployment — Vercel (frontend) + Railway (backend)
 
-```nginx
-# Frontend: Nginx serves static files from packages/frontend/dist
-location / {
-    root /var/www/algoarena/frontend/dist;
-    try_files $uri $uri/ /index.html;
-}
+| Service | Platform | URL |
+|---------|----------|-----|
+| Frontend (Vite SPA) | Vercel | https://codetracer.vercel.app |
+| Backend (Express + Socket.IO) | Railway | https://claudeviz-production.up.railway.app |
+| Database | Supabase | PostgreSQL |
 
-# Backend API: Proxy to Express (port 3001)
-location /api/ {
-    proxy_pass http://localhost:3001;
-}
+**Config files:**
+- `vercel.json` (root) — SPA rewrite: `/*` → `/index.html`
+- `packages/backend/railway.toml` — build, migrate, start commands + health check at `/health`
 
-# Socket.IO: WebSocket proxy
-location /socket.io/ {
-    proxy_pass http://localhost:3001;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-}
-```
+**Cross-domain setup (required for split deployment):**
+- CORS: `FRONTEND_URL=https://codetracer.vercel.app` on Railway → `cors.ts` whitelists it with `credentials: true`
+- Cookies: `sameSite: 'none'`, `secure: true` — required for cross-origin cookie transmission
+- Frontend API calls: `credentials: 'include'` in all fetch requests (`api-client.ts`)
+- Socket.IO auth: JWT from cookie + `withCredentials: true` on handshake
 
-**Build steps:**
-1. `npm run build` — Builds shared types, backend, and frontend
-2. Backend runs as PM2/systemd service on port 3001
-3. Nginx serves frontend static files and proxies API/WebSocket to backend
+**Build & deploy:**
+- Frontend: push to main → Vercel auto-builds with `vite build`
+- Backend: push to main → Railway runs `npm run build -w @algoarena/shared && npm run build -w @algoarena/backend`, then `npx prisma migrate deploy`, then starts server
 
 ## Specialized Docs
 

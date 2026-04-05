@@ -66,6 +66,7 @@ router.get(
           httpOnly: true,
           secure: true,
           sameSite: 'none',
+          path: '/',
           maxAge: 60 * 60 * 1000, // 1 hour for onboarding
         });
 
@@ -91,6 +92,7 @@ router.get(
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -179,6 +181,7 @@ router.post('/logout', (req: Request, res: Response) => {
     httpOnly: true,
     secure: true,
     sameSite: 'none',
+    path: '/',
   });
 
   res.json({ success: true, message: 'Logged out successfully' });

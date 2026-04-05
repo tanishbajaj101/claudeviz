@@ -16,6 +16,7 @@ model User {
   username                String                    @unique
   avatar_svg              String
   xp                      Int                       @default(0)
+  bio                     String?
   created_at              DateTime                  @default(now())
   last_opened_problem_id  String?
   last_active             DateTime?

@@ -184,6 +184,7 @@ router.post('/', async (req: Request, res: Response) => {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -376,6 +377,37 @@ router.get('/by-username/:username', async (req: Request, res: Response) => {
 });
 
 /**
+ * PATCH /api/users/me
+ * Update current user's bio
+ */
+router.patch('/me', authenticate, async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const { bio } = req.body as { bio?: unknown };
+
+  if (bio !== undefined) {
+    if (typeof bio !== 'string') {
+      res.status(400).json({ error: 'bio must be a string' });
+      return;
+    }
+    if (bio.length > 75) {
+      res.status(400).json({ error: 'bio must be 75 characters or fewer' });
+      return;
+    }
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { bio: bio !== undefined ? bio.trim() : undefined },
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('[PATCH /api/users/me] Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * GET /api/users/:id
  * Get public user profile with stats and activity heatmap
  * Authentication optional (affects friendship_status field)
@@ -395,10 +427,10 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
   }
 
   try {
-    // Fetch xp from Prisma user record
+    // Fetch xp and bio from Prisma user record
     const prismaUser = await prisma.user.findUnique({
       where: { id: targetId },
-      select: { xp: true },
+      select: { xp: true, bio: true },
     });
 
     // Fetch all submissions
@@ -447,9 +479,45 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
     const activityHeatmap = generateActivityHeatmap(accepted);
 
     // Friendship status (only when requester is authenticated)
+    const viewerId = req.user?.id;
     let friendshipStatus: FriendshipStatus = "none";
-    if (req.user) {
-      friendshipStatus = await getFriendshipStatus(req.user.id, targetId);
+    if (viewerId) {
+      friendshipStatus = await getFriendshipStatus(viewerId, targetId);
+    }
+
+    // Mutual friends (viewer and profile user's shared friends)
+    let mutual_friends: Array<{ id: number; username: string; avatar_svg: string }> = [];
+    if (viewerId && viewerId !== targetId) {
+      const profileFriendships = await prisma.friendRequest.findMany({
+        where: { status: 'accepted', OR: [{ sender_id: targetId }, { receiver_id: targetId }] },
+        select: { sender_id: true, receiver_id: true },
+      });
+      const profileFriendIds = profileFriendships.map(f =>
+        f.sender_id === targetId ? f.receiver_id : f.sender_id
+      );
+
+      if (profileFriendIds.length > 0) {
+        const mutualFriendships = await prisma.friendRequest.findMany({
+          where: {
+            status: 'accepted',
+            OR: [
+              { sender_id: viewerId, receiver_id: { in: profileFriendIds } },
+              { receiver_id: viewerId, sender_id: { in: profileFriendIds } },
+            ],
+          },
+          select: { sender_id: true, receiver_id: true },
+        });
+        const mutualIds = mutualFriendships.map(f =>
+          f.sender_id === viewerId ? f.receiver_id : f.sender_id
+        );
+
+        if (mutualIds.length > 0) {
+          mutual_friends = await prisma.user.findMany({
+            where: { id: { in: mutualIds } },
+            select: { id: true, username: true, avatar_svg: true },
+          });
+        }
+      }
     }
 
     res.json({
@@ -459,6 +527,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
         avatar_svg: dbUser.avatar_svg,
         created_at: dbUser.created_at instanceof Date ? dbUser.created_at.toISOString() : dbUser.created_at,
         friendship_status: friendshipStatus,
+        bio: prismaUser?.bio ?? null,
       },
       stats: {
         total_problems_solved: totalProblemsSolved,
@@ -472,6 +541,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
         hard_solved: hardSolved,
       },
       activity_heatmap: activityHeatmap,
+      mutual_friends,
     });
   } catch (error) {
     console.error(`[GET /api/users/${targetId}] Error:`, error);

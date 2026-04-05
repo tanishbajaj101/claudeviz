@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "cyberpunk" | "forest" | "midnight" | "bubblegum" | "peach" | "sky" | "lemon";
+type Theme = "light" | "cyberpunk" | "forest" | "midnight" | "bubblegum" | "peach" | "sky" | "lemon" | "fire";
 
-const VALID_THEMES: Theme[] = ["light", "cyberpunk", "forest", "midnight", "bubblegum", "peach", "sky", "lemon"];
+const VALID_THEMES: Theme[] = ["light", "cyberpunk", "forest", "midnight", "bubblegum", "peach", "sky", "lemon", "fire"];
 
 function isTheme(value: string | null): value is Theme {
     return value !== null && VALID_THEMES.includes(value as Theme);
@@ -33,7 +33,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             "theme-bubblegum",
             "theme-peach",
             "theme-sky",
-            "theme-lemon"
+            "theme-lemon",
+            "theme-fire"
         );
 
         // Apply the active theme
@@ -43,7 +44,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             root.classList.add(`theme-${theme}`);
         }
 
-        localStorage.setItem("ui-theme", theme);
+        // Don't persist fire — it's applied programmatically, not a user choice
+        if (theme !== "fire") {
+            localStorage.setItem("ui-theme", theme);
+        }
     }, [theme]);
 
     return (

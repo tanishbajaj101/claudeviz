@@ -1,6 +1,6 @@
 import type * as Monaco from 'monaco-editor';
 
-export type AppTheme = 'light' | 'cyberpunk' | 'forest' | 'midnight' | 'bubblegum' | 'peach' | 'sky' | 'lemon';
+export type AppTheme = 'light' | 'cyberpunk' | 'forest' | 'midnight' | 'bubblegum' | 'peach' | 'sky' | 'lemon' | 'fire';
 
 /** Maps app theme id to the Monaco theme name that will be registered */
 export const MONACO_THEME_ID: Record<AppTheme, string> = {
@@ -12,6 +12,7 @@ export const MONACO_THEME_ID: Record<AppTheme, string> = {
   peach:     'app-peach',
   sky:       'app-sky',
   lemon:     'app-lemon',
+  fire:      'app-fire',
 };
 
 type ThemeDef = Monaco.editor.IStandaloneThemeData;
@@ -254,6 +255,36 @@ const themes: Record<AppTheme, ThemeDef> = {
       'editorIndentGuide.activeBackground1': '#e0d868',
       'editorBracketMatch.background': '#ece880',
       'editorBracketMatch.border': '#c8a000',
+    },
+  },
+
+  fire: {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment',           foreground: '6b2a10', fontStyle: 'italic' },
+      { token: 'keyword',           foreground: 'ff6a00' },
+      { token: 'keyword.operator',  foreground: 'ff6a00' },
+      { token: 'string',            foreground: 'e8a040' },
+      { token: 'number',            foreground: 'ffcc44' },
+      { token: 'type',              foreground: 'ff8c40' },
+      { token: 'type.identifier',   foreground: 'ff8c40' },
+      { token: 'function',          foreground: 'ff9955' },
+      { token: 'variable',          foreground: 'f0d0b0' },
+    ],
+    colors: {
+      'editor.background':                '#0a0402',
+      'editor.foreground':                '#f0d0b0',
+      'editorCursor.foreground':          '#ff6a00',
+      'editor.lineHighlightBackground':   '#1a0a04',
+      'editorLineNumber.foreground':      '#5a2010',
+      'editorLineNumber.activeForeground':'#c04010',
+      'editor.selectionBackground':       '#6b2a0880',
+      'editor.inactiveSelectionBackground':'#3d150440',
+      'editorIndentGuide.background1':    '#2a0e06',
+      'editorIndentGuide.activeBackground1':'#5a2010',
+      'editorBracketMatch.background':    '#6b250880',
+      'editorBracketMatch.border':        '#ff6a00',
     },
   },
 };

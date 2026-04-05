@@ -329,6 +329,31 @@
     --viz-active-text: 152 50% 22%;
   }
 
+  /* FIRE THEME — special problems only, not exposed in theme switcher */
+  .theme-fire {
+    --background: 0 0% 4%;
+    --foreground: 30 70% 90%;
+    --card: 0 0% 7%;
+    --card-foreground: 30 70% 90%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 30 70% 90%;
+    --primary: 22 100% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 5 50% 10%;
+    --secondary-foreground: 30 70% 90%;
+    --muted: 5 40% 12%;
+    --muted-foreground: 20 30% 55%;
+    --accent: 5 50% 14%;
+    --accent-foreground: 30 70% 90%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 5 45% 16%;
+    --input: 5 45% 16%;
+    --ring: 22 100% 52%;
+    --viz-active-bg: 15 80% 16%;
+    --viz-active-text: 30 90% 65%;
+  }
+
   /* SOLAR THEME */
   .theme-solar {
     --background: 40 50% 8%;
@@ -363,6 +388,35 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Fire theme — body glow and heading effects */
+.theme-fire body {
+  background-image:
+    radial-gradient(ellipse 90% 35% at 50% 100%, hsl(15 90% 18% / 0.45) 0%, transparent 100%),
+    radial-gradient(ellipse 50% 20% at 20% 80%, hsl(5 80% 14% / 0.3) 0%, transparent 100%),
+    radial-gradient(ellipse 50% 20% at 80% 80%, hsl(30 100% 16% / 0.25) 0%, transparent 100%);
+}
+
+@keyframes fire-blaze {
+  0%, 100% {
+    color: hsl(22 100% 55%);
+    text-shadow:
+      0 0 14px hsl(22 100% 52% / 0.9),
+      0 0 40px hsl(18 100% 44% / 0.65),
+      0 0 80px hsl(10 100% 35% / 0.4);
+  }
+  50% {
+    color: hsl(8 100% 48%);
+    text-shadow:
+      0 0 10px hsl(8 100% 44% / 0.85),
+      0 0 30px hsl(4 100% 34% / 0.6),
+      0 0 65px hsl(0 100% 24% / 0.35);
+  }
+}
+
+.theme-fire .fire-title {
+  animation: fire-blaze 2.2s ease-in-out infinite;
 }
 
 /* Monaco editor read-only region decorations */

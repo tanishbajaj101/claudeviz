@@ -24,7 +24,11 @@
       "WebFetch(domain:buildui.com)",
       "WebFetch(domain:www.epicweb.dev)",
       "WebFetch(domain:leetcode.com)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }

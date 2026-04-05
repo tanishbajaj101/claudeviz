@@ -1,6 +1,9 @@
 ﻿import { Palette } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+const FIRE_ROUTES = /^\/dhurandhar(\/|$)|^\/problems\/sp-/;
 
 const THEMES = [
     { id: "light",     label: "Light",     dot: "bg-zinc-200" },
@@ -17,6 +20,7 @@ export function ThemeSwitcher() {
     const { theme, setTheme } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { pathname } = useLocation();
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -27,6 +31,8 @@ export function ThemeSwitcher() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    if (FIRE_ROUTES.test(pathname)) return null;
 
     return (
         <div className="relative" ref={dropdownRef}>

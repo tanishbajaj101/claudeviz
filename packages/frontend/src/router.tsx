@@ -14,6 +14,7 @@ import { MessagesPage } from './pages/MessagesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { PublicProfilePage } from './pages/PublicProfilePage';
 import { ProblemsPage } from './pages/ProblemsPage';
+import { SpecialProblemsPage } from './pages/SpecialProblemsPage';
 
 /**
  * React Router configuration for AlgoArena.
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
           {
             path: 'problems',
             element: <ProblemsPage />,
+          },
+          {
+            path: 'dhurandhar',
+            element: <SpecialProblemsPage />,
           },
           {
             path: 'onboarding',

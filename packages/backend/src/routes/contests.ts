@@ -188,6 +188,57 @@ router.get('/mine', authenticate, async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/contests/history/:userId
+ * List public contests a user participated in (no auth required).
+ * Used for public profile pages.
+ */
+router.get('/history/:userId', async (req: Request, res: Response) => {
+  const userId = parseInt(req.params.userId, 10);
+  if (isNaN(userId) || userId <= 0) {
+    res.status(400).json({ error: "Invalid user ID" });
+    return;
+  }
+
+  try {
+    const participations = await prisma.contestParticipant.findMany({
+      where: { user_id: userId, contest: { is_public: true } },
+      orderBy: { contest: { starts_at: "desc" } },
+      include: {
+        contest: {
+          select: { id: true, title: true, starts_at: true, duration_minutes: true },
+        },
+      },
+    });
+
+    const contests = await Promise.all(
+      participations.map(async (p) => {
+        const [rank, totalParticipants] = await Promise.all([
+          prisma.contestParticipant.count({
+            where: { contest_id: p.contest_id, total_score: { gt: p.total_score } },
+          }),
+          prisma.contestParticipant.count({ where: { contest_id: p.contest_id } }),
+        ]);
+        return {
+          id: p.contest.id,
+          title: p.contest.title,
+          starts_at: p.contest.starts_at.toISOString(),
+          duration_minutes: p.contest.duration_minutes,
+          score: p.total_score,
+          rank: rank + 1,
+          total_participants: totalParticipants,
+          status: getContestStatus(p.contest.starts_at, p.contest.duration_minutes),
+        };
+      })
+    );
+
+    res.json({ contests });
+  } catch (error) {
+    console.error(`[GET /api/contests/history/${req.params.userId}] Error:`, error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
  * POST /api/contests
  * Create a new contest
  */
