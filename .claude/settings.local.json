@@ -28,7 +28,8 @@
       "Bash(grep -v \"^$\")",
       "Bash(wc:*)",
       "Bash(find:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(grep -n '^ *{$' \"C:/algoarena/packages/backend/src/data/problems/special_problems.ts\")"
     ]
   }
 }

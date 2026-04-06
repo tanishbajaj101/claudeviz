@@ -11,7 +11,7 @@ export function CtaSection() {
     <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
       <div className="rounded-lg border border-border bg-card/50 px-6 py-12 md:py-16 text-center">
         <p className="font-mono text-sm text-muted-foreground mb-3">
-          <span className="text-primary">$</span> ./algoarena --join
+          <span className="text-primary">$</span> ./codetracer --join
         </p>
         <h2 className="font-mono text-2xl md:text-3xl font-bold text-foreground">
           Ready to level up your algorithms?

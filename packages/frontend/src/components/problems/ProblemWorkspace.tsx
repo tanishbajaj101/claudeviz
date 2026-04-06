@@ -12,6 +12,7 @@ import { useJudge } from "../../hooks/useJudge";
 import { useSubmissions } from "../../hooks/useSubmissions";
 import { useFriends } from "../friends/FriendsContext";
 import { Lock, Share2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { api } from "../../lib/api-client";
 
 const AI_COACH_UNLOCK_MS = 3 * 60 * 1000;
@@ -403,20 +404,32 @@ function ProblemDescription({
         <span className={`font-mono text-sm font-medium ${difficultyColor}`}>
           {problem.difficulty}
         </span>
-        <div className="mt-1 flex flex-wrap gap-1">
-          {problem.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        {!problem.id.startsWith('sp-') && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {problem.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="font-mono text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
-        {problem.description}
+      <div className="font-mono text-sm leading-relaxed text-muted-foreground">
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+            code: ({ children }) => <code className="rounded bg-muted px-1 py-0.5 text-xs text-foreground">{children}</code>,
+            ul: ({ children }) => <ul className="my-1 space-y-0.5 list-disc pl-4">{children}</ul>,
+            li: ({ children }) => <li>{children}</li>,
+          }}
+        >
+          {problem.description}
+        </ReactMarkdown>
       </div>
 
       <div>

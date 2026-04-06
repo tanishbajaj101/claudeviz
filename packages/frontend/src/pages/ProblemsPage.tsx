@@ -16,8 +16,9 @@ export function ProblemsPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
       <Link to="/dhurandhar" className="block mb-6">
-        <div className="flex items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/5 px-5 py-4 transition-colors hover:bg-amber-500/10 hover:border-amber-500/50">
-          <span className="text-2xl font-semibold text-amber-400" style={{ fontFamily: "'Cinzel', serif" }}>The Dhurandhar Chronicles</span>
+        <div className="flex items-center justify-between rounded-lg border border-primary bg-muted px-5 py-4 transition-colors hover:bg-accent">
+          <span className="text-2xl font-semibold text-primary" style={{ fontFamily: "'Cinzel', serif" }}>The Dhurandhar Chronicles</span>
+          <span className="text-lg font-medium text-primary">Solve Now &rarr;</span>
         </div>
       </Link>
       <ProblemTable problems={problems} onRandomProblem={handleRandomProblem} />

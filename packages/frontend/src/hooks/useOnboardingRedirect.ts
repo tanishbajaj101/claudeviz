@@ -16,9 +16,9 @@ export function useOnboardingRedirect() {
       navigate("/onboarding");
     }
 
-    // If user is NOT new and on onboarding page, redirect to home
+    // If user is NOT new and on onboarding page, redirect to problems
     if (user?.isNewUser === false && pathname === "/onboarding") {
-      navigate("/");
+      navigate("/problems");
     }
   }, [user?.isNewUser, pathname, navigate, loading]);
 }

@@ -94,13 +94,6 @@ export function SpecialProblemsPage() {
                         </span>
                         <ChevronRight size={14} className="text-muted-foreground/50" />
                       </div>
-                      <div className="flex gap-1 mt-1">
-                        {problem.tags.slice(0, 3).map((tag) => (
-                          <span key={tag} className="font-mono text-xs text-muted-foreground/60">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
                     </td>
 
                     {/* Difficulty */}

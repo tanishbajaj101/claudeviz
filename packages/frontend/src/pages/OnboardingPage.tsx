@@ -272,7 +272,7 @@ export function OnboardingPage() {
 
       // Refresh user session
       await refreshUser();
-      navigate('/');
+      navigate('/problems');
     } catch (error) {
       alert('Failed to create profile');
       setSubmitting(false);
@@ -285,7 +285,7 @@ export function OnboardingPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4 font-mono">
       <div className="w-full max-w-md bg-card border border-border rounded-lg p-8 shadow-xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-400 mb-2">Welcome to AlgoArena</h1>
+          <h1 className="text-3xl font-bold text-emerald-400 mb-2">Welcome to codetracer</h1>
           <p className="text-muted-foreground">Set up your profile to get started</p>
         </div>
 

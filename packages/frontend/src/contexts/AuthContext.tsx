@@ -78,8 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = params.get('token');
 
       if (token) {
-        // Token is in URL (onboarding flow) - the backend already set the cookie,
-        // but we need to fetch the user data
+        // Token is in URL (OAuth callback or onboarding).
+        // Save to localStorage so cross-site fetches work on Safari/Firefox
+        // (those browsers block sameSite=none cookies from railway.app on vercel.app).
+        localStorage.setItem('auth-token', token);
         await fetchSession();
 
         // Clean up URL
@@ -123,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout failed:', error);
     }
 
+    localStorage.removeItem('auth-token');
     setUser(null);
     navigate('/auth/signin');
   }, [navigate]);

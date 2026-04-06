@@ -1,4 +1,4 @@
-# AlgoArena
+# codetracer
 
 LeetCode alternative: problem list → split-pane workspace (editor + Judge0 runner + AI coach) → algorithm visualizations.
 

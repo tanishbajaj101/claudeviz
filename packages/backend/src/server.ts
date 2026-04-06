@@ -24,7 +24,7 @@ const io = initializeSocketIO(httpServer);
 
 // Start server
 httpServer.listen(PORT, () => {
-  console.log(`🚀 AlgoArena backend running in ${NODE_ENV} mode`);
+  console.log(`🚀 codetracer backend running in ${NODE_ENV} mode`);
   console.log(`📡 HTTP server: http://localhost:${PORT}`);
   console.log(`🔌 Socket.IO ready on /chat, /contests, /notifications namespaces`);
 });

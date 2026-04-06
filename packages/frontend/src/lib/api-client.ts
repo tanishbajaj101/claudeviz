@@ -44,11 +44,21 @@ export async function apiRequest<T = unknown>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  // Include stored JWT as Authorization header for cross-browser compatibility.
+  // Safari (ITP) and Firefox (ETP) block cross-site cookies from railway.app when
+  // the page is on vercel.app, even with sameSite=none. The localStorage token +
+  // Bearer header is the universal fallback.
+  const localToken = localStorage.getItem('auth-token');
+  const authHeader: Record<string, string> = localToken
+    ? { Authorization: `Bearer ${localToken}` }
+    : {};
+
   const response = await fetch(url, {
     ...options,
-    credentials: 'include', // Include cookies
+    credentials: 'include', // Also send cookies for Chrome (still works there)
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
       ...options.headers,
     },
   });

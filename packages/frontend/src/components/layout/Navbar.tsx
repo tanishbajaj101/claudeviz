@@ -18,10 +18,10 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary font-mono text-sm font-bold text-zinc-950">
-              AA
+              &lt;&gt;
             </div>
             <span className="font-mono text-lg font-semibold tracking-tight text-foreground">
-              AlgoArena
+              codetracer
             </span>
           </Link>
 

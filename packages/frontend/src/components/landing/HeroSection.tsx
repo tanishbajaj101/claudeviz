@@ -59,13 +59,13 @@ export function HeroSection() {
           <span className="h-3 w-3 rounded-full bg-red-500/70" />
           <span className="h-3 w-3 rounded-full bg-amber-500/70" />
           <span className="h-3 w-3 rounded-full bg-emerald-500/70" />
-          <span className="ml-2 font-mono text-xs text-muted-foreground">algo-arena ~ zsh</span>
+          <span className="ml-2 font-mono text-xs text-muted-foreground">code-tracer ~ zsh</span>
         </div>
 
         {/* Hero body */}
         <div className="bg-card/30 px-6 py-16 md:px-10">
           <p className="font-mono text-sm text-muted-foreground mb-3">
-            <span className="text-primary">$</span> ./algoarena --start
+            <span className="text-primary">$</span> ./codetracer --start
           </p>
           <h1 className="font-mono text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground min-h-[3rem] md:min-h-[3.5rem]">
             {displayText}

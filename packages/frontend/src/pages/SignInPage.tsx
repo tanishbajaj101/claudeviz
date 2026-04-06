@@ -39,7 +39,7 @@ export function SignInPage() {
         {/* Logo */}
         <div className="text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            AlgoArena
+            codetracer
           </h1>
           <p className="mt-2 text-muted-foreground">
             LeetCode alternative with AI coaching
