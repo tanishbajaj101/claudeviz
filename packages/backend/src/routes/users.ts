@@ -16,7 +16,7 @@ import {
   updateLastProblem,
 } from '../lib/db.js';
 import { prisma } from '../lib/prisma.js';
-import { problems } from '../lib/problems.js';
+import { problems, getProblemById } from '../lib/problems.js';
 
 const router = Router();
 
@@ -339,7 +339,7 @@ router.post('/activity/problem', authenticate, async (req: Request, res: Respons
   }
 
   // Validate problem exists
-  const knownProblem = problems.find((p) => p.id === problem_id.trim());
+  const knownProblem = getProblemById(problem_id.trim());
   if (!knownProblem) {
     res.status(404).json({ error: "Unknown problem_id" });
     return;

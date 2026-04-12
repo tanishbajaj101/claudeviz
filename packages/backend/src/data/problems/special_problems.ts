@@ -906,11 +906,9 @@ int calculateMinimumHP(vector<vector<int>>& city) {
 
 In each round, you choose **one of three actions**:
 
-| Action | Damage Dealt | Condition |
-|--------|-------------|-----------|
-| **Strike** | \`A[i]\` | Always available |
-| **Block** | \`0\` | Always available |
-| **Counter** | \`C[i]\` | Only if previous move was **Block** |
+- **Strike** — deals \`A[i]\` damage. Always available.
+- **Block** — deals 0 damage. Always available.
+- **Counter** — deals \`C[i]\` damage. Only available if your previous move was **Block**.
 
 **Constraints on actions:**
 - You **cannot use the same action in two consecutive rounds**.

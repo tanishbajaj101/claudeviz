@@ -80,6 +80,11 @@ export async function generateVisualization(
       }
     }
 
+    // Print full generated tracer code
+    console.log('=== GENERATED TRACER CODE ===');
+    console.log(code);
+    console.log('=== END TRACER CODE ===');
+
     // Validate JavaScript syntax by attempting to create a function
     try {
       new Function("tracer", "INPUTS", code);

@@ -38,12 +38,19 @@ function RendererFor({ config, steps, currentIndex, isSeek }: { config: any, ste
 function buildRendererData(renderers: any[], steps: any[]) {
   const result: Record<string, { filtered: any[], globalToLocal: number[] }> = {};
   renderers.forEach(r => {
-    const filtered = steps.filter(s => !s._renderer || s._renderer === r.id);
+    // Batch steps are global; pre-filter their sub-steps to only those for this renderer
+    const filtered = steps
+      .map(s => s.type === 'batch'
+        ? { ...s, steps: s.steps.filter((sub: any) => !sub._renderer || sub._renderer === r.id) }
+        : s
+      )
+      .filter(s => s.type === 'batch' || !s._renderer || s._renderer === r.id);
+
     // For each global step index, what is the local index within filtered?
     const globalToLocal = new Array(steps.length).fill(-1);
     let local = -1;
     steps.forEach((s, gi) => {
-      if (!s._renderer || s._renderer === r.id) local++;
+      if (s.type === 'batch' || !s._renderer || s._renderer === r.id) local++;
       globalToLocal[gi] = local;
     });
     result[r.id] = { filtered, globalToLocal };
@@ -177,6 +184,14 @@ export function VisualizationPlayer({ config, steps, initialStep }: Visualizatio
 
   const player = usePlayer(steps, handleStep, initialStep);
   const hasRecursion = useMemo(() => steps?.some(s => s.type === 'recursion-push'), [steps]);
+
+  const currentTime = useMemo(() => {
+    if (!steps || currentIndex < 0) return null;
+    for (let i = currentIndex; i >= 0; i--) {
+      if (steps[i].type === 'time') return steps[i].value;
+    }
+    return null;
+  }, [steps, currentIndex]);
 
   const renderPanel = (cfg: any, filteredSteps: any[], localIndex: number, sizePct: number, label?: string) => (
     <div
@@ -336,7 +351,7 @@ export function VisualizationPlayer({ config, steps, initialStep }: Visualizatio
         )}
       </div>
       <StepLogger steps={steps} currentIndex={currentIndex} />
-      <PlayerControls player={player} totalSteps={steps?.length || 0} />
+      <PlayerControls player={player} totalSteps={steps?.length || 0} currentTime={currentTime} />
     </div>
   );
 }

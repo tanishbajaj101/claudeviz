@@ -48,9 +48,7 @@ export function SpecialProblemsPage() {
         <div className="mb-2 text-center">
           <h1 className="fire-title text-4xl font-bold text-foreground" style={{ fontFamily: "'Cinzel', serif" }}>DHURANDHAR</h1>
         </div>
-        <p className="font-mono text-sm text-muted-foreground">
-          A curated set of challenges with progressive unlocks. Complete each tier to advance.
-        </p>
+
       </div>
 
 
@@ -123,6 +121,7 @@ export function SpecialProblemsPage() {
           </table>
         )}
       </div>
+      <p className="font-mono text-xs text-muted-foreground/50 text-center mt-3">Peak Detailing.</p>
     </main>
   );
 }

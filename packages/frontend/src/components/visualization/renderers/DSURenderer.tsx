@@ -132,6 +132,12 @@ function applyStepToState(state: any, step: any, _instant: boolean) {
       };
     }
 
+    case 'batch': {
+      return (step.steps as any[]).reduce(
+        (s: any, sub: any) => applyStepToState(s, sub, _instant),
+        state
+      );
+    }
     default:
       return state;
   }

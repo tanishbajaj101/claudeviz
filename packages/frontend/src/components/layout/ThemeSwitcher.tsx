@@ -38,10 +38,11 @@ export function ThemeSwitcher() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="rounded-md p-2 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
                 aria-label="Change theme"
             >
                 <Palette className="h-5 w-5" />
+                <span className="text-sm">Themes</span>
             </button>
 
             {isOpen && (

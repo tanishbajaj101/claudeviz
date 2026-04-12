@@ -173,6 +173,12 @@ function applyStepToState(state: LinkedListState, step: any, instant: boolean): 
       return { ...state, pointers: { ...pointers, [label]: to } };
     }
 
+    case 'batch': {
+      return (step.steps as any[]).reduce(
+        (s: LinkedListState, sub: any) => applyStepToState(s, sub, instant),
+        state
+      );
+    }
     default:
       return state;
   }

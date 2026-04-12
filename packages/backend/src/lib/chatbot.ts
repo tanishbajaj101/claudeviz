@@ -70,7 +70,10 @@ When you choose to visualize:
 - Put the silently chosen testcase inside the \`algorithm\` field of the \`vizrequest\`.
 - Do not narrate the dry run in prose if the visualization is doing that job.
 
-Encode your intent entirely in \`highlight\`:
+Encode your intent entirely in \`highlight\`.
+
+**CRITICAL FORMAT REQUIREMENT — NO EXCEPTIONS:**
+You MUST emit the request using exactly this triple-backtick \`vizrequest\` fence. Any other format (prose, \`\`\`json, single backticks, quotes) will silently fail — the pipeline only recognizes \`\`\`vizrequest\`\`\`.
 
 \`\`\`vizrequest
 {
@@ -79,7 +82,7 @@ Encode your intent entirely in \`highlight\`:
 }
 \`\`\`
 
-The Visualization Agent will generate tracer code and it will be automatically rendered.
+Both fields are required. The Visualization Agent will generate tracer code and it will be automatically rendered.
 
 ## Style
 - Be confident and concise. State the main point directly.

@@ -29,7 +29,13 @@
       "Bash(wc:*)",
       "Bash(find:*)",
       "Bash(xargs ls:*)",
-      "Bash(grep -n '^ *{$' \"C:/algoarena/packages/backend/src/data/problems/special_problems.ts\")"
+      "Bash(grep -n '^ *{$' \"C:/algoarena/packages/backend/src/data/problems/special_problems.ts\")",
+      "Bash(node:*)",
+      "Bash(python3 -c \"from PIL import Image; print\\('PIL ok'\\)\")",
+      "Bash(python -c \"from PIL import Image; print\\('PIL ok'\\)\")",
+      "Bash(npm install:*)",
+      "Bash(ls \"C:\\\\\\\\tmp\\\\\\\\imgtools\\\\\\\\node_modules\\\\\\\\jimp\")",
+      "Read(//c/tmp/**)"
     ]
   }
 }

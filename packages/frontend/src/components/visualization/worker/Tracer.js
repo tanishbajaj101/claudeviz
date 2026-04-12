@@ -188,6 +188,20 @@ class Tracer {
     this._push({ type: 'highlight-range', targets: targets ?? [] }, rendererId);
   }
 
+  setTime(value) {
+    this.steps.push({ type: 'time', value });
+  }
+
+  batch(fn) {
+    const before = this.steps.length;
+    fn();
+    const after = this.steps.length;
+    if (after > before) {
+      const subSteps = this.steps.splice(before, after - before);
+      this.steps.push({ type: 'batch', steps: subSteps });
+    }
+  }
+
   getSteps() {
     return this.steps;
   }

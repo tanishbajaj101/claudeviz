@@ -72,8 +72,9 @@ function initState(config: any): TreeState {
   return { nodes, edges, nodeLayout: layout, pointers: {}, levelHighlights: [], annotations: {}, elementGroups: {}, rangeHighlights: [] };
 }
 
-function applyStepToState(state: TreeState, step: any, instant: boolean): TreeState {
+function applyStepToState(state: TreeState, step: any, instant: boolean, isTopLevel = true): TreeState {
   if (!step) return state;
+  if (isTopLevel) state = { ...state, annotations: {} };
   let { nodes, edges, pointers, annotations, elementGroups } = state;
 
   switch (step.type) {
@@ -144,6 +145,12 @@ function applyStepToState(state: TreeState, step: any, instant: boolean): TreeSt
       const { label, to } = step;
       if (to === null || to === undefined) { const np = { ...pointers }; delete np[label]; return { ...state, pointers: np }; }
       return { ...state, pointers: { ...pointers, [label]: to } };
+    }
+    case 'batch': {
+      return (step.steps as any[]).reduce(
+        (s: TreeState, sub: any) => applyStepToState(s, sub, instant, false),
+        state
+      );
     }
     default: return state;
   }

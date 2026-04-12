@@ -3,9 +3,10 @@ import { PlayerState } from '../hooks/usePlayer';
 interface PlayerControlsProps {
   player: PlayerState;
   totalSteps: number;
+  currentTime?: number | string | null;
 }
 
-export default function PlayerControls({ player, totalSteps }: PlayerControlsProps) {
+export default function PlayerControls({ player, totalSteps, currentTime }: PlayerControlsProps) {
   const {
     currentStep,
     isPlaying,
@@ -130,6 +131,24 @@ export default function PlayerControls({ player, totalSteps }: PlayerControlsPro
       >
         {currentStep < 0 ? '—' : displayStep}/{totalSteps}
       </span>
+
+      {/* Time counter — shown only when tracer emits setTime() steps */}
+      {currentTime != null && (
+        <span
+          style={{
+            fontSize: 12,
+            color: 'hsl(var(--muted-foreground))',
+            fontFamily: 'monospace',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            background: 'hsl(var(--muted))',
+            borderRadius: 4,
+            padding: '2px 6px',
+          }}
+        >
+          t={currentTime}
+        </span>
+      )}
 
       {/* Speed */}
       <select

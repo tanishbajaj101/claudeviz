@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 import { Problem } from "../../types";
 import { useSubmissions } from "../../hooks/useSubmissions";
 import { Check, Flame, ArrowUpDown, Search, Shuffle } from "lucide-react";
-import { useBounty, formatTimeRemaining } from "../../hooks/useBounty";
+import { formatTimeRemaining } from "../../hooks/useBounty";
+import type { BountyInfo } from "@shared/types/socket";
 
 const DIFFICULTY_COLORS: Record<Problem["difficulty"], string> = {
   Easy: "text-emerald-400",
@@ -18,11 +19,15 @@ function getCategories(problems: Problem[]): string[] {
   return Array.from(cats).sort();
 }
 
-export function ProblemTable({ 
+export function ProblemTable({
   problems,
-  onRandomProblem 
-}: { 
+  bounty,
+  timeRemaining,
+  onRandomProblem
+}: {
   problems: Problem[];
+  bounty: BountyInfo | null;
+  timeRemaining: number;
   onRandomProblem?: () => void;
 }) {
   const [search, setSearch] = useState("");
@@ -30,7 +35,6 @@ export function ProblemTable({
   const [category, setCategory] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { solvedProblems } = useSubmissions();
-  const { bounty, timeRemaining } = useBounty();
 
   const categories = useMemo(() => getCategories(problems), [problems]);
 
@@ -53,6 +57,9 @@ export function ProblemTable({
     });
 
     result.sort((a, b) => {
+      const aIsBounty = bounty?.problemId === a.id ? -1 : 0;
+      const bIsBounty = bounty?.problemId === b.id ? -1 : 0;
+      if (aIsBounty !== bIsBounty) return aIsBounty - bIsBounty;
       const valA = difficultyValue[a.difficulty];
       const valB = difficultyValue[b.difficulty];
       return sortOrder === "asc" ? valA - valB : valB - valA;
@@ -195,12 +202,12 @@ export function ProblemTable({
                         {problem.title}
                       </Link>
                       {isBounty && (
-                        <span
-                          className="flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-400"
-                          title={`+${bounty!.bonusXp} bonus XP Â· Bounty active for ${formatTimeRemaining(timeRemaining)}`}
-                        >
+                        <span className="group relative flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-400 cursor-default">
                           <Flame size={10} />
                           {formatTimeRemaining(timeRemaining)} left
+                          <span className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-zinc-900 border border-amber-500/30 px-2 py-1 font-mono text-[10px] text-amber-400 opacity-0 transition-opacity group-hover:opacity-100">
+                            Gain 2x XP
+                          </span>
                         </span>
                       )}
                     </div>

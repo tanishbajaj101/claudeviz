@@ -23,8 +23,9 @@ function initState(config: any) {
   return { elements, pointers: {} as Record<string, any>, annotations: {} as Record<string, any>, elementGroups: {} as Record<string, any>, _pendingRemove: undefined as string | undefined };
 }
 
-function applyStepToState(state: any, step: any, instant: boolean) {
+function applyStepToState(state: any, step: any, instant: boolean, isTopLevel = true) {
   if (!step) return state;
+  if (isTopLevel) state = { ...state, annotations: {} };
   let { elements, pointers, annotations, elementGroups } = state;
   const matchTarget = (el: any, t: any) => Array.isArray(t) && el.row === t[0] && el.col === t[1];
 
@@ -92,6 +93,12 @@ function applyStepToState(state: any, step: any, instant: boolean) {
         if (step.color === null) delete ng[id]; else ng[id] = step.color;
       });
       return { ...state, elementGroups: ng };
+    }
+    case 'batch': {
+      return (step.steps as any[]).reduce(
+        (s: any, sub: any) => applyStepToState(s, sub, instant, false),
+        state
+      );
     }
     default: return state;
   }

@@ -1,11 +1,23 @@
+import { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shuffle } from 'lucide-react';
-import { getProblems } from '../data/problems';
+import { getProblems, getProblemById } from '../data/problems';
 import { ProblemTable } from '../components/problems/ProblemTable';
+import { useBounty } from '../hooks/useBounty';
 
 export function ProblemsPage() {
   const navigate = useNavigate();
-  const problems = getProblems();
+  const baseProblems = getProblems();
+  const { bounty, loading: bountyLoading, timeRemaining } = useBounty();
+
+  const problems = useMemo(() => {
+    if (!bounty) return baseProblems;
+    const alreadyPresent = baseProblems.some((p) => p.id === bounty.problemId);
+    if (alreadyPresent) return baseProblems;
+    const bountyProblem = getProblemById(bounty.problemId);
+    if (!bountyProblem) return baseProblems;
+    return [bountyProblem, ...baseProblems];
+  }, [baseProblems, bounty]);
 
   const handleRandomProblem = () => {
     if (problems.length === 0) return;
@@ -21,7 +33,13 @@ export function ProblemsPage() {
           <span className="text-lg font-medium text-primary">Solve Now &rarr;</span>
         </div>
       </Link>
-      <ProblemTable problems={problems} onRandomProblem={handleRandomProblem} />
+      {bountyLoading ? (
+        <div className="flex items-center justify-center py-24 font-mono text-sm text-muted-foreground">
+          Loading...
+        </div>
+      ) : (
+        <ProblemTable problems={problems} bounty={bounty} timeRemaining={timeRemaining} onRandomProblem={handleRandomProblem} />
+      )}
     </main>
   );
 }

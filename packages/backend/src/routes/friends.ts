@@ -8,7 +8,7 @@ import { authenticate } from '../middleware/auth.js';
 import { getUserById } from '../lib/db.js';
 import { prisma } from '../lib/prisma.js';
 import type { Prisma } from '@prisma/client';
-import { problems } from '../lib/problems.js';
+import { getProblemById } from '../lib/problems.js';
 import { isUserOnline } from '../socket/connections.js';
 import { emitNotification } from '../socket/notification-helpers.js';
 
@@ -64,7 +64,7 @@ async function getLastProblemActivity(
   if (!friendDbUser || !friendDbUser.last_opened_problem_id) return null;
 
   const problemId = friendDbUser.last_opened_problem_id;
-  const problem = problems.find((p) => p.id === problemId);
+  const problem = getProblemById(problemId);
   if (!problem) return null;
 
   const acceptedSubmission = await prisma.submission.findFirst({

@@ -47,14 +47,15 @@ function initState(config: any): LinearState {
   return { elements, pointers: {}, dimRegion: null, annotations: {}, elementGroups: {} };
 }
 
-// Match element by id (string) or index (number), handling type coercion
+// Match element by current position index — tracer API always passes current array positions
 function elMatch(el: LinearElement, target: any): boolean {
   // eslint-disable-next-line eqeqeq
-  return el.id == target || el.index == target;
+  return el.index == target;
 }
 
-function applyStepToState(state: LinearState, step: any, instant: boolean): LinearState {
+function applyStepToState(state: LinearState, step: any, instant: boolean, isTopLevel = true): LinearState {
   if (!step) return state;
+  if (isTopLevel) state = { ...state, annotations: {} };
   let { elements, pointers, annotations, elementGroups } = state;
 
   switch (step.type) {
@@ -111,6 +112,12 @@ function applyStepToState(state: LinearState, step: any, instant: boolean): Line
     case 'value-update': {
       return { ...state, elements: elements.map((el) => elMatch(el, step.target)
         ? { ...el, value: step.value, flash: instant ? null : VALUE_UPDATE_COLOR, pulse: false } : { ...el, pulse: false, flash: null }) };
+    }
+    case 'batch': {
+      return (step.steps as any[]).reduce(
+        (s: LinearState, sub: any) => applyStepToState(s, sub, instant, false),
+        state
+      );
     }
     case 'annotate': {
       const na = { ...annotations };

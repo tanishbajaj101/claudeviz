@@ -66,8 +66,9 @@ function initState(config: any): GraphState {
   return { nodes, edges, nodeLayout: layout, pointers: {}, levelHighlights: [], annotations: {}, elementGroups: {}, rangeHighlights: [] };
 }
 
-function applyStepToState(state: GraphState, step: any, instant: boolean, config: any): GraphState {
+function applyStepToState(state: GraphState, step: any, instant: boolean, config: any, isTopLevel = true): GraphState {
   if (!step) return state;
+  if (isTopLevel) state = { ...state, annotations: {} };
   let { nodes, edges, pointers, annotations, elementGroups, nodeLayout } = state;
 
   switch (step.type) {
@@ -130,6 +131,12 @@ function applyStepToState(state: GraphState, step: any, instant: boolean, config
       const { label, to } = step;
       if (to === null || to === undefined) { const np = { ...pointers }; delete np[label]; return { ...state, pointers: np }; }
       return { ...state, pointers: { ...pointers, [label]: to } };
+    }
+    case 'batch': {
+      return (step.steps as any[]).reduce(
+        (s: GraphState, sub: any) => applyStepToState(s, sub, instant, config, false),
+        state
+      );
     }
     default: return state;
   }

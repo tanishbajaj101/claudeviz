@@ -74,6 +74,12 @@ function applyOperationalStep(sub: any, step: any, instant: boolean) {
 
 function applyStepToState(state: any, step: any, instant: boolean) {
   if (!step) return state;
+  if (step.type === 'batch') {
+    return (step.steps as any[]).reduce(
+      (s: any, sub: any) => applyStepToState(s, sub, instant),
+      state
+    );
+  }
   const subArrays = { ...state.subArrays };
 
   if (step.type === 'sub-create') {
