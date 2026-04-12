@@ -11,12 +11,10 @@ import { ResizeHandle } from "../../components/ui/ResizeHandle";
 import { useJudge } from "../../hooks/useJudge";
 import { useSubmissions } from "../../hooks/useSubmissions";
 import { useFriends } from "../friends/FriendsContext";
-import { Lock, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { api } from "../../lib/api-client";
 
-const AI_COACH_UNLOCK_MS = 3 * 60 * 1000;
-const AI_COACH_TIMER_KEY_PREFIX = "algoarena-ai-coach-start-";
 
 const STATUS_LABELS: Record<number, { label: string; color: string }> = {
   3: { label: "Accepted", color: "text-emerald-400" },
@@ -36,7 +34,6 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [solvedStatus, setSolvedStatus] = useState<{ solved: boolean; solved_at: string | null } | null>(null);
   const [showRecommendModal, setShowRecommendModal] = useState(false);
-  const [elapsedMs, setElapsedMs] = useState(0);
   const judge = useJudge();
   const { solvedProblems, recordSubmission } = useSubmissions();
   const { refreshFriends } = useFriends();
@@ -45,34 +42,8 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
   const problemKey = String(problem.id);
 
   useEffect(() => {
-    const storageKey = `${AI_COACH_TIMER_KEY_PREFIX}${problemKey}`;
-    const storedStart = localStorage.getItem(storageKey);
-    const startedAt = storedStart ? Number(storedStart) : Date.now();
-
-    if (!storedStart || Number.isNaN(startedAt)) {
-      localStorage.setItem(storageKey, String(Date.now()));
-    }
-
-    const updateElapsed = () => {
-      const rawValue = localStorage.getItem(storageKey);
-      const startTime = rawValue ? Number(rawValue) : Date.now();
-      setElapsedMs(Date.now() - (Number.isNaN(startTime) ? Date.now() : startTime));
-    };
-
-    updateElapsed();
-    const interval = window.setInterval(updateElapsed, 1000);
-
-    return () => window.clearInterval(interval);
-  }, [problemKey]);
-
-  useEffect(() => {
     setActiveTab("description");
   }, [problemKey]);
-
-  const aiCoachLocked = elapsedMs < AI_COACH_UNLOCK_MS;
-  const aiCoachLockTitle = aiCoachLocked
-    ? "Spend atleast 3mins reading yourself."
-    : "Open AI Coach";
 
   // Fetch solved status on mount
   useEffect(() => {
@@ -204,24 +175,15 @@ export function ProblemWorkspace({ problem }: { problem: Problem }) {
                 >
                   Description
                 </button>
-                <div title={aiCoachLockTitle}>
                   <button
-                    onClick={() => {
-                      if (aiCoachLocked) return;
-                      setActiveTab("chat");
-                    }}
-                    aria-disabled={aiCoachLocked}
-                  className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "chat"
+                    onClick={() => setActiveTab("chat")}
+                    className={`px-4 py-2.5 font-mono text-xs font-medium transition-colors ${activeTab === "chat"
                       ? "border-b-2 border-emerald-500 text-emerald-400"
                       : "text-muted-foreground hover:text-muted-foreground"
-                      } ${aiCoachLocked ? "cursor-not-allowed opacity-60" : ""}`}
+                      }`}
                   >
-                    <span className="inline-flex items-center gap-1.5">
-                      <span>AI Coach</span>
-                      {aiCoachLocked && <Lock size={12} />}
-                    </span>
+                    AI Coach
                   </button>
-                </div>
               </div>
 
               {/* Tab content */}
