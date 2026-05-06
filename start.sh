@@ -14,8 +14,11 @@ npx prisma migrate deploy --schema=prisma/schema.prisma
 echo "[algoarena] starting express backend on :3001..."
 PORT=3001 node packages/backend/dist/server.js &
 
-echo "[algoarena] waiting for backend to initialize..."
-sleep 3
+echo "[algoarena] waiting for backend to be ready..."
+until wget -qO- http://localhost:3001/health > /dev/null 2>&1; do
+  sleep 1
+done
+echo "[algoarena] backend is ready."
 
 echo "[algoarena] starting nginx on :${NGINX_PORT}..."
 exec nginx -g 'daemon off;'
