@@ -1,0 +1,9 @@
+node_modules
+packages/*/node_modules
+packages/*/dist
+.git
+.gitignore
+*.log
+packages/backend/.env
+packages/frontend/.env.local
+.env
