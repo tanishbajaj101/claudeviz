@@ -35,7 +35,11 @@
       "Bash(python -c \"from PIL import Image; print\\('PIL ok'\\)\")",
       "Bash(npm install:*)",
       "Bash(ls \"C:\\\\\\\\tmp\\\\\\\\imgtools\\\\\\\\node_modules\\\\\\\\jimp\")",
-      "Read(//c/tmp/**)"
+      "Read(//c/tmp/**)",
+      "Bash(railway version *)",
+      "Bash(railway *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

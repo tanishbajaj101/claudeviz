@@ -5,5 +5,7 @@ packages/*/dist
 .gitignore
 *.log
 packages/backend/.env
+packages/frontend/.env
 packages/frontend/.env.local
 .env
+.env.docker
