@@ -1,5 +1,9 @@
 <p align="center">
-  <video src="./codetracer_demo.mp4" controls width="100%"></video>
+  <a href="./codetracer_demo.mp4">
+    <img src="./demo-thumbnail.jpg" alt="CodeTracer demo — click to watch" width="100%" />
+  </a>
+  <br />
+  <sub>▶ click the screenshot to watch the demo</sub>
 </p>
 
 <h1 align="center">CodeTracer</h1>
