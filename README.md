@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./banner.jpeg" alt="CodeTracer banner" width="100%" />
+  <video src="./codetracer_demo.mp4" controls width="100%"></video>
 </p>
 
 <h1 align="center">CodeTracer</h1>
@@ -15,10 +15,6 @@ I got tired of grinding LeetCode in a browser tab with fifteen other tabs open, 
 It's got an AI coach that nudges you instead of handing you the answer, visualizations that animate what your code is actually doing, and contests + friends + chat if you want to make the grind less lonely.
 
 Built for fun, not for a paycheck. Still very much a work in progress.
-
-## Demo
-
-<video src="./codetracer_demo.mp4" controls width="100%"></video>
 
 ## What's in it
 
