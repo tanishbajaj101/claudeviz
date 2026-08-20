@@ -1,106 +1,51 @@
-# CodeTracer (AlgoArena)
+<p align="center">
+  <img src="./banner.jpeg" alt="CodeTracer banner" width="100%" />
+</p>
 
-A LeetCode alternative: browse a problem list, solve in a split-pane workspace (editor + Judge0 runner + AI coach), and review algorithm visualizations. Includes contests, friends, real-time chat, and notifications.
+<h1 align="center">CodeTracer</h1>
 
-## Stack
+<p align="center">
+  <em>Master DSA. One problem at a time.</em>
+</p>
 
-**Monorepo (npm workspaces):**
-- **Frontend:** Vite 7 + React 19 + React Router 6, TypeScript strict, Tailwind CSS (port 5173)
-- **Backend:** Express 4 + Socket.IO 4.8 + Passport.js (Google OAuth + JWT auth) (port 3001)
-- **Shared:** TypeScript type definitions package
-- **Database:** Prisma 7 ORM — PostgreSQL via Supabase + legacy `better-sqlite3` for `users`/`submissions`
-- **Real-time:** Socket.IO — `/chat`, `/contests`, `/notifications` namespaces
-- **Editor:** `react-simple-code-editor` + Prism.js — C++ only (Judge0 `language_id: 54`, GCC 9.2.0)
-- **External APIs:** Judge0 CE API, OpenAI (LangChain agents)
+---
 
-## Getting Started
+I got tired of grinding LeetCode in a browser tab with fifteen other tabs open, so I built my own version. CodeTracer is a place to pick a problem, write C++ in a real editor, run it against real test cases, and actually *see* your algorithm move instead of just staring at a green checkmark.
 
-Install dependencies from the repo root:
+It's got an AI coach that nudges you instead of handing you the answer, visualizations that animate what your code is actually doing, and contests + friends + chat if you want to make the grind less lonely.
+
+Built for fun, not for a paycheck. Still very much a work in progress.
+
+## Demo
+
+<video src="./codetracer_demo.mp4" controls width="100%"></video>
+
+## What's in it
+
+- 🧩 **A pile of DSA problems**, split-pane editor next to the problem description
+- ⚙️ **Real C++ execution** against real test cases (Judge0 under the hood)
+- 🤖 **An AI coach** that gives hints and nudges — never the full solution
+- 🎞️ **Algorithm visualizations** so you can watch your solution run, step by step
+- 🏆 **Contests** with live leaderboards
+- 👥 **Friends, DMs, and notifications** — because solo grinding gets old
+- 🔥 **A profile page with a solve heatmap**, because everyone loves a streak
+
+## Run it yourself
 
 ```bash
+git clone https://github.com/tanishbajaj101/codetracer.git
+cd codetracer
 npm install
 ```
 
-Set up environment variables (see below), then start both frontend and backend together:
+Copy the `.env.example` files in `packages/backend` and `packages/frontend` to `.env` / `.env.local` and fill in the blanks (Google OAuth, a Postgres URL, a Judge0 key, an OpenAI key).
 
 ```bash
 npm run dev
 ```
 
-- Frontend: [http://localhost:5173](http://localhost:5173)
-- Backend API: [http://localhost:3001](http://localhost:3001)
+Frontend's at `localhost:5173`, backend at `localhost:3001`.
 
-Run them individually if needed:
+## Contributing
 
-```bash
-npm run dev:backend
-npm run dev:frontend
-```
-
-### Database
-
-```bash
-npm run prisma:generate -w @algoarena/backend
-npm run prisma:migrate -w @algoarena/backend
-npm run prisma:studio -w @algoarena/backend
-```
-
-### Build & Production
-
-```bash
-npm run build          # builds shared -> backend -> frontend
-npm run start           # starts the Express server (Nginx serves the frontend build)
-```
-
-## Environment Variables
-
-**Backend (`packages/backend/.env`):**
-
-```bash
-NODE_ENV=development
-PORT=3001
-DATABASE_URL=postgresql://...
-JWT_SECRET=<random-secret>
-SESSION_SECRET=<random-secret>
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/google/callback
-JUDGE0_API_URL=https://judge0-ce.p.rapidapi.com
-JUDGE0_API_KEY=...
-OPENAI_API_KEY=sk-proj-...
-FRONTEND_URL=http://localhost:5173
-```
-
-**Frontend (`packages/frontend/.env.local`):**
-
-```bash
-VITE_API_URL=http://localhost:3001
-VITE_SOCKET_URL=http://localhost:3001
-```
-
-See `docs/` for full API, database, socket, and deployment references.
-
-## Project Structure
-
-```
-packages/
-├── frontend/   # Vite + React SPA
-├── backend/    # Express + Socket.IO API
-└── shared/     # Shared TypeScript types
-prisma/         # Prisma schema
-docs/           # Architecture, API, database, auth, and other reference docs
-```
-
-See `CLAUDE.md` for the full architecture breakdown, code conventions, and deployment details.
-
-## Deployment
-
-Split deployment: **Vercel** (frontend, SPA) + **Railway** (backend, Express + Socket.IO) + **Supabase** (PostgreSQL).
-
-| Service | Platform |
-|---------|----------|
-| Frontend | Vercel |
-| Backend | Railway |
-| Database | Supabase |
-
-Pushing to `main` triggers builds on both Vercel and Railway. See `docs/ARCHITECTURE.md` for the full deployment configuration.
+Found a bug, have an idea, or just want to add a problem? PRs and issues are welcome — fork it, branch off, and open a pull request. Nothing formal, just be nice and explain what you changed and why.
